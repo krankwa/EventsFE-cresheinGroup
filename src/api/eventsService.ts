@@ -1,4 +1,4 @@
-import type { EventDTO } from "../types/Event.types";
+import type { EventDTO } from "../interface/Event";
 import { apiRequest } from "./client";
 
 // GET https://localhost:7080/api/Event

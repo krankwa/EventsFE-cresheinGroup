@@ -1,7 +1,7 @@
 import { ApiError } from "../types/api.types";
 
 // Update this to match your specific backend URL port
-const API_BASE_URL = "https://localhost:7080/api";
+const API_BASE_URL = "https://localhost:5183/api";
 
 export async function apiRequest<T>(
   endpoint: string,

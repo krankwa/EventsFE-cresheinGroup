@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { 
   MoreVertical, 
   Edit, 
@@ -24,7 +25,7 @@ interface EventsTableProps {
   onDelete: (event: EventResponse) => void;
 }
 
-export function EventsTable({ events, onEdit, onDelete }: EventsTableProps) {
+export const EventsTable = memo(function EventsTable({ events, onEdit, onDelete }: EventsTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -92,7 +93,10 @@ export function EventsTable({ events, onEdit, onDelete }: EventsTableProps) {
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8 text-muted-foreground hover:text-primary"
-                  onClick={() => onEdit(event)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(event);
+                  }}
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -100,7 +104,10 @@ export function EventsTable({ events, onEdit, onDelete }: EventsTableProps) {
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={() => onDelete(event)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(event);
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -114,4 +121,4 @@ export function EventsTable({ events, onEdit, onDelete }: EventsTableProps) {
       </TableBody>
     </Table>
   );
-}
+});

@@ -71,3 +71,10 @@ export default defineConfig([
   },
 ]);
 ```
+
+install shadcn components
+npm i sonner
+npm install react-hook-form
+npm install @hookform/resolvers
+npx shadcn@latest add input-group
+npx shadcn@latest add field

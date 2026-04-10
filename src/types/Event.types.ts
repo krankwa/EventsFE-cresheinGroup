@@ -1,6 +1,6 @@
 // bases: EventManagementAPI/DTOs/Events/EventResponse.cs
 export interface EventResponse {
-  id: number;
+  eventID: number;
   title: string;
   date: string;
   venue: string;

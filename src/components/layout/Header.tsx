@@ -1,10 +1,12 @@
 import { Bell, Search, Menu, User } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import { Button } from "../ui/button";
 import { 
   Badge 
 } from "../ui/badge";
 
 export function Header() {
+  const { user } = useAuth();
   return (
     <header className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6">
       <div className="flex items-center gap-4">
@@ -34,12 +36,14 @@ export function Header() {
         <div className="h-8 w-[1px] bg-border hidden sm:block mx-1" />
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex flex-col text-right">
-            <span className="text-sm font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground lowercase">admin@eventtix.com</span>
-          </div>
-          <Button variant="outline" size="icon" className="rounded-full overflow-hidden border-2 border-primary/20">
-             <User className="w-5 h-5" />
+          {user && (
+            <div className="hidden sm:flex flex-col text-right">
+              <span className="text-sm font-semibold truncate max-w-[150px]">{user.name}</span>
+              <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{user.email}</span>
+            </div>
+          )}
+          <Button variant="outline" size="icon" className="group rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary/50 transition-all shadow-sm">
+             <User className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </Button>
         </div>
       </div>

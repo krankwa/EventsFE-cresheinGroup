@@ -24,7 +24,7 @@ export function EventsList() {
   return (
     <div>
       {events.map((event) => (
-        <p key={event.id}>
+        <p key={event.eventID}>
           {event.title} - {event.venue}
         </p>
       ))}

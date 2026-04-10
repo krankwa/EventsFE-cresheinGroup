@@ -1,11 +1,4 @@
-import { 
-  Users, 
-  CalendarDays, 
-  Ticket, 
-  TrendingUp,
-  ArrowUpRight,
-  Plus
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { 
   Card, 
   CardContent, 
@@ -14,14 +7,7 @@ import {
   CardDescription
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { cn } from "../../lib/utils";
-
-const stats = [
-  { label: "Total Events", value: "24", icon: CalendarDays, change: "+3 this month", color: "text-blue-600" },
-  { label: "Tickets Sold", value: "1,280", icon: Ticket, change: "+14% from last week", color: "text-emerald-600" },
-  { label: "Active Users", value: "482", icon: Users, change: "+12 new today", color: "text-violet-600" },
-  { label: "Total Revenue", value: "₱142,500", icon: TrendingUp, change: "+₱12k since Monday", color: "text-amber-600" },
-];
+import { StatsGrid } from "../../features/admin/components/StatsGrid";
 
 export function DashboardOverview() {
   return (
@@ -37,23 +23,7 @@ export function DashboardOverview() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="overflow-hidden border-2 border-transparent hover:border-primary/10 transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-              <stat.icon className={cn("h-4 w-4", stat.color)} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <ArrowUpRight className="w-3 h-3 text-emerald-500" />
-                {stat.change}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <StatsGrid />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">

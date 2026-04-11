@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Search, Plus, Filter, Download } from "lucide-react";
-import { eventsService } from "../../api/eventsService";
+import { eventsService } from "../../services/eventsService";
 import type { EventResponse } from "../../types/Event.types";
 import { Button } from "../../components/ui/button";
 import {

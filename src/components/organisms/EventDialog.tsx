@@ -6,12 +6,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../components/ui/dialog";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
+} from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { CalendarDays, MapPin, Users, ImageIcon } from "lucide-react";
-import type { EventResponse, EventCreateDTO, EventUpdateDTO } from "../../../types/Event.types";
+import type { EventResponse, EventCreateDTO, EventUpdateDTO } from "../../types/Event.types";
 import { format } from "date-fns";
 
 interface EventDialogProps {

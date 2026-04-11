@@ -10,9 +10,9 @@ import {
 	CardTitle,
 	CardDescription,
 } from "../../components/ui/card";
-import { EventsTable } from "../../features/admin/components/EventsTable";
-import { EventDialog } from "../../features/admin/components/EventDialog";
-import { DeleteConfirmDialog } from "../../features/admin/components/DeleteConfirmDialog";
+import { EventsTable } from "../../components/organisms/EventsTable";
+import { EventDialog } from "../../components/organisms/EventDialog";
+import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
 import { toast } from "react-hot-toast";
 import type { EventCreateDTO, EventUpdateDTO } from "../../types/Event.types";
 

@@ -14,7 +14,7 @@ import {
   CardTitle,
   CardDescription
 } from "../../components/ui/card";
-import { UsersTable } from "../../features/admin/components/UsersTable";
+import { UsersTable } from "../../components/organisms/UsersTable";
 import { toast } from "react-hot-toast";
 
 export function UsersManagement() {

@@ -6,10 +6,9 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle 
-} from "../../../components/ui/card";
-import { cn } from "../../../lib/utils";
-
-import { ADMIN_STATS } from "../constants";
+} from "../../components/ui/card";
+import { cn } from "../../lib/utils";
+import { ADMIN_STATS } from "../../features/admin/constants";
 
 export function StatsGrid() {
   return (

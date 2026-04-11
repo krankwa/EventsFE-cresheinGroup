@@ -12,11 +12,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../components/ui/table";
-import { Button } from "../../../components/ui/button";
-import { Badge } from "../../../components/ui/badge";
-import type { UserResponse } from "../../../types/Auth.types";
-import { useAuth } from "../../../hooks/useAuth";
+} from "../../components/ui/table";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import type { UserResponse } from "../../types/Auth.types";
+import { useAuth } from "../../hooks/useAuth";
 
 interface UsersTableProps {
   users: UserResponse[];

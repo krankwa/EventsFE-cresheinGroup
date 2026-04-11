@@ -12,11 +12,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../components/ui/table";
-import { Button } from "../../../components/ui/button";
-import { Badge } from "../../../components/ui/badge";
+} from "../../components/ui/table";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 import { format } from "date-fns";
-import type { EventResponse } from "../../../types/Event.types";
+import type { EventResponse } from "../../types/Event.types";
 
 interface EventsTableProps {
   events: EventResponse[];

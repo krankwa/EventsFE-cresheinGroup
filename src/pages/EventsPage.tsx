@@ -1,4 +1,4 @@
-import { EventsList } from "../Events/EventsList";
+import { EventsList } from "../components/organisms/EventsList";
 
 export function EventsPage() {
   return (

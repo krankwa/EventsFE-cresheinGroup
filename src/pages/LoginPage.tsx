@@ -7,7 +7,7 @@ import {
   CardTitle 
 } from "../components/ui/card";
 import { CalendarDays } from "lucide-react";
-import { LoginForm } from "../features/auth/components/LoginForm";
+import { LoginForm } from "../components/organisms/LoginForm";
 
 export function LoginPage() {
   return (

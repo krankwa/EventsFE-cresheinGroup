@@ -7,7 +7,7 @@ import {
 	CardDescription,
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { StatsGrid } from "../../features/admin/components/StatsGrid";
+import { StatsGrid } from "../../components/organisms/StatsGrid";
 
 export function DashboardOverview() {
 	return (

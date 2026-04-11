@@ -1,8 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
-export function ProtectedRoute() {
-  const { user, loading, isAdmin } = useAuth();
+interface ProtectedRouteProps {
+  allowedRoles?: string[];
+}
+
+export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -15,9 +19,14 @@ export function ProtectedRoute() {
     );
   }
 
-  if (!user || !isAdmin) {
-    // Redirect to login if not authenticated or not an admin
+  if (!user) {
+    // Redirect to login if not authenticated
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect to unauthorized page if role not allowed
+    return <Navigate to="/unauthorize" replace />;
   }
 
   return <Outlet />;

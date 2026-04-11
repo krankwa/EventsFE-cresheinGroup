@@ -160,6 +160,7 @@ export function EventsManagement() {
 			</Card>
 
 			<EventDialog
+				key={selectedEvent?.eventID || "new"}
 				isOpen={isEventDialogOpen}
 				onClose={() => setIsEventDialogOpen(false)}
 				onSave={handleSave}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,33 +29,23 @@ export function EventDialog({
   event,
   isLoading
 }: EventDialogProps) {
-  const [formData, setFormData] = useState<EventCreateDTO>({
-    title: "",
-    date: "",
-    venue: "",
-    capacity: 0,
-    coverImageUrl: ""
-  });
-
-  useEffect(() => {
-    if (event) {
-      setFormData({
-        title: event.title,
-        date: event.date.split("T")[0], // Keep only YYYY-MM-DD for input type="date"
-        venue: event.venue,
-        capacity: event.capacity,
-        coverImageUrl: event.coverImageUrl || ""
-      });
-    } else {
-      setFormData({
-        title: "",
-        date: format(new Date(), "yyyy-MM-dd"),
-        venue: "",
-        capacity: 100,
-        coverImageUrl: ""
-      });
-    }
-  }, [event, isOpen]);
+  const [formData, setFormData] = useState<EventCreateDTO>(
+    event
+      ? {
+          title: event.title,
+          date: event.date.split("T")[0],
+          venue: event.venue,
+          capacity: event.capacity,
+          coverImageUrl: event.coverImageUrl || "",
+        }
+      : {
+          title: "",
+          date: format(new Date(), "yyyy-MM-dd"),
+          venue: "",
+          capacity: 100,
+          coverImageUrl: "",
+        }
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +134,7 @@ export function EventDialog({
               <Input
                 id="imageUrl"
                 placeholder="https://example.com/image.jpg"
-                value={formData.coverImageUrl}
+                value={formData.coverImageUrl || ""}
                 onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
               />
             </div>

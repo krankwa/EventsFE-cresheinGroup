@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { eventsService } from "../api/eventsService";
-import type { EventDTO } from "../types/Event.types";
+import type { EventResponse } from "../types/Event.types";
 
 export function EventsList() {
-  const [events, setEvents] = useState<EventDTO[]>([]);
+  const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

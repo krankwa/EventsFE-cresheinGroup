@@ -22,7 +22,11 @@ export function LoginForm() {
     try {
       const response = await authService.login({ email, password });
       await login(response.token);
-      navigate("/admin");
+      
+      // Redirect based on role after status update
+      // We can fetch the user role from the auth context since login() calls fetchUser()
+      // or we can just let RoleRedirect handle it if we navigate to root
+      navigate("/"); 
     } catch (error: unknown) {
       console.error("Login failed", error);
       const message = error instanceof Error ? error.message : "Invalid credentials or unauthorized.";

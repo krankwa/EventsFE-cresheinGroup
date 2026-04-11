@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import * as z from "zod"
+import * as React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,21 +14,21 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupText,
   InputGroupTextarea,
-} from "@/components/ui/input-group"
+} from "@/components/ui/input-group";
 
 const formSchema = z.object({
   title: z
@@ -39,7 +39,7 @@ const formSchema = z.object({
     .string()
     .min(20, "Description must be at least 20 characters.")
     .max(100, "Description must be at most 100 characters."),
-})
+});
 
 export function BugReportForm() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,7 +48,7 @@ export function BugReportForm() {
       title: "",
       description: "",
     },
-  })
+  });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     toast("You submitted the following values:", {
@@ -64,7 +64,7 @@ export function BugReportForm() {
       style: {
         "--border-radius": "calc(var(--radius)  + 4px)",
       } as React.CSSProperties,
-    })
+    });
   }
 
   return (
@@ -146,5 +146,5 @@ export function BugReportForm() {
         </Field>
       </CardFooter>
     </Card>
-  )
+  );
 }

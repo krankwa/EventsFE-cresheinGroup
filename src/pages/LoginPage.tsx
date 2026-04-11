@@ -23,9 +23,9 @@ export function LoginPage() {
                 <CalendarDays className="text-primary-foreground w-7 h-7" />
              </div>
           </div>
-          <CardTitle className="text-3xl font-bold tracking-tight">Admin Portal</CardTitle>
+          <CardTitle className="text-3xl font-bold tracking-tight">EventTix</CardTitle>
           <CardDescription>
-            Enter your credentials to access the management dashboard
+            Sign in to manage your events and tickets
           </CardDescription>
         </CardHeader>
         <CardContent>

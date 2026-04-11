@@ -26,7 +26,7 @@ export function LoginForm() {
 			// Redirect based on role after status update
 			// We can fetch the user role from the auth context since login() calls fetchUser()
 			// or we can just let RoleRedirect handle it if we navigate to root
-			navigate("/");
+			navigate("/redirect");
 		} catch (error: unknown) {
 			console.error("Login failed", error);
 			const message =

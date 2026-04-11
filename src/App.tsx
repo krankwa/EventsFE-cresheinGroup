@@ -9,6 +9,7 @@ import { DashboardOverview } from "./pages/admin/DashboardOverview";
 import { EventsManagement } from "./pages/admin/EventsManagement";
 import { UsersManagement } from "./pages/admin/UsersManagement";
 import { LoginPage } from "./pages/LoginPage";
+import { LandingPage } from "./pages/LandingPage";
 import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
@@ -37,8 +38,10 @@ function App() {
 				<Toaster position="top-right" />
 				<Routes>
 					{/* Public Routes */}
+					<Route path="/" element={<LandingPage />} />
 					<Route path="/login" element={<LoginPage />} />
-					<Route path="/" element={<RoleRedirect />} />
+					{/* Post-login role redirect */}
+					<Route path="/redirect" element={<RoleRedirect />} />
 
 					{/* Protected Admin Routes */}
 					<Route path="/admin" element={<ProtectedRoute allowedRoles={["Admin"]} />}>

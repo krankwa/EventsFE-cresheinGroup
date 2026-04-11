@@ -79,18 +79,28 @@ export function MyTicketsPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {tickets.map((ticket) => (
             <Card key={ticket.ticketId} className="group overflow-hidden border-2 border-muted/50 hover:border-primary/20 transition-all duration-300 shadow-lg hover:shadow-2xl">
-              <CardHeader className="bg-muted/30 pb-4">
-                <div className="flex justify-between items-start">
-                  <div className="p-2 bg-background rounded-lg shadow-sm">
-                    <Ticket className="w-5 h-5 text-primary" />
+              <div className="relative h-36 overflow-hidden bg-muted/10 border-b border-muted/30">
+                {ticket.eventCoverImageUrl ? (
+                  <img
+                    src={ticket.eventCoverImageUrl}
+                    alt={ticket.eventTitle}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/5">
+                    <Ticket className="w-8 h-8 text-primary/40" />
                   </div>
-                  <Badge className="bg-emerald-500/10 text-emerald-600 border-none">Confirmed</Badge>
+                )}
+                <div className="absolute top-3 right-3">
+                  <Badge className="bg-emerald-500/90 text-white border-none shadow-sm">Confirmed</Badge>
                 </div>
-                <CardTitle className="mt-4 text-xl line-clamp-1 group-hover:text-primary transition-colors">
+              </div>
+              <CardHeader className="pt-5 pb-2">
+                <CardTitle className="text-xl line-clamp-1 group-hover:text-primary transition-colors">
                   {ticket.eventTitle}
                 </CardTitle>
                 <CardDescription className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5" />
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
                   {format(new Date(ticket.eventDate), "PPP")}
                 </CardDescription>
               </CardHeader>

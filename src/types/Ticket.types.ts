@@ -4,6 +4,7 @@ export interface TicketResponse {
   eventTitle: string;
   eventDate: string;
   registrationDate: string;
+  eventCoverImageUrl?: string | null;
 }
 
 export interface TicketCreateRequest {

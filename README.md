@@ -1,80 +1,25 @@
-# React + TypeScript + Vite
+#Update from this branch
+#Routes
+- new dependency `react-router-dom`
+- added routes for login page and register and public event 
+- Wrapped application in QueryClientProvider (prereqs dependency: `@tanstack/react-query`) in the app.tsx
+- also created .env for api_url please rename .env.txt -> .env so that you can use it
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+#API Services loc: src/services
+- api.ts: has base apiFetch func that automatically handles JWT auth headers and 401 error response
+- authStore.ts Added token management `get, set, clear` for user session handling
+- apiAuth.ts: created API wrappers for /auth/login, /auth/register, /user/me and auth/logout
+- apiEvent.ts: standardized events fetching API wrapper
 
-Currently, two official plugins are available:
+#Authentication Hook loc: src/features/authentication
+- `useLogin.ts`: for login mutation, stores the token, invalidates user data, and dashboard redirection.
+- `useRegister.ts`: handles user registration API calls and presents success/error toasts(not sonner but react-hot-toast).
+- `useUser.ts`: queries the current logged user and determines authentication/admin status.
+- `useLogout.ts`: clears cache and redirects the user back to the login page upon logging out.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+#UI update 
+- `LoginPage.tsx`: removed the form submission because the useLogin hook already handles it also added loading states
+- `RegisterPage.tsx`: imported useRegister hook
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-install shadcn components
-npm i sonner
-npm install react-hook-form
-npm install @hookform/resolvers
-npx shadcn@latest add input-group
-npx shadcn@latest add field
+#Prettier
+-updated package scripts for formatting

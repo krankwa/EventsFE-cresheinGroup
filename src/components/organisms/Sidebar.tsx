@@ -4,6 +4,7 @@ import {
   LogOut
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
 import { UserInfo } from "./UserInfo";
 
@@ -14,7 +15,17 @@ interface SidebarProps {
 }
 
 export function Sidebar({ className }: SidebarProps) {
+  const { user } = useUser();
   const { logout } = useLogout();
+
+  const filteredNavItems = NAV_ITEMS.filter(item => {
+    if (user?.role === "Staff") {
+      // Staff only sees Redemption
+      return item.label === "Redemption";
+    }
+    // Admin sees everything
+    return true;
+  });
 
   return (
     <aside className={cn("w-64 border-r bg-background flex flex-col h-screen", className)}>
@@ -26,7 +37,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => (
+        {filteredNavItems.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}

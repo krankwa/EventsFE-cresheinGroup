@@ -1,13 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
-import {
-  CalendarDays,
-  Ticket,
-  Search,
-  User,
-  LogOut,
-  Bell,
-  Camera
-} from "lucide-react";
+import { CalendarDays, Ticket, Search, User, LogOut, Bell } from "lucide-react";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
 import { Button } from "../ui/button";
@@ -26,7 +18,9 @@ export function UserNavbar() {
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:rotate-12 transition-transform">
           <CalendarDays className="text-primary-foreground w-5 h-5" />
         </div>
-        <span className="font-bold text-xl tracking-tight hidden sm:block">EventTix</span>
+        <span className="font-bold text-xl tracking-tight hidden sm:block">
+          EventTix
+        </span>
       </Link>
 
       {/* Center: Navigation Links & Search */}
@@ -35,35 +29,27 @@ export function UserNavbar() {
           <NavLink
             to="/tickets"
             className={({ isActive }) =>
-              cn("flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
-              isActive ? "text-primary" : "text-muted-foreground")
+              cn(
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
+                isActive ? "text-primary" : "text-muted-foreground",
+              )
             }
           >
             <Ticket className="w-4 h-4" />
             <span className="hidden sm:inline">Tickets</span>
-            </NavLink>
+          </NavLink>
           <NavLink
             to="/events"
             className={({ isActive }) =>
-              cn("flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
-              isActive ? "text-primary" : "text-muted-foreground")
+              cn(
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
+                isActive ? "text-primary" : "text-muted-foreground",
+              )
             }
           >
             <CalendarDays className="w-4 h-4" />
             <span className="hidden sm:inline">Events</span>
           </NavLink>
-          {(user?.role === "Staff" || user?.role === "Admin") && (
-            <NavLink
-              to="/redemption"
-              className={({ isActive }) =>
-                cn("flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
-                isActive ? "text-primary" : "text-muted-foreground")
-              }
-            >
-              <Camera className="w-4 h-4" />
-              <span className="hidden sm:inline">Scan</span>
-            </NavLink>
-          )}
         </div>
 
         {/* Search Bar */}
@@ -79,7 +65,11 @@ export function UserNavbar() {
 
       {/* Right: Notifications & Profile */}
       <div className="flex items-center gap-2 md:gap-4">
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-primary">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative text-muted-foreground hover:text-primary"
+        >
           <Bell className="w-5 h-5" />
           <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-primary text-[10px] border-background animate-pulse">
             3
@@ -91,7 +81,9 @@ export function UserNavbar() {
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col text-right">
             <p className="text-sm font-semibold leading-none">{user?.name}</p>
-            <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">{user?.email}</p>
+            <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">
+              {user?.email}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">

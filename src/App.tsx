@@ -55,12 +55,15 @@ function App() {
 					{/* Post-login role redirect */}
 					<Route path="/redirect" element={<RoleRedirect />} />
 
-					{/* Protected Admin Routes */}
-					<Route path="/admin" element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+					{/* Protected Admin/Staff Dashboard Routes */}
+					<Route element={<ProtectedRoute allowedRoles={["Admin", "Staff"]} />}>
 						<Route element={<AdminLayout />}>
-							<Route index element={<DashboardOverview />} />
-							<Route path="events" element={<EventsManagement />} />
-							<Route path="users" element={<UsersManagement />} />
+							<Route path="/admin">
+								<Route index element={<DashboardOverview />} />
+								<Route path="events" element={<EventsManagement />} />
+								<Route path="users" element={<UsersManagement />} />
+							</Route>
+							<Route path="/redemption" element={<StaffRedemptionPage />} />
 						</Route>
 					</Route>
 
@@ -69,7 +72,6 @@ function App() {
 						<Route element={<UserLayout />}>
 							<Route path="/events" element={<EventsPage />} />
 							<Route path="/tickets" element={<MyTicketsPage />} />
-							<Route path="/redemption" element={<StaffRedemptionPage />} />
 						</Route>
 					</Route>
 

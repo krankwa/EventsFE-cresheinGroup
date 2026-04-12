@@ -12,11 +12,7 @@ interface UseUserReturn {
 }
 
 export function useUser(): UseUserReturn {
-  const {
-    isLoading,
-    isFetching,
-    data: user,
-  } = useQuery({
+  const { isLoading, data: user } = useQuery({
     queryKey: ["user"],
     queryFn: getCurrentUser,
     retry: false, //stop retrying 401s
@@ -24,7 +20,7 @@ export function useUser(): UseUserReturn {
   });
 
   return {
-    isLoading: isLoading || isFetching,
+    isLoading: isLoading,
     user: user ?? null,
     isAuthenticated: !!user,
     isAdmin: user?.role === "Admin",

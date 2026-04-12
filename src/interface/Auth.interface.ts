@@ -35,3 +35,9 @@ export interface UpdateUserRequest {
   email?: string;
   role?: UserRole;
 }
+
+// Discriminated union encoding auth state — eliminates null checks at callsites
+export type AuthState =
+  | { readonly kind: "authenticated"; user: UserResponse }
+  | { readonly kind: "unauthenticated" }
+  | { readonly kind: "loading" };

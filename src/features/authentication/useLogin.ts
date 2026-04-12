@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { login as loginApi } from "../../services/apiAuth";
+import { login as loginApi, getCurrentUser } from "../../services/apiAuth";
 import type { LoginRequest } from "../../interface/Auth.interface";
 import toast from "react-hot-toast";
 
@@ -12,9 +12,12 @@ export function useLogin() {
     mutationFn: (credentials: LoginRequest) => loginApi(credentials),
 
     onSuccess: async () => {
-      //returns token and message
-      //Invalidate para mo getCurrentUser() and fetch from GET /api/users/me
-      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      // Fetch the user explicitly to guarantee the cache is populated BEFORE navigating.
+      // This prevents RoleRedirect from accessing a stale `null` cache and bouncing the user back back to login.
+      await queryClient.fetchQuery({
+        queryKey: ["user"],
+        queryFn: getCurrentUser,
+      });
       navigate("/redirect", { replace: true });
     },
 

@@ -1,14 +1,12 @@
-import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
+import { Html5QrcodeScanner } from "html5-qrcode";
 import {
   QrCode,
   CheckCircle2,
   AlertCircle,
   RefreshCcw,
   Camera,
-  ArrowLeft,
   Loader2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -28,68 +26,15 @@ export function StaffRedemptionPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
-  const startScanner = async () => {
-    try {
-      setCameraError(null);
-      const devices = await Html5Qrcode.getCameras();
-
-      if (devices && devices.length > 0) {
-        setHasPermission(true);
-
-        // Initialize scanner after permission/hardware check
-        const scanner = new Html5QrcodeScanner(
-          "reader",
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-          },
-          /* verbose= */ false,
-        );
-
-        scanner.render(onScanSuccess, onScanFailure);
-        scannerRef.current = scanner;
-      } else {
-        setCameraError("No cameras found on this device.");
-      }
-    } catch (error) {
-      console.error("Camera access error", error);
-      setHasPermission(false);
-      setCameraError("Camera permission denied or hardware unavailable.");
-    }
+  const startScanner = () => {
+    setCameraError(null);
+    setHasPermission(true);
   };
 
-  useEffect(() => {
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current
-          .clear()
-          .catch((error) => console.error("Failed to clear scanner", error));
-      }
-    };
-  }, []);
-
-  async function onScanSuccess(decodedText: string) {
-    // Avoid double processing
-    if (isProcessing) return;
-
-    // The QR code contains the ticketId
-    const ticketId = parseInt(decodedText);
-
-    if (isNaN(ticketId)) {
-      toast.error("Invalid QR code format. Expected numeric Ticket ID.");
-      return;
-    }
-
-    // If it's the same as the last one we just redeemed, wait a bit
-    if (ticketId === lastRedeemedId && scanResult === "success") return;
-
-    handleRedeem(ticketId);
-  }
-
-  function onScanFailure() {
-    // This is called constantly during scanning, we don't need to log it
-  }
+  const resetScanner = () => {
+    setScanResult(null);
+    setLastRedeemedId(null);
+  };
 
   const handleRedeem = async (id: number) => {
     setIsProcessing(true);
@@ -115,31 +60,76 @@ export function StaffRedemptionPage() {
     }
   };
 
-  const resetScanner = () => {
-    setScanResult(null);
-    setLastRedeemedId(null);
-  };
+  async function onScanSuccess(decodedText: string) {
+    // Avoid double processing
+    if (isProcessing) return;
+
+    // The QR code contains the ticketId
+    const ticketId = parseInt(decodedText);
+
+    if (isNaN(ticketId)) {
+      toast.error("Invalid QR code format. Expected numeric Ticket ID.");
+      return;
+    }
+
+    // If it's the same as the last one we just redeemed, wait a bit
+    if (ticketId === lastRedeemedId && scanResult === "success") return;
+
+    handleRedeem(ticketId);
+  }
+
+  function onScanFailure() {
+    // This is called constantly during scanning, we don't need to log it
+  }
+
+  useEffect(() => {
+    if (hasPermission && !scannerRef.current) {
+      // Use a small timeout or wait for the next frame to ensure the DOM element is actually rendered
+      const initScanner = () => {
+        const readerElement = document.getElementById("reader");
+        if (readerElement) {
+          try {
+            const scanner = new Html5QrcodeScanner(
+              "reader",
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+              },
+              /* verbose= */ false,
+            );
+
+            scanner.render(onScanSuccess, onScanFailure);
+            scannerRef.current = scanner;
+          } catch (error) {
+            console.error("Camera initialization error", error);
+            setCameraError(
+              "Failed to initialize camera. Please refresh and try again.",
+            );
+          }
+        }
+      };
+
+      // Give React a moment to render the #reader div
+      const timeoutId = setTimeout(initScanner, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [hasPermission]);
+
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current
+          .clear()
+          .catch((error) => console.error("Failed to clear scanner", error));
+      }
+    };
+  }, []);
 
   return (
     <div className="container mx-auto py-10 px-4 max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between">
-        <Link to="/redirect">
-          <Button
-            variant="ghost"
-            className="gap-2 -ml-4 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-        </Link>
-        <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full border border-primary/20">
-          <Camera className="w-3.5 h-3.5" />
-          Scanner Active
-        </div>
-      </div>
-
       <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
           Ticket Redemption
         </h1>
         <p className="text-muted-foreground">

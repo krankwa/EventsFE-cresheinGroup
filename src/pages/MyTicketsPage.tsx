@@ -127,7 +127,20 @@ export function MyTicketsPage() {
 										#T-{ticket.ticketId.toString().padStart(5, "0")}
 									</span>
 								</div>
-								<div className="flex items-center gap-2 text-xs text-muted-foreground">
+
+								{ticket.tierName && (
+									<div className="flex items-center justify-between text-sm py-2 px-3 bg-primary/5 border border-primary/10 rounded-md">
+										<div className="flex items-center gap-2">
+											<Ticket className="w-4 h-4 text-primary" />
+											<span className="font-bold text-primary">{ticket.tierName}</span>
+										</div>
+										<span className="font-extrabold text-foreground">
+											{ticket.price && ticket.price > 0 ? `₱${ticket.price}` : "FREE"}
+										</span>
+									</div>
+								)}
+
+								<div className="flex items-center justify-between text-xs text-muted-foreground mx-1">
 									<span className="font-semibold text-foreground/60">
 										Registered on:
 									</span>

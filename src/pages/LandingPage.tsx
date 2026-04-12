@@ -5,7 +5,6 @@ import {
 	MapPin,
 	Users,
 	ArrowRight,
-	Loader2,
 	Ticket,
 	CalendarDays,
 	Zap,
@@ -21,21 +20,22 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
 import { eventsService } from "../services/eventsService";
-import { ticketsService } from "../services/ticketsService";
 import { useAuth } from "../hooks/useAuth";
 import type { EventResponse } from "../types/Event.types";
 import { toast } from "react-hot-toast";
 import { PublicNavbar } from "../components/organisms/PublicNavbar";
+import { TicketBookingDialog } from "../components/organisms/TicketBookingDialog";
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
 function LandingEventCard({ event }: { event: EventResponse }) {
 	const { user, isAdmin } = useAuth();
 	const navigate = useNavigate();
-	const [isBooking, setIsBooking] = useState(false);
+	const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+	
 	const isSoldOut = event.ticketsSold >= event.capacity;
 	const fillPct = Math.min((event.ticketsSold / event.capacity) * 100, 100);
 
-	const handleBook = async () => {
+	const handleBookClick = () => {
 		if (!user) {
 			toast("Please sign in to book tickets.", { icon: "🎟️" });
 			navigate("/login");
@@ -45,17 +45,8 @@ function LandingEventCard({ event }: { event: EventResponse }) {
 			toast.error("Admins cannot book tickets.");
 			return;
 		}
-		setIsBooking(true);
-		try {
-			await ticketsService.register({ eventId: event.eventID! });
-			toast.success(`Booked for ${event.title}! 🎉`);
-			navigate("/tickets");
-		} catch (err) {
-			const msg = err instanceof Error ? err.message : "Failed to book ticket.";
-			toast.error(msg);
-		} finally {
-			setIsBooking(false);
-		}
+		
+		setIsBookingModalOpen(true);
 	};
 
 	return (
@@ -134,15 +125,10 @@ function LandingEventCard({ event }: { event: EventResponse }) {
 				<Button
 					className="w-full gap-2 font-semibold group/btn"
 					variant={isSoldOut ? "outline" : "default"}
-					disabled={isSoldOut || isBooking}
-					onClick={handleBook}
+					disabled={isSoldOut}
+					onClick={handleBookClick}
 				>
-					{isBooking ? (
-						<>
-							<Loader2 className="w-4 h-4 animate-spin" />
-							Booking...
-						</>
-					) : isSoldOut ? (
+					{isSoldOut ? (
 						"Sold Out"
 					) : !user ? (
 						<>
@@ -157,6 +143,13 @@ function LandingEventCard({ event }: { event: EventResponse }) {
 					)}
 				</Button>
 			</CardFooter>
+
+			<TicketBookingDialog
+				isOpen={isBookingModalOpen}
+				onClose={() => setIsBookingModalOpen(false)}
+				event={event}
+				onSuccess={() => navigate("/tickets")}
+			/>
 		</Card>
 	);
 }

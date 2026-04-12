@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { register as registerApi } from "../../services/apiAuth";
-import type { RegisterRequest } from "../../types/Auth.types";
+import type { RegisterRequest } from "../../interface/Auth.interface";
 import toast from "react-hot-toast";
 
 export function useRegister() {

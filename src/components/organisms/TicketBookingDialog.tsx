@@ -9,7 +9,7 @@ import {
 } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { Loader2, Ticket, Check } from "lucide-react";
-import type { EventResponse } from "../../types/Event.types";
+import type { EventResponse } from "../../interface/Event.interface";
 import { ticketsService } from "../../services/ticketsService";
 import { toast } from "react-hot-toast";
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search, Plus, Filter, Download } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
-import type { EventResponse } from "../../types/Event.types";
+import type { EventResponse } from "../../interface/Event.interface";
 import { Button } from "../../components/ui/button";
 import {
 	Card,
@@ -14,7 +14,7 @@ import { EventsTable } from "../../components/organisms/EventsTable";
 import { EventDialog } from "../../components/organisms/EventDialog";
 import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
 import { toast } from "react-hot-toast";
-import type { EventCreateDTO, EventUpdateDTO } from "../../types/Event.types";
+import type { EventCreateDTO, EventUpdateDTO } from "../../interface/Event.interface";
 
 export function EventsManagement() {
 	const [events, setEvents] = useState<EventResponse[]>([]);

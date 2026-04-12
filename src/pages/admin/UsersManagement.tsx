@@ -8,7 +8,7 @@ import {
 	DialogDescription,
 } from "../../components/ui/dialog";
 import { userService } from "../../services/userService";
-import type { UserResponse, UserRole } from "../../types/Auth.types";
+import type { UserResponse, UserRole } from "../../interface/Auth.interface";
 import { Button } from "../../components/ui/button";
 import {
 	Card,

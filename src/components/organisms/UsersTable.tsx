@@ -17,7 +17,7 @@ import {
 } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import type { UserResponse } from "../../types/Auth.types";
+import type { UserResponse } from "../../interface/Auth.interface";
 import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {

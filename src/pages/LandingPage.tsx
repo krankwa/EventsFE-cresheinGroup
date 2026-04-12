@@ -23,9 +23,9 @@ import { Skeleton } from "../components/ui/skeleton";
 import { eventsService } from "../services/eventsService";
 import { ticketsService } from "../services/ticketsService";
 import { useAuth } from "../hooks/useAuth";
-import type { EventResponse } from "../types/Event.types";
 import { toast } from "react-hot-toast";
 import { PublicNavbar } from "../components/organisms/PublicNavbar";
+import type { EventResponse } from "@/interface/Event.interface";
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
 function LandingEventCard({ event }: { event: EventResponse }) {

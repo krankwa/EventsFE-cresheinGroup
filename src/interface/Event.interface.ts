@@ -1,30 +1,45 @@
+export interface TicketTierResponse {
+  id: number;
+  name: string;
+  price: number;
+  capacity: number;
+  ticketsSold: number;
+  availableTickets: number;
+}
+
+export interface TicketTierCreateDTO {
+  name: string;
+  price: number;
+  capacity: number;
+}
+
 // bases: EventManagementAPI/DTOs/Events/EventResponse.cs
 export interface EventResponse {
-  id: number;
+  eventID: number;
   title: string;
   date: string;
   venue: string;
   capacity: number;
   ticketsSold: number;
-  coverImageUrl?: string;
+  availableTickets: number;
+  coverImageUrl: string | null;
+  tiers: TicketTierResponse[];
 }
 
-// bases: EventManagementAPI/DTOs/Events/EventCreateDTO.cs
-//all required
 export interface EventCreateDTO {
   title: string;
   date: string;
   venue: string;
   capacity: number;
-  coverImageUrl?: string;
+  coverImageUrl?: string | null;
+  tiers: TicketTierCreateDTO[];
 }
 
-// bases: EventManagementAPI/DTOs/Events/EventUpdateDTO.cs
-//all required
 export interface EventUpdateDTO {
   title: string;
   date: string;
   venue: string;
   capacity: number;
-  coverImageUrl?: string;
+  coverImageUrl?: string | null;
+  tiers: TicketTierCreateDTO[];
 }

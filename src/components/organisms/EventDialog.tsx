@@ -62,6 +62,9 @@ interface NominatimResult {
 	display_name: string;
 	lat: string;
 	lon: string;
+	class: string;
+	type: string;
+	address?: Record<string, string>;
 }
 
 interface EventDialogProps {
@@ -111,9 +114,10 @@ function MapFlyTo({ target }: { target: LatLng | null }) {
 async function searchPlaces(query: string): Promise<NominatimResult[]> {
 	if (!query.trim() || query.trim().length < 3) return [];
 	try {
+		// Fetch 10 results with addressdetails to distinguish between establishments and addresses
 		const url =
 			`https://nominatim.openstreetmap.org/search` +
-			`?format=jsonv2&limit=5&addressdetails=0&q=${encodeURIComponent(query)}`;
+			`?format=jsonv2&limit=10&addressdetails=1&q=${encodeURIComponent(query)}`;
 		const res = await fetch(url, {
 			headers: { "Accept-Language": "en" },
 		});
@@ -250,9 +254,31 @@ export function EventDialog({
 		setIsSearching(true);
 		searchTimeout.current = setTimeout(async () => {
 			const results = await searchPlaces(value);
-			setSuggestions(results);
+
+			// Prioritize establishments/POIs over generic addresses/roads
+			// Nominatim classes usually identifying establishments:
+			const establishmentClasses = [
+				"amenity",
+				"tourism",
+				"shop",
+				"office",
+				"craft",
+				"leisure",
+				"historic",
+			];
+
+			const sortedResults = [...results].sort((a, b) => {
+				const aIsEst = establishmentClasses.includes(a.class);
+				const bIsEst = establishmentClasses.includes(b.class);
+
+				if (aIsEst && !bIsEst) return -1;
+				if (!aIsEst && bIsEst) return 1;
+				return 0;
+			});
+
+			setSuggestions(sortedResults);
 			setIsSearching(false);
-			setShowDropdown(results.length > 0);
+			setShowDropdown(sortedResults.length > 0);
 		}, 500);
 	};
 
@@ -459,10 +485,28 @@ export function EventDialog({
 												handleSelectSuggestion(s);
 											}}
 										>
-											<MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-muted-foreground" />
-											<span className="line-clamp-2 leading-snug">
-												{s.display_name}
-											</span>
+											{/* Use a different color or icon for establishments */}
+											{[
+												"amenity",
+												"tourism",
+												"shop",
+												"office",
+												"craft",
+												"leisure",
+												"historic",
+											].includes(s.class) ? (
+												<MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary" />
+											) : (
+												<MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+											)}
+											<div className="flex flex-col gap-0.5">
+												<span className="line-clamp-1 leading-snug font-medium">
+													{s.display_name.split(",")[0]}
+												</span>
+												<span className="line-clamp-1 text-[11px] text-muted-foreground leading-tight">
+													{s.display_name.split(",").slice(1).join(",").trim()}
+												</span>
+											</div>
 										</li>
 									))}
 								</ul>

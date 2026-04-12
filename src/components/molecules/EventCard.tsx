@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Calendar, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import type { EventResponse } from "../../types/Event.types";
 import { useUser } from "../../features/authentication/useUser";
-import { registerTicket } from "../../services/apiTickets";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { TicketBookingDialog } from "../organisms/TicketBookingDialog";
 
 interface EventCardProps {
 	event: EventResponse;
@@ -17,11 +17,11 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
 	const { user, isAdmin } = useUser();
 	const navigate = useNavigate();
-	const [isBooking, setIsBooking] = useState(false);
+	const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
 	const isSoldOut = event.ticketsSold >= event.capacity;
 
-	const handleBookTicket = async () => {
+	const handleBookTicket = () => {
 		if (!user) {
 			toast.error("Please log in to book tickets.");
 			navigate("/login");
@@ -33,20 +33,13 @@ export function EventCard({ event }: EventCardProps) {
 			return;
 		}
 
-		setIsBooking(true);
-		try {
-			await registerTicket({ eventId: event.eventID! });
-			toast.success(`Successfully registered for ${event.title}!`);
-			navigate("/tickets");
-		} catch (error) {
-			console.error("Booking failed", error);
-			const message =
-				error instanceof Error ? error.message : "Failed to book ticket.";
-			toast.error(message);
-		} finally {
-			setIsBooking(false);
-		}
+		setIsBookingModalOpen(true);
 	};
+
+	const minPrice =
+		event.tiers && event.tiers.length > 0
+			? Math.min(...event.tiers.map((t) => t.price))
+			: 0;
 
 	return (
 		<Card className="overflow-hidden group hover:shadow-2xl transition-all duration-300 border-muted/40 bg-card/50 backdrop-blur-sm">
@@ -84,7 +77,9 @@ export function EventCard({ event }: EventCardProps) {
 					<h3 className="text-xl font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
 						{event.title}
 					</h3>
-					<div className="text-primary font-bold line-clamp-1">&#8369;999+</div>
+					<div className="text-primary font-bold line-clamp-1">
+						{minPrice > 0 ? `₱${minPrice}+` : "Free"}
+					</div>
 				</div>
 			</CardHeader>
 
@@ -122,15 +117,10 @@ export function EventCard({ event }: EventCardProps) {
 				<Button
 					className="w-full gap-2 group/btn font-semibold"
 					variant={isSoldOut ? "outline" : "default"}
-					disabled={isSoldOut || isBooking}
+					disabled={isSoldOut}
 					onClick={handleBookTicket}
 				>
-					{isBooking ? (
-						<>
-							<Loader2 className="w-4 h-4 animate-spin" />
-							Booking...
-						</>
-					) : isSoldOut ? (
+					{isSoldOut ? (
 						"Notify Me"
 					) : (
 						<>
@@ -140,6 +130,13 @@ export function EventCard({ event }: EventCardProps) {
 					)}
 				</Button>
 			</CardFooter>
+
+			<TicketBookingDialog
+				isOpen={isBookingModalOpen}
+				onClose={() => setIsBookingModalOpen(false)}
+				event={event}
+				onSuccess={() => navigate("/tickets")}
+			/>
 		</Card>
 	);
 }

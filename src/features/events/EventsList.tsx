@@ -1,4 +1,4 @@
-﻿import { useEvents } from "./useEvents";
+import { useEvents } from "./useEvents";
 import { EventGrid } from "./EventGrid";
 import { ErrorState } from "../../components/ui/error";
 

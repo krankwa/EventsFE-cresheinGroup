@@ -20,7 +20,7 @@ export async function apiRequest<T>(
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: options.method,
     headers,
-    body: options.body || undefined,
+    ...(options.body ? { body: options.body } : {}),
   });
 
   if (!response.ok) {

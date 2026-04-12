@@ -1,4 +1,4 @@
-﻿import type { EventResponse } from "../../interface/Event.interface";
+import type { EventResponse } from "../../interface/Event.interface";
 import { EventCard } from "./EventCard/EventCard";
 import { Loading, LoadingGridContainer } from "../../components/molecules/Loading";
 import { NotFound } from "../../components/molecules/NotFound";

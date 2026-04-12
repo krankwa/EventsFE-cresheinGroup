@@ -17,9 +17,8 @@ import { EventsPage } from "./pages/EventsPage";
 import { MyTicketsPage } from "./pages/MyTicketsPage";
 import MyAccount from "./pages/MyAccount";
 import { EventDetail } from "./pages/EventDetail";
-import { StaffRedemptionPage } from "./pages/TicketRedemptionPage";
+import { TicketRedemptionPage } from "./pages/TicketRedemptionPage";
 import { UserLayout } from "./components/templates/UserLayout";
-import { UnauthorizePage } from "./pages/UnauthorizePage";
 import { useUser } from "./features/authentication/useUser";
 
 const queryClient = new QueryClient({
@@ -65,7 +64,7 @@ function App() {
 								<Route path="events" element={<EventsManagement />} />
 								<Route path="users" element={<UsersManagement />} />
 							</Route>
-							<Route path="/redemption" element={<StaffRedemptionPage />} />
+							<Route path="/redemption" element={<TicketRedemptionPage />} />
 						</Route>
 					</Route>
 
@@ -78,8 +77,6 @@ function App() {
 							<Route path="/tickets" element={<MyTicketsPage />} />
 						</Route>
 					</Route>
-
-					<Route path="/unauthorize" element={<UnauthorizePage />} />
 
 					{/* Fallback */}
 					<Route path="*" element={<Navigate to="/" replace />} />

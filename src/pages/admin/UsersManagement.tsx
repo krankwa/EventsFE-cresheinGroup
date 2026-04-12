@@ -58,13 +58,6 @@ export function UsersManagement() {
 	};
 
 
-	const handlePromote = async (user: UserResponse) => {
-		const confirmed = window.confirm(
-			`Are you sure you want to appoint ${user.name} as an administrator? This grants full management permissions.`,
-		);
-
-		if (!confirmed) return;
-
 	const handleUpdateRole = async (role: UserRole) => {
 		if (!selectedUserForRole) return;
 
@@ -124,8 +117,8 @@ export function UsersManagement() {
 				</CardHeader>
 				<CardContent>
 					<UsersTable
-						users={users}
-						onEditRole={setSelectedUserForRole}
+						users={users || []}
+						onPromote={setSelectedUserForRole}
 						isLoading={isLoading}
 						onEdit={handleEdit}
 					/>

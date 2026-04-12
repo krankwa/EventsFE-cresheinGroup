@@ -9,11 +9,6 @@ export function PublicNavbar() {
   const { logout } = useLogout();
   const navigate = useNavigate();
 
-  const handleDashboard = () => {
-    if (isAdmin) navigate("/admin");
-    else navigate("/events");
-  };
-
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
       {/* Logo */}

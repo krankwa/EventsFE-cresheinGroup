@@ -149,7 +149,7 @@ export function EventDialog({
     event
       ? {
           title: event.title,
-          date: event.date.split("T")[0],
+          date: event.date ? (event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")) : format(new Date(), "yyyy-MM-dd"),
           venue: event.venue,
           capacity: event.capacity,
           coverImageUrl: event.coverImageUrl || "",
@@ -213,7 +213,7 @@ export function EventDialog({
 
   const updateTier = (index: number, updates: Partial<TicketTierCreateDTO>) => {
     const newTiers = [...formData.tiers];
-    newTiers[index] = { ...newTiers[index], ...updates };
+    newTiers[index] = { ...newTiers[index], ...updates } as TicketTierCreateDTO;
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
@@ -337,7 +337,7 @@ export function EventDialog({
       setIsUploading(false);
     }
 
-    onSave({ ...formData, coverImageUrl: finalImageUrl });
+    onSave({ ...formData, coverImageUrl: finalImageUrl || null });
   };
 
   const isBusy = isLoading || isUploading;

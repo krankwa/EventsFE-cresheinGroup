@@ -1,4 +1,4 @@
-﻿import type { ReactNode, JSX } from "react";
+import type { ReactNode, JSX } from "react";
 import styled from "styled-components";
 import { Card } from "../../../components/ui/card";
 

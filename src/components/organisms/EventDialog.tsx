@@ -310,8 +310,8 @@ export function EventDialog({
 	// ── Image handling ──────────────────────────────────────────────────────
 	const handleFileSelect = useCallback((file: File) => {
 		if (!file.type.startsWith("image/")) return;
-		if (file.size > 5 * 1024 * 1024) {
-			toast.error("Image must be smaller than 5 MB.");
+		if (file.size > 25 * 1024 * 1024) {
+			toast.error("Image must be smaller than 25 MB.");
 			return;
 		}
 		setImageFile(file);
@@ -593,7 +593,7 @@ export function EventDialog({
 									Drop an image here or{" "}
 									<span className="underline underline-offset-2">browse</span>
 								</span>
-								<span className="text-xs">PNG, JPG, WEBP — max 5 MB</span>
+								<span className="text-xs">PNG, JPG, JPEG — max 25 MB</span>
 							</div>
 						)}
 

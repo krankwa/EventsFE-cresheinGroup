@@ -20,7 +20,8 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
 import { eventsService } from "../services/eventsService";
-import { useAuth } from "../hooks/useAuth";
+import { ticketsService } from "../services/ticketsService";
+import { useUser } from "../features/authentication/useUser";
 import type { EventResponse } from "../types/Event.types";
 import { toast } from "react-hot-toast";
 import { PublicNavbar } from "../components/organisms/PublicNavbar";
@@ -28,7 +29,7 @@ import { TicketBookingDialog } from "../components/organisms/TicketBookingDialog
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
 function LandingEventCard({ event }: { event: EventResponse }) {
-	const { user, isAdmin } = useAuth();
+	const { user, isAdmin } = useUser();
 	const navigate = useNavigate();
 	const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 	

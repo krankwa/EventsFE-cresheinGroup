@@ -1,5 +1,6 @@
-// Update this to match your specific backend URL port
-const API_BASE_URL = "https://localhost:7080/api";
+import { getToken } from "./authStore";
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
 export async function apiRequest<T>(
   endpoint: string,
@@ -10,7 +11,7 @@ export async function apiRequest<T>(
   };
 
   if (options.requiresAuth !== false) {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }

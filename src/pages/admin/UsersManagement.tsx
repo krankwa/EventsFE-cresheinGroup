@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Search, RefreshCcw, ShieldAlert } from "lucide-react";
+import { Search, RefreshCcw, ShieldAlert, ShieldCheck, CheckCircle2, Info, UserCog } from "lucide-react";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+} from "../../components/ui/dialog";
 import { userService } from "../../services/userService";
 import type { UserResponse } from "../../types/Auth.types";
 import { Button } from "../../components/ui/button";
@@ -17,6 +24,8 @@ export function UsersManagement() {
 	const [users, setUsers] = useState<UserResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isRefreshing, setIsRefreshing] = useState(false);
+	const [selectedUserForRole, setSelectedUserForRole] = useState<UserResponse | null>(null);
+	const [isUpdating, setIsUpdating] = useState(false);
 
 	const loadUsers = async (showRefresh = false) => {
 		if (showRefresh) setIsRefreshing(true);
@@ -36,20 +45,20 @@ export function UsersManagement() {
 		loadUsers();
 	}, []);
 
-	const handlePromote = async (user: UserResponse) => {
-		const confirmed = window.confirm(
-			`Are you sure you want to appoint ${user.name} as an administrator? This grants full management permissions.`,
-		);
+	const handleUpdateRole = async (role: string) => {
+		if (!selectedUserForRole) return;
 
-		if (!confirmed) return;
-
+		setIsUpdating(true);
 		try {
-			await userService.update(user.userId, { role: "Admin" });
-			toast.success(`${user.name} is now an administrator.`);
+			await userService.update(selectedUserForRole.userId, { role });
+			toast.success(`${selectedUserForRole.name} is now a ${role}.`);
+			setSelectedUserForRole(null);
 			loadUsers(); // Refresh list
 		} catch (error) {
-			console.error("Failed to promote user", error);
+			console.error("Failed to update user role", error);
 			toast.error("Failed to update user role.");
+		} finally {
+			setIsUpdating(false);
 		}
 	};
 
@@ -95,7 +104,7 @@ export function UsersManagement() {
 				<CardContent>
 					<UsersTable
 						users={users}
-						onPromote={handlePromote}
+						onEditRole={setSelectedUserForRole}
 						isLoading={isLoading}
 					/>
 				</CardContent>
@@ -115,6 +124,66 @@ export function UsersManagement() {
 					</div>
 				</div>
 			</div>
+
+			<Dialog
+				open={!!selectedUserForRole}
+				onOpenChange={(open) => !open && setSelectedUserForRole(null)}
+			>
+				<DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950 border-2 shadow-2xl">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+							<UserCog className="w-6 h-6 text-primary" />
+							Edit User Role
+						</DialogTitle>
+						<DialogDescription>
+							Select the administrative level for{" "}
+							<span className="font-bold text-foreground">
+								{selectedUserForRole?.name}
+							</span>
+							.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="grid gap-4 py-4">
+						<button
+							onClick={() => handleUpdateRole("Admin")}
+							disabled={isUpdating}
+							className="flex items-start gap-4 p-4 rounded-xl border-2 border-transparent hover:border-rose-500/50 hover:bg-rose-50/50 transition-all text-left group"
+						>
+							<div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 group-hover:scale-110 transition-transform">
+								<ShieldCheck className="w-6 h-6" />
+							</div>
+							<div className="flex-1 space-y-1">
+								<p className="font-bold text-rose-700">Administrator</p>
+								<p className="text-xs text-muted-foreground leading-relaxed">
+									Full access to all system data, event management, and user permissions.
+								</p>
+							</div>
+						</button>
+
+						<button
+							onClick={() => handleUpdateRole("Staff")}
+							disabled={isUpdating}
+							className="flex items-start gap-4 p-4 rounded-xl border-2 border-transparent hover:border-blue-500/50 hover:bg-blue-50/50 transition-all text-left group"
+						>
+							<div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+								<CheckCircle2 className="w-6 h-6" />
+							</div>
+							<div className="flex-1 space-y-1">
+								<p className="font-bold text-blue-700">Staff</p>
+								<p className="text-xs text-muted-foreground leading-relaxed">
+									Can manage events and redeem tickets, but cannot manage other users.
+								</p>
+							</div>
+						</button>
+					</div>
+
+					<div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg text-xs text-muted-foreground italic">
+						<Info className="w-4 h-4 shrink-0" />
+						Changes take effect immediately upon selection.
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

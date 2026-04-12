@@ -15,11 +15,20 @@ import { toast } from "react-hot-toast";
 import { cn } from "../lib/utils";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+} from "../components/ui/dialog";
 
 export function MyTicketsPage() {
 	const [tickets, setTickets] = useState<TicketResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isCancelling, setIsCancelling] = useState<number | null>(null);
+	const [selectedTicket, setSelectedTicket] = useState<TicketResponse | null>(null);
 
 	const loadTickets = async () => {
 		setIsLoading(true);
@@ -151,6 +160,7 @@ export function MyTicketsPage() {
 								<Button
 									variant="outline"
 									className="flex-1 font-semibold group-hover:bg-accent transition-colors"
+									onClick={() => setSelectedTicket(ticket)}
 								>
 									View QR
 								</Button>
@@ -195,6 +205,53 @@ export function MyTicketsPage() {
 					</CardContent>
 				</Card>
 			)}
+
+			<Dialog
+				open={!!selectedTicket}
+				onOpenChange={(open) => !open && setSelectedTicket(null)}
+			>
+				<DialogContent className="sm:max-w-md bg-white dark:bg-zinc-950 border-2 shadow-2xl">
+					<DialogHeader className="space-y-3">
+						<DialogTitle className="text-2xl font-bold tracking-tight text-center">
+							Your Ticket QR Code
+						</DialogTitle>
+						<DialogDescription className="text-center text-muted-foreground">
+							Show this QR code at the event entrance for verification.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex flex-col items-center justify-center p-8 space-y-6">
+						<div className="p-4 bg-white rounded-2xl shadow-inner-lg border-4 border-primary/20 animate-in fade-in zoom-in duration-500">
+							{selectedTicket && (
+								<QRCodeCanvas
+									value={selectedTicket.ticketId.toString()}
+									size={220}
+									level="H"
+									includeMargin={true}
+									imageSettings={{
+										src: "/favicon.ico",
+										x: undefined,
+										y: undefined,
+										height: 40,
+										width: 40,
+										excavate: true,
+									}}
+								/>
+							)}
+						</div>
+						<div className="w-full space-y-2 text-center">
+							<p className="font-bold text-lg text-primary">
+								{selectedTicket?.eventTitle}
+							</p>
+							<div className="flex items-center justify-center gap-2 text-sm text-muted-foreground font-mono bg-muted/30 py-1.5 rounded-full">
+								<span className="opacity-60">ID:</span>
+								<span className="font-bold">
+									#T-{selectedTicket?.ticketId.toString().padStart(5, "0")}
+								</span>
+							</div>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

@@ -4,8 +4,7 @@ import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { authService } from "../../services/authService";
-import { useAuth } from "../../hooks/useAuth";
+import { useRegister } from "../../features/authentication/useRegister";
 import { toast } from "react-hot-toast";
 
 export function RegisterForm() {
@@ -15,16 +14,15 @@ export function RegisterForm() {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirm, setShowConfirm] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
 
-	const { login } = useAuth();
+	const { register, isPending } = useRegister();
 	const navigate = useNavigate();
 
 	// Client-side validation helpers
 	const passwordsMatch = confirmPassword === "" || password === confirmPassword;
 	const passwordStrong = password.length === 0 || password.length >= 6;
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
 		if (password !== confirmPassword) {
@@ -36,29 +34,14 @@ export function RegisterForm() {
 			return;
 		}
 
-		setIsLoading(true);
-		try {
-			const response = await authService.register({
-				name,
-				email,
-				password,
-				confirmPassword,
-			});
-
-			// Auto-login after successful registration
-			await login(response.token);
-			toast.success("Account created! Welcome to EventTix 🎉");
-			navigate("/redirect");
-		} catch (error: unknown) {
-			console.error("Registration failed", error);
-			const message =
-				error instanceof Error
-					? error.message
-					: "Registration failed. Please try again.";
-			toast.error(message);
-		} finally {
-			setIsLoading(false);
-		}
+		register(
+			{ name, email, password, confirmPassword },
+			{
+				onSuccess: () => {
+					navigate("/login");
+				},
+			},
+		);
 	};
 
 	return (
@@ -77,7 +60,7 @@ export function RegisterForm() {
 						onChange={(e) => setName(e.target.value)}
 						required
 						minLength={2}
-						disabled={isLoading}
+						disabled={isPending}
 					/>
 				</div>
 			</div>
@@ -95,7 +78,7 @@ export function RegisterForm() {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required
-						disabled={isLoading}
+						disabled={isPending}
 					/>
 				</div>
 			</div>
@@ -114,7 +97,7 @@ export function RegisterForm() {
 						onChange={(e) => setPassword(e.target.value)}
 						required
 						minLength={6}
-						disabled={isLoading}
+						disabled={isPending}
 					/>
 					<button
 						type="button"
@@ -149,7 +132,7 @@ export function RegisterForm() {
 						value={confirmPassword}
 						onChange={(e) => setConfirmPassword(e.target.value)}
 						required
-						disabled={isLoading}
+						disabled={isPending}
 					/>
 					<button
 						type="button"
@@ -172,9 +155,9 @@ export function RegisterForm() {
 			<Button
 				className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.01] mt-2"
 				type="submit"
-				disabled={isLoading || !passwordsMatch || !passwordStrong}
+				disabled={isPending || !passwordsMatch || !passwordStrong}
 			>
-				{isLoading ? (
+				{isPending ? (
 					<div className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-white rounded-full animate-spin" />
 						Creating account...

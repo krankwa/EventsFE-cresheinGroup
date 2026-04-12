@@ -1,5 +1,5 @@
 import { Bell, Search, Menu } from "lucide-react";
-import { UserInfo } from "./UserInfo";
+import { UserInfo } from "../organisms/UserInfo";
 import { Button } from "../ui/button";
 import { 
   Badge 

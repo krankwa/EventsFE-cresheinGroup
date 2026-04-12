@@ -12,7 +12,7 @@ import {
   CardTitle 
 } from "../../../components/ui/card";
 import { cn } from "../../../lib/utils";
-import type { DashboardStats } from "../../../api/dashboardService";
+import type { DashboardStats } from "../../../services/dashboardService";
 
 interface StatsGridProps {
   stats: DashboardStats | null;

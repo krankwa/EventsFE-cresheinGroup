@@ -1,12 +1,13 @@
 // bases: EventManagementAPI/DTOs/Events/EventResponse.cs
 export interface EventResponse {
-  id: number;
+  eventID: number;
   title: string;
   date: string;
   venue: string;
   capacity: number;
   ticketsSold: number;
-  coverImageUrl?: string;
+  ticketsAvailable: number;
+  coverImageUrl: string | null;
 }
 
 // bases: EventManagementAPI/DTOs/Events/EventCreateDTO.cs
@@ -16,7 +17,7 @@ export interface EventCreateDTO {
   date: string;
   venue: string;
   capacity: number;
-  coverImageUrl?: string;
+  coverImageUrl?: string | null;
 }
 
 // bases: EventManagementAPI/DTOs/Events/EventUpdateDTO.cs
@@ -26,5 +27,5 @@ export interface EventUpdateDTO {
   date: string;
   venue: string;
   capacity: number;
-  coverImageUrl?: string;
+  coverImageUrl?: string | null;
 }

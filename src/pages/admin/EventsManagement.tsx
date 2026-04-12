@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search, Plus, Filter, Download } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
-import type { EventResponse } from "../../types/Event.types";
+import type { EventResponse } from "../../interface/Event.interface";
 import { Button } from "../../components/ui/button";
 import {
 	Card,
@@ -14,7 +14,7 @@ import { EventsTable } from "../../components/organisms/EventsTable";
 import { EventDialog } from "../../components/organisms/EventDialog";
 import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
 import { toast } from "react-hot-toast";
-import type { EventCreateDTO, EventUpdateDTO } from "../../types/Event.types";
+import type { EventCreateDTO, EventUpdateDTO } from "../../interface/Event.interface";
 
 export function EventsManagement() {
 	const [events, setEvents] = useState<EventResponse[]>([]);
@@ -77,9 +77,8 @@ export function EventsManagement() {
 			loadEvents();
 		} catch (error) {
 			console.error("Failed to save event", error);
-			toast.error(
-				selectedEvent ? "Failed to update event." : "Failed to create event.",
-			);
+			const message = error instanceof Error ? error.message : (selectedEvent ? "Failed to update event." : "Failed to create event.");
+			toast.error(message);
 		} finally {
 			setIsSaving(false);
 		}
@@ -95,7 +94,8 @@ export function EventsManagement() {
 			loadEvents();
 		} catch (error) {
 			console.error("Failed to delete event", error);
-			toast.error("Failed to delete the event. It might have linked data.");
+			const message = error instanceof Error ? error.message : "Failed to delete the event. It might have linked data.";
+			toast.error(message);
 		} finally {
 			setIsSaving(false);
 		}

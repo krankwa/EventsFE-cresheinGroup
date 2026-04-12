@@ -1,5 +1,8 @@
 import { apiFetch } from "./api";
-import type { TicketResponse, TicketCreateRequest } from "../types/Ticket.types";
+import type {
+  TicketResponse,
+  TicketCreateRequest,
+} from "../interface/Ticket.interface";
 
 // POST /api/tickets — User only
 export async function registerTicket(

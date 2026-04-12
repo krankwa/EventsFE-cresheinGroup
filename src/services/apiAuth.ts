@@ -5,7 +5,7 @@ import type {
   RegisterRequest,
   AuthResponse,
   UserResponse,
-} from "../types/Auth.types";
+} from "../interface/Auth.interface";
 
 // POST /api/auth/login
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {

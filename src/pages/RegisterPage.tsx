@@ -9,18 +9,13 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldError,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { registerSchema } from "@/form-schema/login-schema";
 
 //newfunc
 import { useRegister } from "../features/authentication/useRegister";
 import { Link } from "react-router-dom";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 
 export function RegisterPage() {
   const form = useForm<z.infer<typeof registerSchema>>({

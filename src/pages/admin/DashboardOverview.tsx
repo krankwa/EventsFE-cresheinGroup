@@ -7,7 +7,6 @@ import {
 	CardTitle,
 	CardDescription,
 } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
 import { StatsGrid } from "../../components/organisms/StatsGrid";
 import { dashboardService, type DashboardStats } from "../../services/dashboardService";
 import { format } from "date-fns";
@@ -39,10 +38,7 @@ export function DashboardOverview() {
 						Welcome back! Here's what's happening with your events today.
 					</p>
 				</div>
-				<Button className="gap-2 shadow-lg shadow-primary/20">
-					<Plus className="w-4 h-4" />
-					Create Event
-				</Button>
+
 			</div>
 
 			<StatsGrid />
@@ -79,10 +75,10 @@ export function DashboardOverview() {
 								<div key={event.eventID} className="flex items-center gap-4 group cursor-default">
 									<div className="w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
 										{event.coverImageUrl ? (
-											<img 
-												src={event.coverImageUrl} 
-												alt={event.title} 
-												className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+											<img
+												src={event.coverImageUrl}
+												alt={event.title}
+												className="w-full h-full object-cover transition-transform group-hover:scale-110"
 											/>
 										) : (
 											<div className="w-full h-full flex items-center justify-center">

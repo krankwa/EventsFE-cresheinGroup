@@ -1,5 +1,5 @@
 import { getToken, clearToken } from "./authStore";
-import type { ApiError } from "../interface/api.interface";
+import type { ApiError } from "../types/api.types";
 
 const API_URL = import.meta.env.VITE_BACKEND_API as string;
 

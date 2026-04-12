@@ -5,8 +5,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import type { EventResponse } from "../../types/Event.types";
-import { useAuth } from "../../hooks/useAuth";
-import { ticketsService } from "../../services/ticketsService";
+import { useUser } from "../../features/authentication/useUser";
+import { registerTicket } from "../../services/apiTickets";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -15,11 +15,14 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-	const { user, isAdmin } = useAuth();
+	const { user, isAdmin } = useUser();
 	const navigate = useNavigate();
 	const [isBooking, setIsBooking] = useState(false);
 
 	const isSoldOut = event.ticketsSold >= event.capacity;
+	const lowestPrice = event.tiers.length > 0
+		? Math.min(...event.tiers.map(t => t.price))
+		: null;
 
 	const handleBookTicket = async () => {
 		if (!user) {
@@ -27,22 +30,17 @@ export function EventCard({ event }: EventCardProps) {
 			navigate("/login");
 			return;
 		}
-
 		if (isAdmin) {
 			toast.error("Admins cannot book tickets.");
 			return;
 		}
-
 		setIsBooking(true);
 		try {
-			await ticketsService.register({ eventId: event.eventID! });
+			await registerTicket({ eventId: event.eventID! });
 			toast.success(`Successfully registered for ${event.title}!`);
-			// Update local state or redirect to My Tickets
 			navigate("/tickets");
 		} catch (error) {
-			console.error("Booking failed", error);
-			const message =
-				error instanceof Error ? error.message : "Failed to book ticket.";
+			const message = error instanceof Error ? error.message : "Failed to book ticket.";
 			toast.error(message);
 		} finally {
 			setIsBooking(false);
@@ -51,7 +49,11 @@ export function EventCard({ event }: EventCardProps) {
 
 	return (
 		<Card className="overflow-hidden group hover:shadow-2xl transition-all duration-300 border-muted/40 bg-card/50 backdrop-blur-sm">
-			<div className="relative h-48 overflow-hidden">
+			{/* Cover image — clicking navigates to detail page */}
+			<div
+				className="relative h-48 overflow-hidden cursor-pointer"
+				onClick={() => navigate(`/events/${event.eventID}`)}
+			>
 				{event.coverImageUrl ? (
 					<img
 						src={event.coverImageUrl}
@@ -70,10 +72,7 @@ export function EventCard({ event }: EventCardProps) {
 				</div>
 				{isSoldOut && (
 					<div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
-						<Badge
-							variant="destructive"
-							className="px-4 py-1 text-sm font-bold uppercase tracking-wider"
-						>
+						<Badge variant="destructive" className="px-4 py-1 text-sm font-bold uppercase tracking-wider">
 							Sold Out
 						</Badge>
 					</div>
@@ -82,10 +81,15 @@ export function EventCard({ event }: EventCardProps) {
 
 			<CardHeader className="p-5 pb-2">
 				<div className="flex justify-between items-start gap-2">
-					<h3 className="text-xl font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+					<h3
+						className="text-xl font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors cursor-pointer"
+						onClick={() => navigate(`/events/${event.eventID}`)}
+					>
 						{event.title}
 					</h3>
-					<div className="text-primary font-bold line-clamp-1">₱999+</div>
+					<div className="text-primary font-bold shrink-0">
+						{lowestPrice !== null ? `₱${lowestPrice.toLocaleString()}+` : "Free"}
+					</div>
 				</div>
 			</CardHeader>
 
@@ -104,40 +108,36 @@ export function EventCard({ event }: EventCardProps) {
 				<div className="pt-4 border-t border-muted/50 flex items-center justify-between text-xs text-muted-foreground font-medium">
 					<div className="flex items-center gap-1.5">
 						<Users className="w-3.5 h-3.5" />
-						<span>
-							{event.ticketsSold} / {event.capacity} Attendees
-						</span>
+						<span>{event.ticketsSold} / {event.capacity} Attendees</span>
 					</div>
 					<div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
 						<div
 							className="h-full bg-primary transition-all duration-1000"
-							style={{
-								width: `${Math.min((event.ticketsSold / event.capacity) * 100, 100)}%`,
-							}}
+							style={{ width: `${Math.min((event.ticketsSold / event.capacity) * 100, 100)}%` }}
 						/>
 					</div>
 				</div>
 			</CardContent>
 
-			<CardFooter className="p-5 pt-0">
+			<CardFooter className="p-5 pt-0 flex gap-2">
 				<Button
-					className="w-full gap-2 group/btn font-semibold"
+					variant="outline"
+					size="sm"
+					className="gap-1 text-muted-foreground"
+					onClick={() => navigate(`/events/${event.eventID}`)}
+				>
+					View Details
+				</Button>
+				<Button
+					className="flex-1 gap-2 group/btn font-semibold"
 					variant={isSoldOut ? "outline" : "default"}
 					disabled={isSoldOut || isBooking}
 					onClick={handleBookTicket}
 				>
 					{isBooking ? (
-						<>
-							<Loader2 className="w-4 h-4 animate-spin" />
-							Booking...
-						</>
-					) : isSoldOut ? (
-						"Notify Me"
-					) : (
-						<>
-							Book Tickets
-							<ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-						</>
+						<><Loader2 className="w-4 h-4 animate-spin" />Booking...</>
+					) : isSoldOut ? "Notify Me" : (
+						<>Book Tickets<ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" /></>
 					)}
 				</Button>
 			</CardFooter>

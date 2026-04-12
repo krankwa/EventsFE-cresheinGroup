@@ -1,13 +1,19 @@
-import type { 
-  EventResponse, 
-  EventCreateDTO, 
-  EventUpdateDTO 
+import type {
+  EventResponse,
+  EventCreateDTO,
+  EventUpdateDTO,
 } from "../types/Event.types";
 import { apiRequest } from "./client";
 
 export const eventsService = {
   getAll: (): Promise<EventResponse[]> =>
     apiRequest<EventResponse[]>("/Event", {
+      method: "GET",
+      requiresAuth: false,
+    }),
+
+  getById: (id: number): Promise<EventResponse> =>
+    apiRequest<EventResponse>(`/Event/${id}`, {
       method: "GET",
       requiresAuth: false,
     }),

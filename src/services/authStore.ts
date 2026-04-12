@@ -1,13 +1,14 @@
-let accessToken: string | null = null;
+// Session-surviving token store using sessionStorage.
+// Persists across page refreshes within the same tab, clears when tab closes.
 
 export function getToken(): string | null {
-  return accessToken;
+  return sessionStorage.getItem("token");
 }
 
 export function setToken(token: string): void {
-  accessToken = token;
+  sessionStorage.setItem("token", token);
 }
 
 export function clearToken(): void {
-  accessToken = null;
+  sessionStorage.removeItem("token");
 }

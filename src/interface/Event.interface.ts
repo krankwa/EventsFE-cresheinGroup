@@ -1,4 +1,5 @@
 export interface TicketTierResponse {
+  tierId: number;
   id: number;
   name: string;
   price: number;
@@ -6,6 +7,11 @@ export interface TicketTierResponse {
   ticketsSold: number;
   availableTickets: number;
 }
+
+export type EventAvailability =
+  | { readonly status: "available"; availableTickets: number }
+  | { readonly status: "sold-out" }
+  | { readonly status: "upcoming" };
 
 export interface TicketTierCreateDTO {
   name: string;

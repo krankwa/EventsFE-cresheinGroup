@@ -3,7 +3,7 @@ import {
   User,
   MoreVertical,
   Mail,
-  ShieldAlert
+  ShieldAlert,
 } from "lucide-react";
 import {
   Table,
@@ -15,7 +15,7 @@ import {
 } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import type { UserResponse } from "../../types/Auth.types";
+import type { UserResponse } from "../../interface/Auth.interface";
 import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
@@ -55,7 +55,9 @@ export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
                 </div>
                 <span className="font-medium">{user.name}</span>
                 {user.userId === currentUser?.userId && (
-                  <Badge variant="outline" className="text-[10px] py-0">You</Badge>
+                  <Badge variant="outline" className="text-[10px] py-0">
+                    You
+                  </Badge>
                 )}
               </div>
             </TableCell>
@@ -70,7 +72,11 @@ export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
                 variant={user.role === "Admin" ? "default" : "secondary"}
                 className="gap-1"
               >
-                {user.role === "Admin" ? <ShieldCheck className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                {user.role === "Admin" ? (
+                  <ShieldCheck className="w-3 h-3" />
+                ) : (
+                  <User className="w-3 h-3" />
+                )}
                 {user.role}
               </Badge>
             </TableCell>
@@ -86,7 +92,11 @@ export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
                   Appoint Admin
                 </Button>
               ) : (
-                <Button variant="ghost" size="icon" disabled={user.userId === currentUser?.userId}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={user.userId === currentUser?.userId}
+                >
                   <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </Button>
               )}

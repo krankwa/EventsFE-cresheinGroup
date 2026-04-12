@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import type { EventResponse } from "../types/Event.types";
+import type { EventResponse } from "../interface/Event.interface";
 
 export interface DashboardStats {
   totalEvents: number;

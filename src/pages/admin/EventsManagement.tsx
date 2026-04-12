@@ -77,9 +77,8 @@ export function EventsManagement() {
 			loadEvents();
 		} catch (error) {
 			console.error("Failed to save event", error);
-			toast.error(
-				selectedEvent ? "Failed to update event." : "Failed to create event.",
-			);
+			const message = error instanceof Error ? error.message : (selectedEvent ? "Failed to update event." : "Failed to create event.");
+			toast.error(message);
 		} finally {
 			setIsSaving(false);
 		}
@@ -95,7 +94,8 @@ export function EventsManagement() {
 			loadEvents();
 		} catch (error) {
 			console.error("Failed to delete event", error);
-			toast.error("Failed to delete the event. It might have linked data.");
+			const message = error instanceof Error ? error.message : "Failed to delete the event. It might have linked data.";
+			toast.error(message);
 		} finally {
 			setIsSaving(false);
 		}

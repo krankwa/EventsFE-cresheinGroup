@@ -28,7 +28,8 @@ export async function apiRequest<T>(
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const problem = await response.json();
-        errorMessage = problem.message || problem.title || errorMessage;
+        // Check for common error property names in different cases
+        errorMessage = problem.message || problem.Message || problem.title || problem.Title || errorMessage;
       }
     } catch {
       // Fallback to status text if JSON parse fails

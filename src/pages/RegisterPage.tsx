@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { registerSchema } from "@/form-schema/login-schema"
+import { Link } from "react-router-dom"
 
 export function RegisterPage() {
     const form = useForm<z.infer<typeof registerSchema>>({
@@ -147,10 +148,13 @@ export function RegisterPage() {
                             Sign In
                         </Button>
                         <p className="text-xs text-center text-[#94a3b8]">
-                            Don't have an account?{" "}
-                            <a href="#" className="text-[#2e4d8a] hover:text-[#1b2a4a] transition-colors font-medium">
-                                Register here
-                            </a>
+                            Already have an account?{" "}
+                            <Link
+                                to="/login"
+                                className="text-[#2e4d8a] hover:text-[#1b2a4a] transition-colors font-medium"
+                            >
+                                Login here
+                            </Link>
                         </p>
                     </CardFooter>
                 </Card>

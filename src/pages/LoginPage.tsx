@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { loginSchema } from "@/form-schema/login-schema"
-import { Link } from "lucide-react"
+import { Link } from "react-router-dom"
 
 export function LoginForm() {
     const form = useForm<z.infer<typeof loginSchema>>({

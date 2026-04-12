@@ -16,7 +16,9 @@ export function PublicNavbar() {
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:rotate-12 transition-transform">
           <CalendarDays className="text-primary-foreground w-5 h-5" />
         </div>
-        <span className="font-bold text-xl tracking-tight hidden sm:block">EventTix</span>
+        <span className="font-bold text-xl tracking-tight hidden sm:block">
+          EventTix
+        </span>
       </Link>
 
       {/* Right actions */}
@@ -43,10 +45,10 @@ export function PublicNavbar() {
               onClick={() => navigate("/myaccount")}
             >
               <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{isAdmin ? "Dashboard" : user.name}</span>
+              <span className="hidden sm:inline">
+                {isAdmin ? "Dashboard" : user.name}
+              </span>
             </Button>
-
-
 
             <Button
               variant="ghost"

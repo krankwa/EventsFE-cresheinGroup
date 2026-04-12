@@ -149,7 +149,9 @@ export function EventDialog({
     event
       ? {
           title: event.title,
-          date: event.date ? (event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")) : format(new Date(), "yyyy-MM-dd"),
+          date: event.date
+            ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
+            : format(new Date(), "yyyy-MM-dd"),
           venue: event.venue,
           capacity: event.capacity,
           coverImageUrl: event.coverImageUrl || "",

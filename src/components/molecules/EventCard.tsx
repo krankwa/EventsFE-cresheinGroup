@@ -5,8 +5,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import type { EventResponse } from "../../types/Event.types";
-import { useAuth } from "../../hooks/useAuth";
-import { ticketsService } from "../../services/ticketsService";
+import { useUser } from "../../features/authentication/useUser";
+import { registerTicket } from "../../services/apiTickets";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -15,7 +15,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-	const { user, isAdmin } = useAuth();
+	const { user, isAdmin } = useUser();
 	const navigate = useNavigate();
 	const [isBooking, setIsBooking] = useState(false);
 
@@ -35,9 +35,8 @@ export function EventCard({ event }: EventCardProps) {
 
 		setIsBooking(true);
 		try {
-			await ticketsService.register({ eventId: event.eventID! });
+			await registerTicket({ eventId: event.eventID! });
 			toast.success(`Successfully registered for ${event.title}!`);
-			// Update local state or redirect to My Tickets
 			navigate("/tickets");
 		} catch (error) {
 			console.error("Booking failed", error);
@@ -85,7 +84,7 @@ export function EventCard({ event }: EventCardProps) {
 					<h3 className="text-xl font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
 						{event.title}
 					</h3>
-					<div className="text-primary font-bold line-clamp-1">₱999+</div>
+					<div className="text-primary font-bold line-clamp-1">&#8369;999+</div>
 				</div>
 			</CardHeader>
 

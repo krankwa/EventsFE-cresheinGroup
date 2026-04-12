@@ -19,14 +19,16 @@
  *   -- The service_role key (used by the .NET backend) bypasses RLS by default.
  */
 
-const API_BASE_URL = "https://localhost:7080/api";
+import { getToken } from "./authStore";
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
 /**
  * Uploads an image file to Supabase Storage via the .NET /api/Upload proxy.
  * Returns the public URL of the stored image.
  */
 export async function uploadEventImage(file: File): Promise<string> {
-  const token = localStorage.getItem("token");
+  const token = getToken();
   if (!token) {
     throw new Error("Not authenticated. Please log in as Admin.");
   }

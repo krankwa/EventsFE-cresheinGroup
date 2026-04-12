@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCurrentUser } from "../../services/apiAuth";
-import type { UserResponse, UserRole } from "../../interface/auth.interface";
+import type { UserResponse, UserRole } from "../../types/Auth.types";
 
 interface UseUserReturn {
   isLoading: boolean;

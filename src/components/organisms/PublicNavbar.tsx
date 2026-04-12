@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { CalendarDays, Ticket, LogOut, User } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
+import { useUser } from "../../features/authentication/useUser";
+import { useLogout } from "../../features/authentication/useLogout";
 import { Button } from "../ui/button";
 
 export function PublicNavbar() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, isAdmin } = useUser();
+  const { logout } = useLogout();
   const navigate = useNavigate();
 
   const handleDashboard = () => {
@@ -52,7 +54,7 @@ export function PublicNavbar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={logout}
+              onClick={() => logout()}
               title="Sign Out"
               className="text-muted-foreground hover:text-destructive"
             >

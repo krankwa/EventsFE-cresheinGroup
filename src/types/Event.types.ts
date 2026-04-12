@@ -13,7 +13,6 @@ export interface TicketTierCreateDTO {
   capacity: number;
 }
 
-// bases: EventManagementAPI/DTOs/Events/EventResponse.cs
 export interface EventResponse {
   eventID: number;
   title: string;

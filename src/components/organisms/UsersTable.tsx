@@ -1,6 +1,6 @@
-import { 
-  ShieldCheck, 
-  User, 
+import {
+  ShieldCheck,
+  User,
   MoreVertical,
   Mail,
   ShieldAlert
@@ -16,7 +16,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import type { UserResponse } from "../../types/Auth.types";
-import { useAuth } from "../../hooks/useAuth";
+import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
   users: UserResponse[];
@@ -25,7 +25,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser } = useUser();
 
   if (isLoading) {
     return (
@@ -66,7 +66,7 @@ export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
               </div>
             </TableCell>
             <TableCell>
-              <Badge 
+              <Badge
                 variant={user.role === "Admin" ? "default" : "secondary"}
                 className="gap-1"
               >
@@ -76,9 +76,9 @@ export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
             </TableCell>
             <TableCell className="text-right">
               {user.role !== "Admin" ? (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
                   onClick={() => onPromote(user)}
                 >

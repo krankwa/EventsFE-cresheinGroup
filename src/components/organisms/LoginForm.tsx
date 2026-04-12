@@ -1,42 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
-import { authService } from "../../services/authService";
+import { useLogin } from "../../features/authentication/useLogin";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Mail, Lock, ArrowRight } from "lucide-react";
-import { toast } from "react-hot-toast";
 
 export function LoginForm() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
-	const { login } = useAuth();
-	const navigate = useNavigate();
+	const { login, isPending } = useLogin();
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
-
-		try {
-			const response = await authService.login({ email, password });
-			await login(response.token);
-
-			// Redirect based on role after status update
-			// We can fetch the user role from the auth context since login() calls fetchUser()
-			// or we can just let RoleRedirect handle it if we navigate to root
-			navigate("/redirect");
-		} catch (error: unknown) {
-			console.error("Login failed", error);
-			const message =
-				error instanceof Error
-					? error.message
-					: "Invalid credentials or unauthorized.";
-			toast.error(message);
-		} finally {
-			setIsLoading(false);
-		}
+		login({ email, password });
 	};
 
 	return (
@@ -53,7 +29,7 @@ export function LoginForm() {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required
-						disabled={isLoading}
+						disabled={isPending}
 					/>
 				</div>
 			</div>
@@ -73,16 +49,16 @@ export function LoginForm() {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						required
-						disabled={isLoading}
+						disabled={isPending}
 					/>
 				</div>
 			</div>
 			<Button
 				className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.01]"
 				type="submit"
-				disabled={isLoading}
+				disabled={isPending}
 			>
-				{isLoading ? (
+				{isPending ? (
 					<div className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-white rounded-full animate-spin" />
 						Logging in...

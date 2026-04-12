@@ -1,7 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { CalendarDays, LogOut, ShieldCheck, User } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { useAuth } from "../../hooks/useAuth";
+import { useUser } from "../../features/authentication/useUser";
+import { useLogout } from "../../features/authentication/useLogout";
 import { Badge } from "../ui/badge";
 
 import { NAV_ITEMS } from "../../features/admin/constants";
@@ -11,7 +12,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ className }: SidebarProps) {
-	const { user, isAdmin, logout } = useAuth();
+	const { user, isAdmin } = useUser();
+	const { logout } = useLogout();
 
 	return (
 		<aside
@@ -85,7 +87,7 @@ export function Sidebar({ className }: SidebarProps) {
 						Session
 					</div>
 					<button
-						onClick={logout}
+						onClick={() => logout()}
 						className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-destructive transition-all hover:bg-destructive/10 hover:pl-4 group"
 					>
 						<LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />

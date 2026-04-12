@@ -4,6 +4,7 @@ import {
 	Route,
 	Navigate,
 } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AdminLayout } from "./components/templates/AdminLayout";
 import { DashboardOverview } from "./pages/admin/DashboardOverview";
 import { EventsManagement } from "./pages/admin/EventsManagement";
@@ -11,18 +12,25 @@ import { UsersManagement } from "./pages/admin/UsersManagement";
 import { LoginPage } from "./pages/LoginPage";
 import { LandingPage } from "./pages/LandingPage";
 import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
-import { AuthProvider } from "./context/AuthContext";
-import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
 import { EventsPage } from "./pages/EventsPage";
 import { MyTicketsPage } from "./pages/MyTicketsPage";
 import { UserLayout } from "./components/templates/UserLayout";
 import { UnauthorizePage } from "./pages/UnauthorizePage";
+import { useUser } from "./features/authentication/useUser";
+
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			staleTime: 0,
+		},
+	},
+});
 
 function RoleRedirect() {
-	const { user, loading } = useAuth();
+	const { user, isLoading } = useUser();
 
-	if (loading) return null;
+	if (isLoading) return null;
 	if (!user) return <Navigate to="/login" replace />;
 
 	if (user.role === "Admin") {
@@ -33,8 +41,8 @@ function RoleRedirect() {
 
 function App() {
 	return (
-		<Router>
-			<AuthProvider>
+		<QueryClientProvider client={queryClient}>
+			<Router>
 				<Toaster position="top-right" />
 				<Routes>
 					{/* Public Routes */}
@@ -65,8 +73,8 @@ function App() {
 					{/* Fallback */}
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
-			</AuthProvider>
-		</Router>
+			</Router>
+		</QueryClientProvider>
 	);
 }
 

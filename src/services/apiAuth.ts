@@ -1,4 +1,3 @@
-// src/services/apiAuth.ts
 import { apiFetch } from "./api";
 import { setToken, clearToken, getToken } from "./authStore";
 import type {
@@ -6,9 +5,9 @@ import type {
   RegisterRequest,
   AuthResponse,
   UserResponse,
-} from "../interface/auth.interface";
+} from "../types/Auth.types";
 
-// POST /api/auth/login - Returns: { token: "eyJhbG...", message: "Login successful" }
+// POST /api/auth/login
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
   const data = await apiFetch<AuthResponse>("/auth/login", {
     method: "POST",
@@ -19,7 +18,7 @@ export async function login(credentials: LoginRequest): Promise<AuthResponse> {
   return data;
 }
 
-// POST /api/auth/register - Returns: { token: "", message: "Registration successful" }
+// POST /api/auth/register
 export async function register(
   request: RegisterRequest,
 ): Promise<AuthResponse> {
@@ -29,7 +28,7 @@ export async function register(
   });
 }
 
-// GET /api/users/me - Returns: { userId, name, email, role } from BE
+// GET /api/users/me
 export async function getCurrentUser(): Promise<UserResponse | null> {
   if (!getToken()) return null;
 
@@ -41,7 +40,7 @@ export async function getCurrentUser(): Promise<UserResponse | null> {
   }
 }
 
-// POST /api/auth/logout - Return message: "Logout successful" from BE
+// POST /api/auth/logout
 export async function logout(): Promise<void> {
   try {
     await apiFetch<{ message: string }>("/auth/logout", { method: "POST" });

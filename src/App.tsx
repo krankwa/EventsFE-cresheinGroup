@@ -14,12 +14,8 @@ import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
-import { EventsPage } from "./pages/EventsPage";
-import { MyTicketsPage } from "./pages/MyTicketsPage";
-import { UserLayout } from "./components/templates/UserLayout";
-import { LoginForm } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
-import UnauthorizedPage from "./pages/UnauthorizedPage";
+import { LoginPage } from "./pages/LoginPage";
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -42,7 +38,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
 
-          <Route path="/login" element={<LoginForm />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Post-login role redirect */}
@@ -57,22 +53,12 @@ function App() {
             </Route>
           </Route>
 
-          {/* Protected User Routes */}
-          <Route element={<ProtectedRoute allowedRoles={["Admin", "User"]} />}>
-            <Route element={<UserLayout />}>
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/tickets" element={<MyTicketsPage />} />
-            </Route>
-          </Route>
-
-          <Route path="/unauthorize" element={<UnauthorizedPage />} />
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </Router>
-  );
+					{/* Fallback */}
+					<Route path="*" element={<Navigate to="/" replace />} />
+				</Routes>
+			</AuthProvider>
+		</Router>
+	);
 }
 
 export default App;

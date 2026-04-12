@@ -8,7 +8,7 @@ import {
 	DialogDescription,
 } from "../../components/ui/dialog";
 import { userService } from "../../services/userService";
-import type { UserResponse } from "../../types/Auth.types";
+import type { UserResponse, UserRole } from "../../types/Auth.types";
 import { Button } from "../../components/ui/button";
 import {
 	Card,
@@ -45,7 +45,7 @@ export function UsersManagement() {
 		loadUsers();
 	}, []);
 
-	const handleUpdateRole = async (role: string) => {
+	const handleUpdateRole = async (role: UserRole) => {
 		if (!selectedUserForRole) return;
 
 		setIsUpdating(true);

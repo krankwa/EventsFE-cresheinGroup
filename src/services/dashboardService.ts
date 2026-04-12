@@ -3,6 +3,7 @@ import { userService } from "./userService";
 import type { EventResponse } from "../types/Event.types";
 
 export interface DashboardStats {
+  totalUsers: number;
   totalEvents: number;
   totalTicketsSold: number;
   activeUsers: number;

@@ -3,8 +3,10 @@ import {
   User,
   MoreVertical,
   Mail,
-  ShieldAlert,
+  UserCog,
+  CheckCircle2
 } from "lucide-react";
+import { cn } from "../../lib/utils";
 import {
   Table,
   TableBody,
@@ -20,11 +22,11 @@ import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
   users: UserResponse[];
-  onPromote: (user: UserResponse) => void;
+  onEditRole: (user: UserResponse) => void;
   isLoading?: boolean;
 }
 
-export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
+export function UsersTable({ users, onEditRole, isLoading }: UsersTableProps) {
   const { user: currentUser } = useUser();
 
   if (isLoading) {
@@ -68,28 +70,34 @@ export function UsersTable({ users, onPromote, isLoading }: UsersTableProps) {
               </div>
             </TableCell>
             <TableCell>
-              <Badge
-                variant={user.role === "Admin" ? "default" : "secondary"}
-                className="gap-1"
+              <Badge 
+                variant={user.role === "Admin" ? "default" : user.role === "Staff" ? "outline" : "secondary"}
+                className={cn(
+                  "gap-1.5 px-2 py-0.5 font-bold transition-all",
+                  user.role === "Admin" && "bg-rose-500 hover:bg-rose-600 border-none shadow-sm shadow-rose-200",
+                  user.role === "Staff" && "text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-100/50"
+                )}
               >
                 {user.role === "Admin" ? (
-                  <ShieldCheck className="w-3 h-3" />
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                ) : user.role === "Staff" ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 ) : (
-                  <User className="w-3 h-3" />
+                  <User className="w-3.5 h-3.5" />
                 )}
                 {user.role}
               </Badge>
             </TableCell>
             <TableCell className="text-right">
               {user.role !== "Admin" ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                  onClick={() => onPromote(user)}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2 font-semibold hover:border-primary hover:text-primary transition-all rounded-full px-4"
+                  onClick={() => onEditRole(user)}
                 >
-                  <ShieldAlert className="w-4 h-4" />
-                  Appoint Admin
+                  <UserCog className="w-4 h-4" />
+                  Edit Role
                 </Button>
               ) : (
                 <Button

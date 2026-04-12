@@ -9,10 +9,10 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { StatsGrid } from "../../features/admin/components/StatsGrid";
-import { DashboardCharts } from "../../features/admin/components/DashboardCharts";
-import { dashboardService, type DashboardStats } from "../../api/dashboardService";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { dashboardService, type DashboardStats } from "@/services/dashboardService";
+import { DashboardCharts } from "@/components/organisms/DashboardCharts";
 
 export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);

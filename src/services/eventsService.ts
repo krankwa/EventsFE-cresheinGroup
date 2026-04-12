@@ -1,8 +1,8 @@
-import type { 
-  EventResponse, 
-  EventCreateDTO, 
-  EventUpdateDTO 
-} from "../types/Event.types";
+import type {
+  EventResponse,
+  EventCreateDTO,
+  EventUpdateDTO,
+} from "../interface/Event.interface";
 import { apiRequest } from "./client";
 
 export const eventsService = {

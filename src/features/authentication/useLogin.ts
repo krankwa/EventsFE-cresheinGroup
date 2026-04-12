@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { login as loginApi } from "../../services/apiAuth";
-import type { LoginRequest } from "../../types/Auth.types";
+import type { LoginRequest } from "../../interface/Auth.interface";
 import toast from "react-hot-toast";
 
 export function useLogin() {
@@ -11,10 +11,10 @@ export function useLogin() {
   const { mutate: login, isPending } = useMutation({
     mutationFn: (credentials: LoginRequest) => loginApi(credentials),
 
-    onSuccess: () => {
+    onSuccess: async () => {
       //returns token and message
       //Invalidate para mo getCurrentUser() and fetch from GET /api/users/me
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/redirect", { replace: true });
     },
 

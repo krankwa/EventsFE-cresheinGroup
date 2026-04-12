@@ -1,5 +1,8 @@
 import { apiRequest } from "./client";
-import type { TicketResponse, TicketCreateRequest } from "../types/Ticket.types";
+import type {
+  TicketResponse,
+  TicketCreateRequest,
+} from "../interface/Ticket.interface";
 
 export const ticketsService = {
   getMine: (): Promise<TicketResponse[]> =>

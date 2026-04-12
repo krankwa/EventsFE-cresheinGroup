@@ -7,6 +7,8 @@ interface UseMyTicketsReturn {
   tickets: TicketResponse[];
   isLoading: boolean;
   isCancelling: number | null;
+  selectedTicket: TicketResponse | null;
+  setSelectedTicket: (ticket: TicketResponse | null) => void;
   handleCancel: (id: number) => Promise<void>;
 }
 
@@ -14,6 +16,9 @@ export function useMyTickets(): UseMyTicketsReturn {
   const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState<number | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<TicketResponse | null>(
+    null,
+  );
 
   useEffect(() => {
     ticketsService
@@ -47,5 +52,12 @@ export function useMyTickets(): UseMyTicketsReturn {
     }
   };
 
-  return { tickets, isLoading, isCancelling, handleCancel };
+  return {
+    tickets,
+    isLoading,
+    isCancelling,
+    selectedTicket,
+    setSelectedTicket,
+    handleCancel,
+  };
 }

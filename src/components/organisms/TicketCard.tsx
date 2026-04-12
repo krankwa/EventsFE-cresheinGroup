@@ -16,9 +16,15 @@ interface TicketCardProps {
   ticket: TicketResponse;
   onCancel: (id: number) => void;
   isCancelling: boolean;
+  onViewQR: () => void;
 }
 
-export function TicketCard({ ticket, onCancel, isCancelling }: TicketCardProps) {
+export function TicketCard({
+  ticket,
+  onCancel,
+  isCancelling,
+  onViewQR,
+}: TicketCardProps) {
   return (
     <Card className="group overflow-hidden border-2 border-muted/50 hover:border-primary/20 transition-all duration-300 shadow-lg hover:shadow-2xl">
       <div className="relative h-36 overflow-hidden bg-muted/10 border-b border-muted/30">
@@ -58,7 +64,9 @@ export function TicketCard({ ticket, onCancel, isCancelling }: TicketCardProps) 
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground/60">Registered on:</span>
+          <span className="font-semibold text-foreground/60">
+            Registered on:
+          </span>
           {format(new Date(ticket.registrationDate), "MMM dd, yyyy")}
         </div>
       </CardContent>
@@ -67,6 +75,7 @@ export function TicketCard({ ticket, onCancel, isCancelling }: TicketCardProps) 
         <Button
           variant="outline"
           className="flex-1 font-semibold group-hover:bg-accent transition-colors"
+          onClick={onViewQR}
         >
           View QR
         </Button>

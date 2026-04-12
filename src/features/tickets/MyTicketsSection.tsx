@@ -7,6 +7,8 @@ import { Card, CardContent } from "../../components/ui/card";
 import { Link } from "react-router-dom";
 import { useMyTickets } from "./useMyTickets";
 import { TicketCard } from "../../components/organisms/TicketCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
+import { QRCodeCanvas } from "qrcode.react";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -104,6 +106,8 @@ interface MyTicketsContextType {
   isLoading: boolean;
   isCancelling: number | null;
   handleCancel: (id: number) => void;
+  selectedTicket: ReturnType<typeof useMyTickets>["tickets"][0] | null;
+  setSelectedTicket: (ticket: ReturnType<typeof useMyTickets>["tickets"][0] | null) => void;
 }
 
 const MyTicketsContext = createContext<MyTicketsContextType | undefined>(
@@ -117,7 +121,7 @@ const useMyTicketsContext = () => {
 };
 
 export function MyTicketsSection({ children }: { children: ReactNode }) {
-  const { tickets, isLoading, isCancelling, handleCancel } = useMyTickets();
+  const { tickets, isLoading, isCancelling, selectedTicket, setSelectedTicket, handleCancel } = useMyTickets();
 
   if (isLoading) {
     return (
@@ -139,7 +143,7 @@ export function MyTicketsSection({ children }: { children: ReactNode }) {
 
   return (
     <MyTicketsContext.Provider
-      value={{ tickets, isLoading, isCancelling, handleCancel }}
+      value={{ tickets, isLoading, isCancelling, handleCancel, selectedTicket, setSelectedTicket }}
     >
       <Container>{children}</Container>
     </MyTicketsContext.Provider>
@@ -162,7 +166,7 @@ MyTicketsSection.Header = function MyTicketsSectionHeader() {
 };
 
 MyTicketsSection.Content = function MyTicketsSectionContent() {
-  const { tickets, isCancelling, handleCancel } = useMyTicketsContext();
+  const { tickets, isCancelling, handleCancel, selectedTicket, setSelectedTicket } = useMyTicketsContext();
 
   if (tickets.length === 0) {
     return (
@@ -192,15 +196,71 @@ MyTicketsSection.Content = function MyTicketsSectionContent() {
   }
 
   return (
-    <Grid>
-      {tickets.map((ticket) => (
-        <TicketCard
-          key={ticket.ticketId}
-          ticket={ticket}
-          onCancel={handleCancel}
-          isCancelling={isCancelling === ticket.ticketId}
-        />
-      ))}
-    </Grid>
+    <>
+      <Grid>
+        {tickets.map((ticket) => (
+          <TicketCard
+            key={ticket.ticketId}
+            ticket={ticket}
+            onCancel={handleCancel}
+            isCancelling={isCancelling === ticket.ticketId}
+            onViewQR={() => setSelectedTicket(ticket)}
+          />
+        ))}
+      </Grid>
+      
+      <Dialog
+        open={!!selectedTicket}
+        onOpenChange={(open) => !open && setSelectedTicket(null)}
+      >
+        <DialogContent className="sm:max-w-md bg-card/60 backdrop-blur-xl border-2 border-primary/20 shadow-2xl">
+          <DialogHeader className="text-center space-y-4">
+            <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center border border-primary/20">
+              <Ticket className="w-8 h-8 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">
+              Your Digital Pass
+            </DialogTitle>
+            <DialogDescription className="text-base font-medium">
+              Present this QR code at the event entrance
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8 space-y-8">
+            <div className="bg-white p-6 rounded-3xl shadow-xl shadow-primary/10 ring-1 ring-black/5 hover:scale-[1.02] transition-transform duration-300">
+              {selectedTicket && (
+                <QRCodeCanvas
+                  value={JSON.stringify({
+                    ticketId: selectedTicket.ticketId,
+                    eventId: selectedTicket.eventId,
+                  })}
+                  size={220}
+                  level="H"
+                  includeMargin={true}
+                  imageSettings={{
+                    src: "/favicon.ico",
+                    x: undefined,
+                    y: undefined,
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                  }}
+                />
+              )}
+            </div>
+            <div className="w-full space-y-2 text-center">
+              <p className="font-bold text-lg text-primary">
+                {selectedTicket?.eventTitle}
+              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground font-mono bg-muted/30 py-1.5 rounded-full">
+                <span className="opacity-60">ID:</span>
+                <span className="font-bold">
+                  #T-{selectedTicket?.ticketId.toString().padStart(5, "0")}
+                </span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

@@ -238,8 +238,8 @@ MyTicketsSection.Content = function MyTicketsSectionContent() {
                   includeMargin={true}
                   imageSettings={{
                     src: "/favicon.ico",
-                    x: undefined,
-                    y: undefined,
+                    
+                    
                     height: 40,
                     width: 40,
                     excavate: true,

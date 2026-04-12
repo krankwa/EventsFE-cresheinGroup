@@ -113,6 +113,8 @@ export function StaffRedemptionPage() {
       // Give React a moment to render the #reader div
       const timeoutId = setTimeout(initScanner, 100);
       return () => clearTimeout(timeoutId);
+  
+  return undefined;
     }
   }, [hasPermission]);
 

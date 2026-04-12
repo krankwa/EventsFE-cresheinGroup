@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "../organisms/Sidebar";
+import { Sidebar } from "../organisms/AdminSidebar";
 import { Header } from "../organisms/Header";
 import { cn } from "../../lib/utils";
 

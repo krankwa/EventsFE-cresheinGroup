@@ -234,7 +234,7 @@ UsersManagementSection.Content = function UsersManagementSectionContent() {
         <CardContent>
           <UsersTable
             users={users}
-            onPromote={handlePromote}
+            onEditRole={handlePromote}
             isLoading={isLoading}
           />
         </CardContent>

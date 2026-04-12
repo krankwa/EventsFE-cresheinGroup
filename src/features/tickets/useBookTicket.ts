@@ -27,7 +27,7 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
     }
     setIsBooking(true);
     try {
-      await ticketsService.register({ eventId: event.eventID });
+      await ticketsService.register({ eventId: event.eventID, tierId: 1 });
       toast.success(`Booked for ${event.title}! 🎉`);
       navigate("/tickets");
     } catch (err) {

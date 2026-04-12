@@ -69,7 +69,7 @@ function useSectionHeaderContext(componentName: string) {
 export const SectionHeader = ({ children, className }: SectionHeaderProps) => {
   return (
     <SectionHeaderContext.Provider value={{ withinHeader: true }}>
-      <StyledSectionHeader className={className}>
+      <StyledSectionHeader className={className || ""}>
         {children}
       </StyledSectionHeader>
     </SectionHeaderContext.Provider>
@@ -85,9 +85,9 @@ SectionHeader.Content = function SectionHeaderContent({
   className?: string;
 }) {
   useSectionHeaderContext("SectionHeader.Content");
-  return <StyledContent className={className}>{children}</StyledContent>;
+  return <StyledContent className={className || ""}>{children}</StyledContent>;
 };
-SectionHeader.Content.displayName = "SectionHeader.Content";
+
 
 SectionHeader.Title = function SectionHeaderTitle({
   children,
@@ -96,12 +96,12 @@ SectionHeader.Title = function SectionHeaderTitle({
 }: SectionHeaderTitleProps) {
   useSectionHeaderContext("SectionHeader.Title");
   return (
-    <StyledTitle className={className} as={as}>
+    <StyledTitle className={className || ""} as={as || "h2"}>
       {children}
     </StyledTitle>
   );
 };
-SectionHeader.Title.displayName = "SectionHeader.Title";
+
 
 SectionHeader.Description = function SectionHeaderDescription({
   children,
@@ -109,16 +109,16 @@ SectionHeader.Description = function SectionHeaderDescription({
 }: SectionHeaderDescriptionProps) {
   useSectionHeaderContext("SectionHeader.Description");
   return (
-    <StyledDescription className={className}>{children}</StyledDescription>
+    <StyledDescription className={className || ""}>{children}</StyledDescription>
   );
 };
-SectionHeader.Description.displayName = "SectionHeader.Description";
+
 
 SectionHeader.Action = function SectionHeaderAction({
   children,
   className,
 }: SectionHeaderActionProps) {
   useSectionHeaderContext("SectionHeader.Action");
-  return <StyledAction className={className}>{children}</StyledAction>;
+  return <StyledAction className={className || ""}>{children}</StyledAction>;
 };
-SectionHeader.Action.displayName = "SectionHeader.Action";
+

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { eventsService } from "../api/eventsService";
+import { getEvents } from "../services/apiEvents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,10 +9,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import type { EventDTO } from "@/interface/Event";
+import type { EventResponse } from "@/interface/Event.interface";
 
 // Fallback placeholder image if event has no image
-const PLACEHOLDER_IMAGE = "https://placehold.co/600x400/1a1a1a/ffffff?text=Event";
+const PLACEHOLDER_IMAGE =
+  "https://placehold.co/600x400/1a1a1a/ffffff?text=Event";
 
 // Helper: format date into { month: "SEP", day: "20" }
 function formatEventDate(dateStr: string) {
@@ -29,8 +30,8 @@ function formatEventDate(dateStr: string) {
 }
 
 // Helper: group events by "Month Year"
-function groupByMonth(events: EventDTO[]) {
-  return events.reduce<Record<string, EventDTO[]>>((acc, event) => {
+function groupByMonth(events: EventResponse[]) {
+  return events.reduce<Record<string, EventResponse[]>>((acc, event) => {
     const label = new Date(event.date).toLocaleString("en-US", {
       month: "long",
       year: "numeric",
@@ -41,7 +42,7 @@ function groupByMonth(events: EventDTO[]) {
   }, {});
 }
 
-function EventCard({ event }: { event: EventDTO }) {
+function EventCard({ event }: { event: EventResponse }) {
   const { month, day, time } = formatEventDate(event.date);
 
   return (
@@ -58,8 +59,12 @@ function EventCard({ event }: { event: EventDTO }) {
 
       {/* Date badge overlay */}
       <div className="absolute top-3 left-3 z-20 flex flex-col leading-none">
-        <span className="text-xs font-semibold text-white uppercase">{month}</span>
-        <span className="text-4xl font-bold text-[#D4A843] leading-none">{day}</span>
+        <span className="text-xs font-semibold text-white uppercase">
+          {month}
+        </span>
+        <span className="text-4xl font-bold text-[#D4A843] leading-none">
+          {day}
+        </span>
       </div>
 
       <CardHeader className="pb-2">
@@ -75,7 +80,16 @@ function EventCard({ event }: { event: EventDTO }) {
         <CardDescription>
           <span className="inline-flex items-center gap-1.5 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
             {/* Clock icon */}
-            <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width={12}
+              height={12}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
@@ -97,13 +111,12 @@ function EventCard({ event }: { event: EventDTO }) {
 }
 
 export function EventsList() {
-  const [events, setEvents] = useState<EventDTO[]>([]);
+  const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
   useEffect(() => {
-    eventsService
-      .getAll()
+    getEvents()
       .then((data) => {
         setEvents(data);
         setIsLoading(false);
@@ -132,11 +145,13 @@ export function EventsList() {
 
   const grouped = groupByMonth(events);
   const months = Object.keys(grouped);
-  const filtered = selectedMonth === "all" ? grouped : { [selectedMonth]: grouped[selectedMonth] };
+  const filtered =
+    selectedMonth === "all"
+      ? grouped
+      : { [selectedMonth]: grouped[selectedMonth] };
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
-
       {/* Page title */}
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Upcoming Events</h1>
 
@@ -149,7 +164,9 @@ export function EventsList() {
         >
           <option value="all">All Dates</option>
           {months.map((m) => (
-            <option key={m} value={m}>{m}</option>
+            <option key={m} value={m}>
+              {m}
+            </option>
           ))}
         </select>
       </div>
@@ -165,7 +182,6 @@ export function EventsList() {
           </div>
         </div>
       ))}
-
     </div>
   );
 }

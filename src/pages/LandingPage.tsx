@@ -161,7 +161,7 @@ function LandingEventCard({ event }: { event: EventResponse }) {
 	);
 }
 
-// ─── Landing Page ────────────────────────────────────────────────────────────
+// ─── Landing Page ─────────
 export function LandingPage() {
 	const [events, setEvents] = useState<EventResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);

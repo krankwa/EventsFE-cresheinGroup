@@ -5,7 +5,8 @@ import {
   Search,
   User,
   LogOut,
-  Bell
+  Bell,
+  Camera
 } from "lucide-react";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
@@ -40,7 +41,7 @@ export function UserNavbar() {
           >
             <Ticket className="w-4 h-4" />
             <span className="hidden sm:inline">Tickets</span>
-          </NavLink>
+            </NavLink>
           <NavLink
             to="/events"
             className={({ isActive }) =>
@@ -51,6 +52,18 @@ export function UserNavbar() {
             <CalendarDays className="w-4 h-4" />
             <span className="hidden sm:inline">Events</span>
           </NavLink>
+          {(user?.role === "Staff" || user?.role === "Admin") && (
+            <NavLink
+              to="/redemption"
+              className={({ isActive }) =>
+                cn("flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
+                isActive ? "text-primary" : "text-muted-foreground")
+              }
+            >
+              <Camera className="w-4 h-4" />
+              <span className="hidden sm:inline">Scan</span>
+            </NavLink>
+          )}
         </div>
 
         {/* Search Bar */}

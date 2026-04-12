@@ -20,4 +20,10 @@ export const ticketsService = {
       method: "DELETE",
       requiresAuth: true,
     }),
+
+  scan: (id: number): Promise<{ message: string }> =>
+    apiRequest<{ message: string }>(`/tickets/scan/${id}`, {
+      method: "POST",
+      requiresAuth: true,
+    }),
 };

@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import { EventsPage } from "./pages/EventsPage";
 import { MyTicketsPage } from "./pages/MyTicketsPage";
+import { StaffRedemptionPage } from "./pages/TicketRedemptionPage";
 import { UserLayout } from "./components/templates/UserLayout";
 import { UnauthorizePage } from "./pages/UnauthorizePage";
 import { useUser } from "./features/authentication/useUser";
@@ -35,6 +36,9 @@ function RoleRedirect() {
 
 	if (user.role === "Admin") {
 		return <Navigate to="/admin" replace />;
+	}
+	if (user.role === "Staff") {
+		return <Navigate to="/redemption" replace />;
 	}
 	return <Navigate to="/events" replace />;
 }
@@ -61,10 +65,11 @@ function App() {
 					</Route>
 
 					{/* Protected User Routes */}
-					<Route element={<ProtectedRoute allowedRoles={["Admin", "User"]} />}>
+					<Route element={<ProtectedRoute allowedRoles={["Admin", "User", "Staff"]} />}>
 						<Route element={<UserLayout />}>
 							<Route path="/events" element={<EventsPage />} />
 							<Route path="/tickets" element={<MyTicketsPage />} />
+							<Route path="/redemption" element={<StaffRedemptionPage />} />
 						</Route>
 					</Route>
 

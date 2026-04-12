@@ -1,6 +1,6 @@
 import { User, ShieldCheck } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { useAuth } from "../../hooks/useAuth";
+import { useUser } from "../../features/authentication/useUser";
 import { cn } from "../../lib/utils";
 
 interface UserInfoProps {
@@ -16,7 +16,7 @@ export function UserInfo({
   className,
   avatarSize = "w-10 h-10"
 }: UserInfoProps) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin } = useUser();
 
   if (!user) return null;
 

@@ -34,6 +34,8 @@ export interface UpdateUserRequest {
   name?: string;
   email?: string;
   role?: UserRole;
+  password?: string;
+  newPassword?: string;
 }
 
 // Discriminated union encoding auth state — eliminates null checks at callsites

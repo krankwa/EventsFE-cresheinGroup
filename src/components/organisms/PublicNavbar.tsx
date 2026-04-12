@@ -45,11 +45,13 @@ export function PublicNavbar() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={handleDashboard}
+              onClick={() => navigate("/myaccount")}
             >
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">{isAdmin ? "Dashboard" : user.name}</span>
             </Button>
+
+
 
             <Button
               variant="ghost"

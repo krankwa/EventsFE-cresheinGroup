@@ -1,12 +1,13 @@
+import { useState } from "react";
 import {
   ShieldCheck,
   User,
-  MoreVertical,
   Mail,
-  UserCog,
-  CheckCircle2
+  ShieldAlert,
+  Pencil,
+  X,
+  Check,
 } from "lucide-react";
-import { cn } from "../../lib/utils";
 import {
   Table,
   TableBody,
@@ -22,12 +23,40 @@ import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
   users: UserResponse[];
-  onEditRole: (user: UserResponse) => void;
+  onPromote: (user: UserResponse) => void;
+  onEdit: (user: UserResponse, data: { name: string; email: string }) => Promise<void>;
   isLoading?: boolean;
 }
 
-export function UsersTable({ users, onEditRole, isLoading }: UsersTableProps) {
+interface EditState {
+  userId: number;
+  name: string;
+  email: string;
+}
+
+export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTableProps) {
   const { user: currentUser } = useUser();
+  const [editState, setEditState] = useState<EditState | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleEditClick = (user: UserResponse) => {
+    setEditState({ userId: user.userId, name: user.name, email: user.email });
+  };
+
+  const handleCancel = () => {
+    setEditState(null);
+  };
+
+  const handleSave = async (user: UserResponse) => {
+    if (!editState) return;
+    setIsSaving(true);
+    try {
+      await onEdit(user, { name: editState.name, email: editState.email });
+      setEditState(null);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -48,69 +77,134 @@ export function UsersTable({ users, onEditRole, isLoading }: UsersTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {users.map((user) => (
-          <TableRow key={user.userId}>
-            <TableCell>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <span className="font-medium">{user.name}</span>
-                {user.userId === currentUser?.userId && (
-                  <Badge variant="outline" className="text-[10px] py-0">
-                    You
-                  </Badge>
-                )}
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="w-4 h-4" />
-                {user.email}
-              </div>
-            </TableCell>
-            <TableCell>
-              <Badge 
-                variant={user.role === "Admin" ? "default" : user.role === "Staff" ? "outline" : "secondary"}
-                className={cn(
-                  "gap-1.5 px-2 py-0.5 font-bold transition-all",
-                  user.role === "Admin" && "bg-rose-500 hover:bg-rose-600 border-none shadow-sm shadow-rose-200",
-                  user.role === "Staff" && "text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-100/50"
-                )}
-              >
-                {user.role === "Admin" ? (
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                ) : user.role === "Staff" ? (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+        {users.map((user) => {
+          const isEditing = editState?.userId === user.userId;
+
+          return (
+            <TableRow key={user.userId}>
+              {/* Name cell — inline edit */}
+              <TableCell>
+                {isEditing ? (
+                  <input
+                    autoFocus
+                    value={editState.name}
+                    onChange={(e) =>
+                      setEditState((prev) => prev && { ...prev, name: e.target.value })
+                    }
+                    className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
                 ) : (
-                  <User className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <span className="font-medium">{user.name}</span>
+                    {user.userId === currentUser?.userId && (
+                      <Badge variant="outline" className="text-[10px] py-0">
+                        You
+                      </Badge>
+                    )}
+                  </div>
                 )}
-                {user.role}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-right">
-              {user.role !== "Admin" ? (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2 font-semibold hover:border-primary hover:text-primary transition-all rounded-full px-4"
-                  onClick={() => onEditRole(user)}
+              </TableCell>
+
+              {/* Email cell — inline edit */}
+              <TableCell>
+                {isEditing ? (
+                  <input
+                    type="email"
+                    value={editState.email}
+                    onChange={(e) =>
+                      setEditState((prev) => prev && { ...prev, email: e.target.value })
+                    }
+                    className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="w-4 h-4" />
+                    {user.email}
+                  </div>
+                )}
+              </TableCell>
+
+              {/* Role */}
+              <TableCell>
+                <Badge
+                  variant={user.role === "Admin" ? "default" : "secondary"}
+                  className="gap-1"
                 >
-                  <UserCog className="w-4 h-4" />
-                  Edit Role
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={user.userId === currentUser?.userId}
-                >
-                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
+                  {user.role === "Admin" ? (
+                    <ShieldCheck className="w-3 h-3" />
+                  ) : (
+                    <User className="w-3 h-3" />
+                  )}
+                  {user.role}
+                </Badge>
+              </TableCell>
+
+              {/* Actions */}
+              <TableCell className="text-right">
+                {isEditing ? (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      title="Cancel"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => handleSave(user)}
+                      disabled={isSaving || !editState.name.trim() || !editState.email.trim()}
+                    >
+                      <Check className="w-4 h-4" />
+                      {isSaving ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-2">
+                    {/* Edit button — available for all users */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleEditClick(user)}
+                      title="Edit user details"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Edit
+                    </Button>
+
+                    {/* Promote or options button */}
+                    {user.role !== "Admin" ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                        onClick={() => onPromote(user)}
+                      >
+                        <ShieldAlert className="w-4 h-4" />
+                        Appoint Admin
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={user.userId === currentUser?.userId}
+                      >
+                        {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

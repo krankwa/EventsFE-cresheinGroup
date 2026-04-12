@@ -45,8 +45,29 @@ export function UsersManagement() {
 		loadUsers();
 	}, []);
 
+
+	const handleEdit = async (user: UserResponse, data: { name: string; email: string }): Promise<void> => {
+		try {
+			await userService.update(user.userId, { name: data.name, email: data.email });
+			toast.success(`${data.name}'s details have been updated.`);
+			loadUsers();
+		} catch (error) {
+			toast.error("Failed to update user details.");
+			throw error; // keeps the edit row open so the admin can retry
+		}
+	};
+
+
+	const handlePromote = async (user: UserResponse) => {
+		const confirmed = window.confirm(
+			`Are you sure you want to appoint ${user.name} as an administrator? This grants full management permissions.`,
+		);
+
+		if (!confirmed) return;
+
 	const handleUpdateRole = async (role: UserRole) => {
 		if (!selectedUserForRole) return;
+
 
 		setIsUpdating(true);
 		try {
@@ -106,6 +127,7 @@ export function UsersManagement() {
 						users={users}
 						onEditRole={setSelectedUserForRole}
 						isLoading={isLoading}
+						onEdit={handleEdit}
 					/>
 				</CardContent>
 			</Card>

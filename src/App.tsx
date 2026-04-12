@@ -15,6 +15,8 @@ import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import { EventsPage } from "./pages/EventsPage";
 import { MyTicketsPage } from "./pages/MyTicketsPage";
+import MyAccount from "./pages/MyAccount";
+import { EventDetail } from "./pages/EventDetail";
 import { StaffRedemptionPage } from "./pages/TicketRedemptionPage";
 import { UserLayout } from "./components/templates/UserLayout";
 import { UnauthorizePage } from "./pages/UnauthorizePage";
@@ -71,6 +73,8 @@ function App() {
 					<Route element={<ProtectedRoute allowedRoles={["Admin", "User", "Staff"]} />}>
 						<Route element={<UserLayout />}>
 							<Route path="/events" element={<EventsPage />} />
+                                                        <Route path="/events/:id" element={<EventDetail />} />
+                                                        <Route path="/myaccount" element={<MyAccount />} />
 							<Route path="/tickets" element={<MyTicketsPage />} />
 						</Route>
 					</Route>

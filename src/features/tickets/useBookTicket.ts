@@ -7,15 +7,22 @@ import type { EventResponse } from "../../interface/Event.interface";
 
 interface UseBookTicketReturn {
   isBooking: boolean;
-  handleBook: () => Promise<void>;
+  isOpen: boolean;
+  openModal: () => void;
+  closeModal: () => void;
+  handleBook: (tierId: number) => Promise<void>;
 }
 
 export function useBookTicket(event: EventResponse): UseBookTicketReturn {
   const { user, isAdmin } = useUser();
   const navigate = useNavigate();
   const [isBooking, setIsBooking] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleBook = async () => {
+  const openModal = () => setIsOpen(true);
+  const closeModal = () => setIsOpen(false);
+
+  const handleBook = async (tierId: number) => {
     if (!user) {
       toast("Please sign in to book tickets.", { icon: "🎟️" });
       navigate("/login");
@@ -25,9 +32,10 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
       toast.error("Admins cannot book tickets.");
       return;
     }
+    
     setIsBooking(true);
     try {
-      await ticketsService.register({ eventId: event.eventID, tierId: 1 });
+      await ticketsService.register({ eventId: event.eventID, tierId });
       toast.success(`Booked for ${event.title}! 🎉`);
       navigate("/tickets");
     } catch (err) {
@@ -38,5 +46,5 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
     }
   };
 
-  return { isBooking, handleBook };
+  return { isBooking, isOpen, openModal, closeModal, handleBook };
 }

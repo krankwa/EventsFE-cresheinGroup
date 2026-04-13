@@ -19,8 +19,8 @@ const data = [
 
 export function DashboardCharts() {
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-[300px] min-h-[300px] w-full relative">
+      <ResponsiveContainer width="99.9%" height="100%">
         <AreaChart
           data={data}
           margin={{

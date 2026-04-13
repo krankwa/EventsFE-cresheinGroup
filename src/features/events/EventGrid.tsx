@@ -4,24 +4,36 @@ import { Loading, LoadingGridContainer } from "../../components/molecules/Loadin
 import { NotFound } from "../../components/molecules/NotFound";
 import { useBookTicket } from "../tickets/useBookTicket";
 
+import { BookingModal } from "../tickets/BookingModal";
+
 function EventGridItem({ event }: { event: EventResponse }) {
-  const { isBooking, handleBook } = useBookTicket(event);
+  const { isBooking, isOpen, openModal, closeModal, handleBook } = useBookTicket(event);
   const isSoldOut = event.ticketsSold >= event.capacity;
 
   return (
-    <EventCard className="group">
-      <EventCard.Image
-        imageUrl={event.coverImageUrl}
-        title={event.title}
-        isSoldOut={isSoldOut}
-      />
-      <EventCard.Details event={event} />
-      <EventCard.Action
-        isSoldOut={isSoldOut}
+    <>
+      <EventCard className="group">
+        <EventCard.Image
+          imageUrl={event.coverImageUrl}
+          title={event.title}
+          isSoldOut={isSoldOut}
+        />
+        <EventCard.Details event={event} />
+        <EventCard.Action
+          isSoldOut={isSoldOut}
+          isBooking={isBooking}
+          onBook={openModal}
+        />
+      </EventCard>
+
+      <BookingModal
+        event={event}
+        isOpen={isOpen}
+        onClose={closeModal}
+        onConfirm={handleBook}
         isBooking={isBooking}
-        onBook={handleBook}
       />
-    </EventCard>
+    </>
   );
 }
 

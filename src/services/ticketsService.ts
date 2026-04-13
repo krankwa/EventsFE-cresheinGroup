@@ -1,5 +1,8 @@
 import { apiRequest } from "./client";
-import type { TicketResponse, TicketCreateRequest } from "../types/Ticket.types";
+import type {
+  TicketResponse,
+  TicketCreateRequest,
+} from "../interface/Ticket.interface";
 
 export const ticketsService = {
   getMine: (): Promise<TicketResponse[]> =>
@@ -18,6 +21,12 @@ export const ticketsService = {
   cancel: (id: number): Promise<void> =>
     apiRequest<void>(`/tickets/${id}`, {
       method: "DELETE",
+      requiresAuth: true,
+    }),
+
+  scan: (id: number): Promise<{ message: string }> =>
+    apiRequest<{ message: string }>(`/tickets/scan/${id}`, {
+      method: "POST",
       requiresAuth: true,
     }),
 };

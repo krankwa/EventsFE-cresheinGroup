@@ -9,11 +9,6 @@ export function PublicNavbar() {
   const { logout } = useLogout();
   const navigate = useNavigate();
 
-  const handleDashboard = () => {
-    if (isAdmin) navigate("/admin");
-    else navigate("/events");
-  };
-
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
       {/* Logo */}
@@ -21,7 +16,9 @@ export function PublicNavbar() {
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:rotate-12 transition-transform">
           <CalendarDays className="text-primary-foreground w-5 h-5" />
         </div>
-        <span className="font-bold text-xl tracking-tight hidden sm:block">EventTix</span>
+        <span className="font-bold text-xl tracking-tight hidden sm:block">
+          EventTix
+        </span>
       </Link>
 
       {/* Right actions */}
@@ -45,10 +42,12 @@ export function PublicNavbar() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={handleDashboard}
+              onClick={() => navigate("/myaccount")}
             >
               <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{isAdmin ? "Dashboard" : user.name}</span>
+              <span className="hidden sm:inline">
+                {isAdmin ? "Dashboard" : user.name}
+              </span>
             </Button>
 
             <Button

@@ -9,14 +9,14 @@ export function Header() {
 				<Button variant="ghost" size="icon" className="lg:hidden">
 					<Menu className="w-5 h-5" />
 				</Button>
-				<div className="hidden md:flex items-center relative">
+				{/* <div className="hidden md:flex items-center relative">
 					<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 					<input
 						type="search"
 						placeholder="Search events, users..."
 						className="pl-9 h-10 w-64 lg:w-96 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 					/>
-				</div>
+				</div> */}
 			</div>
 
 			<div className="flex items-center gap-2 md:gap-4">

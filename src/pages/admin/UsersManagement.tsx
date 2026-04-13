@@ -17,6 +17,7 @@ export function UsersManagement() {
 	const [users, setUsers] = useState<UserResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isRefreshing, setIsRefreshing] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const loadUsers = async (showRefresh = false) => {
 		if (showRefresh) setIsRefreshing(true);
@@ -35,6 +36,14 @@ export function UsersManagement() {
 	useEffect(() => {
 		loadUsers();
 	}, []);
+
+	const filteredUsers = users.filter((user) => {
+        const query = searchQuery.toLowerCase();
+        return (
+            user.name.toLowerCase().includes(query) || 
+            user.email.toLowerCase().includes(query)
+        );
+    });
 
 	const handleEdit = async (user: UserResponse, data: { name: string; email: string }): Promise<void> => {
 		try {
@@ -100,13 +109,15 @@ export function UsersManagement() {
 						<input
 							type="search"
 							placeholder="Search by name or email..."
+							value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-9 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 						/>
 					</div>
 				</CardHeader>
 				<CardContent>
 					<UsersTable
-						users={users}
+						users={filteredUsers}
 						onPromote={handlePromote}
 						isLoading={isLoading}
 						onEdit={handleEdit}

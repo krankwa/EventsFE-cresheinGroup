@@ -19,6 +19,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import MyAccount from "./pages/MyAccount";
 import { EventDetail } from "./pages/EventDetail";
 import { EventsPage } from "./pages/EventsPage";
+import { TicketManagement } from "./pages/admin/TicketManagement";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,8 +67,14 @@ function App() {
               <Route index element={<DashboardOverview />} />
               <Route path="events" element={<EventsManagement />} />
               <Route path="users" element={<UsersManagement />} />
+              <Route path="settings" element={<MyAccount />} />
+              <Route path="tickets" element={<TicketManagement />} />
             </Route>
           </Route>
+
+
+
+
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

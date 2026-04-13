@@ -20,13 +20,15 @@ export function EventsManagement() {
 	const [events, setEvents] = useState<EventResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
-
+	const [searchQuery, setSearchQuery] = useState("");
 	// Dialog States
 	const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
 		null,
 	);
+
+
 
 	async function loadEvents() {
 		setIsLoading(true);
@@ -44,6 +46,14 @@ export function EventsManagement() {
 	useEffect(() => {
 		loadEvents();
 	}, []);
+
+	const filteredEvents = events.filter((event) => {
+		const query = searchQuery.toLowerCase();
+		return (
+			event.venue.toLowerCase().includes(query) ||
+			event.title.toLowerCase().includes(query)
+		);
+	});
 
 	const handleCreate = () => {
 		setSelectedEvent(null);
@@ -137,6 +147,8 @@ export function EventsManagement() {
 								type="search"
 								placeholder="Filter events..."
 								className="pl-9 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
 							/>
 						</div>
 						<Button variant="outline" size="icon">
@@ -151,7 +163,7 @@ export function EventsManagement() {
 						</div>
 					) : (
 						<EventsTable
-							events={events}
+							events={filteredEvents}
 							onEdit={handleEdit}
 							onDelete={handleDeleteClick}
 						/>

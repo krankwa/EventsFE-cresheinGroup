@@ -165,42 +165,47 @@ export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTablePr
                       {isSaving ? "Saving..." : "Save"}
                     </Button>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-end gap-2">
-                    {/* Edit button — available for all users */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => handleEditClick(user)}
-                      title="Edit user details"
-                    >
-                      <Pencil className="w-4 h-4" />
-                      Edit
-                    </Button>
+                )
+                  :
+                  (
+                    <div className="flex items-center justify-end gap-2">
+                      {/* Edit button — available for all users */}
 
-                    {/* Promote or options button */}
-                    {user.role !== "Admin" ? (
+
+                      {/* Promote or options button */}
+                      {user.role !== "Admin" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                          onClick={() => onPromote(user)}
+                        >
+                          <ShieldAlert className="w-4 h-4" />
+                          Appoint Admin
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={user.userId === currentUser?.userId}
+                        >
+                          {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
+                        </Button>
+                      )}
+
                       <Button
                         variant="outline"
                         size="sm"
-                        className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                        onClick={() => onPromote(user)}
+                        className="gap-2"
+                        onClick={() => handleEditClick(user)}
+                        title="Edit user details"
                       >
-                        <ShieldAlert className="w-4 h-4" />
-                        Appoint Admin
+                        <Pencil className="w-4 h-4" />
+                        Edit
                       </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={user.userId === currentUser?.userId}
-                      >
-                        {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
-                      </Button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )
+                }
               </TableCell>
             </TableRow>
           );

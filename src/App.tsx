@@ -20,6 +20,7 @@ import { EventDetail } from "./pages/EventDetail";
 import { TicketRedemptionPage } from "./pages/TicketRedemptionPage";
 import { UserLayout } from "./components/templates/UserLayout";
 import { useUser } from "./features/authentication/useUser";
+import { TicketManagement } from "./pages/admin/TicketManagement";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,8 @@ function App() {
                 <Route index element={<DashboardOverview />} />
                 <Route path="events" element={<EventsManagement />} />
                 <Route path="users" element={<UsersManagement />} />
+                <Route path="settings" element={<MyAccount />} />
+                <Route path="tickets" element={<TicketManagement />} />
               </Route>
               <Route path="/redemption" element={<TicketRedemptionPage />} />
             </Route>

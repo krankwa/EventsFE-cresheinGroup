@@ -3,6 +3,7 @@ import type {
   TicketResponse,
   TicketCreateRequest,
 } from "../interface/Ticket.interface";
+import { apiRequest } from "./client";
 
 // POST /api/tickets — User only
 export async function registerTicket(
@@ -23,3 +24,15 @@ export async function getMyTickets(): Promise<TicketResponse[]> {
 export async function cancelTicket(id: number): Promise<null> {
   return apiFetch<null>(`/tickets/${id}`, { method: "DELETE" });
 }
+
+export const getAllTickets = (): Promise<TicketResponse[]> =>
+  apiRequest<TicketResponse[]>("/tickets", {
+    method: "GET",
+    requiresAuth: true,
+  });
+
+export const scanTicket = (id: number): Promise<{ message: string }> =>
+  apiRequest<{ message: string }>(`/tickets/scan/${id}`, {
+    method: "POST",
+    requiresAuth: true,
+  });

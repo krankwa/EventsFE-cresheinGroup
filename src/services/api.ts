@@ -2,6 +2,7 @@ import { getToken, clearToken } from "./authStore";
 import type { ApiError } from "../types/api.types";
 
 const API_URL = import.meta.env.VITE_BACKEND_API as string;
+console.log("API_URL in api.ts:", API_URL);
 
 export async function apiFetch<T>(
   endpoint: string,

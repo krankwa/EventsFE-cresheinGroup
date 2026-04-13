@@ -1,6 +1,7 @@
 import { getToken } from "./authStore";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
+console.log("API_BASE_URL in client.ts:", API_BASE_URL);
 
 export async function apiRequest<T>(
   endpoint: string,

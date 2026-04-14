@@ -56,9 +56,10 @@ function TierRow({
                 <span className="text-lg font-bold text-primary">₱{tier.price.toLocaleString()}</span>
                 <Button
                     size="sm"
+                    type="button"
                     variant={soldOut ? "outline" : "default"}
                     disabled={soldOut || isBooking || disabled}
-                    onClick={() => onBook(tier.id)}
+                    onClick={(e) => { e.preventDefault(); onBook(tier.id); }}
                     className="w-full sm:w-auto gap-1.5"
                 >
                     {isBooking
@@ -102,7 +103,7 @@ export function EventDetailSection() {
         setBookingTierId(tierId);
         try {
             await ticketsService.register({ eventId: event!.eventID, tierId });
-            toast.success(`Ticket booked for ${event!.title}!`);
+            toast.success(`Booked for ${event!.title}! An email will be sent shortly. 🎉`);
             navigate("/tickets");
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Failed to book ticket.";

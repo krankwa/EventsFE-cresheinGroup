@@ -61,6 +61,7 @@ export function RegisterForm() {
 						required
 						minLength={2}
 						disabled={isPending}
+                        autoComplete="name"
 					/>
 				</div>
 			</div>
@@ -79,6 +80,7 @@ export function RegisterForm() {
 						onChange={(e) => setEmail(e.target.value)}
 						required
 						disabled={isPending}
+                        autoComplete="username"
 					/>
 				</div>
 			</div>
@@ -98,6 +100,7 @@ export function RegisterForm() {
 						required
 						minLength={6}
 						disabled={isPending}
+                        autoComplete="new-password"
 					/>
 					<button
 						type="button"
@@ -133,6 +136,7 @@ export function RegisterForm() {
 						onChange={(e) => setConfirmPassword(e.target.value)}
 						required
 						disabled={isPending}
+                        autoComplete="new-password"
 					/>
 					<button
 						type="button"

@@ -30,6 +30,7 @@ export function LoginForm() {
 						onChange={(e) => setEmail(e.target.value)}
 						required
 						disabled={isPending}
+                        autoComplete="username"
 					/>
 				</div>
 			</div>
@@ -50,6 +51,7 @@ export function LoginForm() {
 						onChange={(e) => setPassword(e.target.value)}
 						required
 						disabled={isPending}
+                        autoComplete="current-password"
 					/>
 				</div>
 			</div>

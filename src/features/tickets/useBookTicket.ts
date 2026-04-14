@@ -23,6 +23,8 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
   const closeModal = () => setIsOpen(false);
 
   const handleBook = async (tierId: number) => {
+    if (isBooking) return;
+    
     if (!user) {
       toast("Please sign in to book tickets.", { icon: "🎟️" });
       navigate("/login");

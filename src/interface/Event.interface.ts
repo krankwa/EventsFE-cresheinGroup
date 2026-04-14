@@ -15,6 +15,11 @@ export interface TicketTierResponse {
   availableTickets: number;
 }
 
+export interface TierTypeResponse {
+  id: number;
+  name: string;
+}
+
 export type EventAvailability =
   | { readonly status: "available"; availableTickets: number }
   | { readonly status: "sold-out" }

@@ -2,9 +2,7 @@ import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
-
-
-
+  TierTypeResponse,
 } from "../interface/Event.interface";
 
 import { apiRequest } from "./client";
@@ -14,6 +12,12 @@ export const eventsService = {
     apiRequest<EventResponse[]>("/Event", {
       method: "GET",
       requiresAuth: false,
+    }),
+
+  getTierTypes: (): Promise<TierTypeResponse[]> =>
+    apiRequest<TierTypeResponse[]>("/Event/tier-types", {
+      method: "GET",
+      requiresAuth: true,
     }),
 
   getById: (id: number): Promise<EventResponse> =>

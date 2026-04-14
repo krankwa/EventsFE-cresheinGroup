@@ -26,9 +26,11 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
   TicketTierCreateDTO,
+  TierTypeResponse,
 } from "../../interface/Event.interface";
 import { format } from "date-fns";
 import { uploadEventImage } from "../../services/uploadService";
+import { eventsService } from "../../services/eventsService";
 import { toast } from "react-hot-toast";
 
 // Leaflet
@@ -144,6 +146,9 @@ export function EventDialog({
   event,
   isLoading,
 }: EventDialogProps) {
+  // ── Tier Types State ───────────────────────────────────────────────────
+  const [tierTypes, setTierTypes] = useState<TierTypeResponse[]>([]);
+
   // ── Form state ─────────────────────────────────────────────────────────
   const [formData, setFormData] = useState<EventCreateDTO>(
     event
@@ -167,9 +172,16 @@ export function EventDialog({
                   name: t.name,
                   price: t.price,
                   capacity: t.capacity,
-                  ticketsSold: t.ticketsSold
+                  ticketsSold: t.ticketsSold,
                 }))
-              : [{ name: "Regular", price: 0, capacity: event.capacity, ticketsSold: 0 }],
+              : [
+                  {
+                    name: "Regular",
+                    price: 0,
+                    capacity: event.capacity,
+                    ticketsSold: 0,
+                  },
+                ],
         }
       : {
           title: "",
@@ -207,6 +219,16 @@ export function EventDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch Tier Types
+  useEffect(() => {
+    if (isOpen) {
+      eventsService
+        .getTierTypes()
+        .then(setTierTypes)
+        .catch((err) => console.error("Failed to load tier types", err));
+    }
+  }, [isOpen]);
+
   // ── Tier Management ────────────────────────────────────────────────────
   const addTier = () => {
     setFormData((prev) => ({
@@ -233,11 +255,11 @@ export function EventDialog({
 
   // ── Venue input change ──────────────────────────────────────────────────
   const handleVenueChange = (value: string) => {
-    setFormData((prev) => ({ 
-      ...prev, 
+    setFormData((prev) => ({
+      ...prev,
       venueName: value,
       venueLatitude: 0,
-      venueLongitude: 0
+      venueLongitude: 0,
     }));
     setShowDropdown(true);
 
@@ -279,19 +301,23 @@ export function EventDialog({
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
     };
-    
-    // Extract establishment name if possible, otherwise use display name part
-    const establishment = result.address?.house_number 
-      ? `${result.address.house_number} ${result.address.road}`
-      : result.address?.amenity || result.address?.tourism || result.address?.shop || result.address?.office || result.display_name.split(",")[0];
 
-    setFormData((prev) => ({ 
-      ...prev, 
+    // Extract establishment name if possible, otherwise use display name part
+    const establishment = result.address?.house_number
+      ? `${result.address.house_number} ${result.address.road}`
+      : result.address?.amenity ||
+        result.address?.tourism ||
+        result.address?.shop ||
+        result.address?.office ||
+        result.display_name.split(",")[0];
+
+    setFormData((prev) => ({
+      ...prev,
       venueId: undefined,
       venueName: establishment || "",
       venueAddress: result.display_name,
       venueLatitude: pos.lat,
-      venueLongitude: pos.lng
+      venueLongitude: pos.lng,
     }));
     setMarkerPos(pos);
     setFlyTarget(pos);
@@ -304,16 +330,16 @@ export function EventDialog({
     setFlyTarget(latlng);
     setIsGeocoding(true);
     const address = await reverseGeocode(latlng.lat, latlng.lng);
-    
+
     // For map click, we don't always have a clear establishment name from simple string
     // We'll use the first part of address as establishment for now
-    setFormData((prev) => ({ 
-      ...prev, 
+    setFormData((prev) => ({
+      ...prev,
       venueId: undefined,
       venueName: address.split(",")[0] || "",
       venueAddress: address,
       venueLatitude: latlng.lat,
-      venueLongitude: latlng.lng
+      venueLongitude: latlng.lng,
     }));
     setSuggestions([]);
     setShowDropdown(false);
@@ -353,6 +379,8 @@ export function EventDialog({
   // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || isUploading || isSearching || isGeocoding) return;
+
 
     const totalTierCapacity = formData.tiers.reduce(
       (acc, t) => acc + t.capacity,
@@ -517,12 +545,13 @@ export function EventDialog({
                     >
                       <div className="flex-1 space-y-2">
                         <Input
-                          placeholder="Tier Name (e.g. Early Bird)"
+                          placeholder="Tier Name (e.g. General, VIP)"
                           className="h-8 border-none bg-transparent font-bold p-0 focus-visible:ring-0"
                           value={tier.name}
                           onChange={(e) =>
                             updateTier(idx, { name: e.target.value })
                           }
+                          list="tier-types-list"
                           required
                         />
                         <div className="grid grid-cols-2 gap-2">
@@ -710,6 +739,11 @@ export function EventDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      <datalist id="tier-types-list">
+        {tierTypes.map((t) => (
+          <option key={t.id} value={t.name} />
+        ))}
+      </datalist>
     </Dialog>
   );
 }

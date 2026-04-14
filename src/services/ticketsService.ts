@@ -29,4 +29,10 @@ export const ticketsService = {
       method: "POST",
       requiresAuth: true,
     }),
+
+  getAll: (): Promise<TicketResponse[]> =>
+    apiRequest<TicketResponse[]>("/tickets", {
+      method: "GET",
+      requiresAuth: true,
+    }),
 };

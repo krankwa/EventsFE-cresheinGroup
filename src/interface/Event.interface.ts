@@ -1,3 +1,11 @@
+export interface VenueResponse {
+  id: number;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface TicketTierResponse {
   tierId: number;
   id: number;
@@ -20,22 +28,29 @@ export interface TicketTierCreateDTO {
 }
 
 export interface EventResponse {
+  establishment: string;
+  address: VenueResponse;
   eventID: number;
   title: string;
   date: string;
-  venue: string;
   capacity: number;
   ticketsSold: number;
   availableTickets: number;
+  maxTicketsPerPerson: number;
   coverImageUrl: string | null;
+  venue: VenueResponse;
   tiers: TicketTierResponse[];
 }
 
 export interface EventCreateDTO {
   title: string;
   date: string;
-  venue: string;
+  venueName: string;
+  venueAddress: string;
+  venueLatitude: number;
+  venueLongitude: number;
   capacity: number;
+  maxTicketsPerPerson: number;
   coverImageUrl?: string | null;
   tiers: TicketTierCreateDTO[];
 }
@@ -43,8 +58,12 @@ export interface EventCreateDTO {
 export interface EventUpdateDTO {
   title: string;
   date: string;
-  venue: string;
+  venueName: string;
+  venueAddress: string;
+  venueLatitude: number;
+  venueLongitude: number;
   capacity: number;
+  maxTicketsPerPerson: number;
   coverImageUrl?: string | null;
   tiers: TicketTierCreateDTO[];
 }

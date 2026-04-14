@@ -94,9 +94,14 @@ function LandingEventCard({ event }: { event: EventResponse }) {
             {format(new Date(event.date), "PPP")}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span className="truncate">{event.venue}</span>
+        <div className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px]">
+          <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground leading-tight">
+              {event.venue?.name || "TBA"}
+            </span>
+            <span className="text-[11px] line-clamp-1">{event.venue?.address}</span>
+          </div>
         </div>
 
         {/* Capacity bar */}

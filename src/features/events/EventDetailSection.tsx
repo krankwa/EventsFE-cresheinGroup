@@ -187,9 +187,14 @@ export function EventDetailSection() {
                         <Calendar className="w-4 h-4 text-primary" />
                         {format(new Date(event.date), "PPPP")}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        {event.venue}
+                    <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                        <div className="flex flex-col">
+                            <span className="font-bold text-lg leading-tight">
+                                {event.venue?.name || "TBA"}
+                            </span>
+                            <span className="text-muted-foreground">{event.venue?.address}</span>
+                        </div>
                     </div>
                 </div>
 

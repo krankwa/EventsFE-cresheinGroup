@@ -152,8 +152,12 @@ export function EventDialog({
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
-          venue: event.venue,
+          venueName: event.venue?.name || "",
+          venueAddress: event.venue?.address || "",
+          venueLatitude: event.venue?.latitude || 0,
+          venueLongitude: event.venue?.longitude || 0,
           capacity: event.capacity,
+          maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
           coverImageUrl: event.coverImageUrl || "",
           tiers:
             event.tiers && event.tiers.length > 0
@@ -167,8 +171,12 @@ export function EventDialog({
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
-          venue: "",
+          venueName: "",
+          venueAddress: "",
+          venueLatitude: 0,
+          venueLongitude: 0,
           capacity: 100,
+          maxTicketsPerPerson: 5,
           coverImageUrl: "",
           tiers: [{ name: "Regular", price: 0, capacity: 100 }],
         },
@@ -221,7 +229,12 @@ export function EventDialog({
 
   // ── Venue input change ──────────────────────────────────────────────────
   const handleVenueChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, venue: value }));
+    setFormData((prev) => ({ 
+      ...prev, 
+      venueName: value,
+      venueLatitude: 0,
+      venueLongitude: 0
+    }));
     setShowDropdown(true);
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -262,7 +275,19 @@ export function EventDialog({
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
     };
-    setFormData((prev) => ({ ...prev, venue: result.display_name }));
+    
+    // Extract establishment name if possible, otherwise use display name part
+    const establishment = result.address?.house_number 
+      ? `${result.address.house_number} ${result.address.road}`
+      : result.address?.amenity || result.address?.tourism || result.address?.shop || result.address?.office || result.display_name.split(",")[0];
+
+    setFormData((prev) => ({ 
+      ...prev, 
+      venueName: establishment || "",
+      venueAddress: result.display_name,
+      venueLatitude: pos.lat,
+      venueLongitude: pos.lng
+    }));
     setMarkerPos(pos);
     setFlyTarget(pos);
     setSuggestions([]);
@@ -274,7 +299,16 @@ export function EventDialog({
     setFlyTarget(latlng);
     setIsGeocoding(true);
     const address = await reverseGeocode(latlng.lat, latlng.lng);
-    setFormData((prev) => ({ ...prev, venue: address }));
+    
+    // For map click, we don't always have a clear establishment name from simple string
+    // We'll use the first part of address as establishment for now
+    setFormData((prev) => ({ 
+      ...prev, 
+      venueName: address.split(",")[0] || "",
+      venueAddress: address,
+      venueLatitude: latlng.lat,
+      venueLongitude: latlng.lng
+    }));
     setSuggestions([]);
     setShowDropdown(false);
     setIsGeocoding(false);
@@ -426,6 +460,31 @@ export function EventDialog({
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label
+                  htmlFor="maxTicketsPerPerson"
+                  className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  Booking Limit (Per Person)
+                </Label>
+                <Input
+                  id="maxTicketsPerPerson"
+                  type="number"
+                  className="h-11 border-2"
+                  min={1}
+                  max={100}
+                  value={formData.maxTicketsPerPerson || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      maxTicketsPerPerson: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  required
+                />
+              </div>
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
@@ -521,7 +580,7 @@ export function EventDialog({
                     <Input
                       className="pl-9 border-2 h-11"
                       placeholder="Locate venue..."
-                      value={formData.venue}
+                      value={formData.venueName}
                       onChange={(e) => handleVenueChange(e.target.value)}
                       onFocus={() => setShowDropdown(suggestions.length > 0)}
                     />
@@ -531,7 +590,7 @@ export function EventDialog({
                   </div>
 
                   {showDropdown && suggestions.length > 0 && (
-                    <ul className="absolute z-50 left-0 right-0 mt-[-8px] bg-popover border-2 rounded-xl shadow-xl divide-y max-h-48 overflow-y-auto">
+                    <ul className="absolute z-[1000] left-0 right-0 mt-[-8px] bg-popover border-2 rounded-xl shadow-xl divide-y max-h-48 overflow-y-auto">
                       {suggestions.map((s) => (
                         <li
                           key={s.place_id}

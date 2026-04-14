@@ -1,5 +1,8 @@
 import { apiFetch } from "./api";
-import type { TicketResponse, TicketCreateRequest } from "../types/Ticket.types";
+import type {
+  TicketResponse,
+  TicketCreateRequest,
+} from "../interface/Ticket.interface";
 import { apiRequest } from "./client";
 
 // POST /api/tickets — User only
@@ -28,10 +31,8 @@ export const getAllTickets = (): Promise<TicketResponse[]> =>
     requiresAuth: true,
   });
 
-  // POST /api/tickets/scan/{id} — Admin: redeem/scan a ticket
 export const scanTicket = (id: number): Promise<{ message: string }> =>
   apiRequest<{ message: string }>(`/tickets/scan/${id}`, {
     method: "POST",
     requiresAuth: true,
   });
- 

@@ -9,16 +9,17 @@ import { AdminLayout } from "./components/templates/AdminLayout";
 import { DashboardOverview } from "./pages/admin/DashboardOverview";
 import { EventsManagement } from "./pages/admin/EventsManagement";
 import { UsersManagement } from "./pages/admin/UsersManagement";
-
+import { LoginPage } from "./pages/LoginPage";
 import { LandingPage } from "./pages/LandingPage";
 import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
-import { useUser } from "./features/authentication/useUser";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import { EventsPage } from "./pages/EventsPage";
+import { MyTicketsPage } from "./pages/MyTicketsPage";
 import MyAccount from "./pages/MyAccount";
 import { EventDetail } from "./pages/EventDetail";
-import { EventsPage } from "./pages/EventsPage";
+import { TicketRedemptionPage } from "./pages/TicketRedemptionPage";
+import { UserLayout } from "./components/templates/UserLayout";
+import { useUser } from "./features/authentication/useUser";
 import { TicketManagement } from "./pages/admin/TicketManagement";
 
 const queryClient = new QueryClient({
@@ -38,6 +39,9 @@ function RoleRedirect() {
   if (user.role === "Admin") {
     return <Navigate to="/admin" replace />;
   }
+  if (user.role === "Staff") {
+    return <Navigate to="/redemption" replace />;
+  }
   return <Navigate to="/events" replace />;
 }
 
@@ -53,22 +57,31 @@ function App() {
           {/* Post-login role redirect */}
           <Route path="/redirect" element={<RoleRedirect />} />
 
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-
-          {/* Post-login role redirect */}
-          <Route path="/redirect" element={<RoleRedirect />} />
-
-          <Route path="/myaccount" element={<MyAccount />} />
-
-          {/* Protected Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+          {/* Protected Admin/Staff Dashboard Routes */}
+          <Route element={<ProtectedRoute allowedRoles={["Admin", "Staff"]} />}>
             <Route element={<AdminLayout />}>
-              <Route index element={<DashboardOverview />} />
-              <Route path="events" element={<EventsManagement />} />
-              <Route path="users" element={<UsersManagement />} />
-              <Route path="settings" element={<MyAccount />} />
-              <Route path="tickets" element={<TicketManagement />} />
+              <Route path="/admin">
+                <Route index element={<DashboardOverview />} />
+                <Route path="events" element={<EventsManagement />} />
+                <Route path="users" element={<UsersManagement />} />
+                <Route path="settings" element={<MyAccount />} />
+                <Route path="tickets" element={<TicketManagement />} />
+              </Route>
+              <Route path="/redemption" element={<TicketRedemptionPage />} />
+            </Route>
+          </Route>
+
+          {/* Protected User Routes */}
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "User", "Staff"]} />
+            }
+          >
+            <Route element={<UserLayout />}>
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/myaccount" element={<MyAccount />} />
+              <Route path="/tickets" element={<MyTicketsPage />} />
             </Route>
           </Route>
 
@@ -78,11 +91,6 @@ function App() {
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
-
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/events/:id" element={<EventDetail />} />
-
-
         </Routes>
       </Router>
     </QueryClientProvider>

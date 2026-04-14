@@ -18,13 +18,16 @@ import {
 } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import type { UserResponse } from "../../types/Auth.types";
-import { useUser } from "@/features/authentication/useUser";
+import type { UserResponse } from "../../interface/Auth.interface";
+import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
   users: UserResponse[];
   onPromote: (user: UserResponse) => void;
-  onEdit: (user: UserResponse, data: { name: string; email: string }) => Promise<void>;
+  onEdit: (
+    user: UserResponse,
+    data: { name: string; email: string },
+  ) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -34,7 +37,12 @@ interface EditState {
   email: string;
 }
 
-export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTableProps) {
+export function UsersTable({
+  users,
+  onPromote,
+  onEdit,
+  isLoading,
+}: UsersTableProps) {
   const { user: currentUser } = useUser();
   const [editState, setEditState] = useState<EditState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,7 +97,9 @@ export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTablePr
                     autoFocus
                     value={editState.name}
                     onChange={(e) =>
-                      setEditState((prev) => prev && { ...prev, name: e.target.value })
+                      setEditState(
+                        (prev) => prev && { ...prev, name: e.target.value },
+                      )
                     }
                     className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
@@ -115,7 +125,9 @@ export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTablePr
                     type="email"
                     value={editState.email}
                     onChange={(e) =>
-                      setEditState((prev) => prev && { ...prev, email: e.target.value })
+                      setEditState(
+                        (prev) => prev && { ...prev, email: e.target.value },
+                      )
                     }
                     className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
@@ -159,40 +171,21 @@ export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTablePr
                       size="sm"
                       className="gap-1"
                       onClick={() => handleSave(user)}
-                      disabled={isSaving || !editState.name.trim() || !editState.email.trim()}
+                      disabled={
+                        isSaving ||
+                        !editState.name.trim() ||
+                        !editState.email.trim()
+                      }
                     >
                       <Check className="w-4 h-4" />
                       {isSaving ? "Saving..." : "Save"}
                     </Button>
                   </div>
-                )
-                  :
-                  (
-                    <div className="flex items-center justify-end gap-2">
-                      {/* Edit button — available for all users */}
-
-
-                      {/* Promote or options button */}
-                      {user.role !== "Admin" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                          onClick={() => onPromote(user)}
-                        >
-                          <ShieldAlert className="w-4 h-4" />
-                          Appoint Admin
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={user.userId === currentUser?.userId}
-                        >
-                          {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
-                        </Button>
-                      )}
-
+                ) : (
+                  <div className="flex items-center justify-end gap-2">
+                    {/* Edit button — available for all users */}
+                    {/* Promote or options button */}
+                    {user.role !== "Admin" ? (
                       <Button
                         variant="outline"
                         size="sm"
@@ -203,9 +196,27 @@ export function UsersTable({ users, onPromote, onEdit, isLoading }: UsersTablePr
                         <Pencil className="w-4 h-4" />
                         Edit
                       </Button>
-                    </div>
-                  )
-                }
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={user.userId === currentUser?.userId}
+                      >
+                        {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleEditClick(user)}
+                      title="Edit user details"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Edit
+                    </Button>
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           );

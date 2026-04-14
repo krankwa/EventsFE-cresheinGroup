@@ -10,7 +10,7 @@ import {
   AdminSubtitle,
 } from "./adminSectionStyles";
 import { userService } from "../../services/userService";
-import type { UserResponse } from "../../interface/Auth.interface";
+import type { UserResponse, UserRole } from "../../interface/Auth.interface";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -109,7 +109,10 @@ interface UsersManagementContextType {
   isLoading: boolean;
   isRefreshing: boolean;
   loadUsers: (showRefresh?: boolean) => Promise<void>;
-  handlePromote: (user: UserResponse) => Promise<void>;
+  handleEdit: (
+    user: UserResponse,
+    data: { name: string; email: string; role: UserRole },
+  ) => Promise<void>;
 }
 
 const UsersManagementContext = createContext<
@@ -145,26 +148,24 @@ export function UsersManagementSection({ children }: { children: ReactNode }) {
     loadUsers();
   }, []);
 
-  const handlePromote = async (user: UserResponse) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to appoint ${user.name} as an administrator? This grants full management permissions.`,
-    );
-
-    if (!confirmed) return;
-
+  const handleEdit = async (
+    user: UserResponse,
+    data: { name: string; email: string; role: UserRole },
+  ) => {
     try {
-      await userService.update(user.userId, { role: "Admin" });
-      toast.success(`${user.name} is now an administrator.`);
-      loadUsers(); // Refresh list
+      await userService.update(user.userId, data);
+      toast.success(`${user.name}'s account has been updated.`);
+      loadUsers();
     } catch (error) {
-      console.error("Failed to promote user", error);
-      toast.error("Failed to update user role.");
+      console.error("Failed to update user", error);
+      toast.error("Failed to save user changes.");
+      throw error;
     }
   };
 
   return (
     <UsersManagementContext.Provider
-      value={{ users, isLoading, isRefreshing, loadUsers, handlePromote }}
+      value={{ users, isLoading, isRefreshing, loadUsers, handleEdit }}
     >
       <AdminSectionContainer>{children}</AdminSectionContainer>
     </UsersManagementContext.Provider>
@@ -201,7 +202,7 @@ UsersManagementSection.Header = function UsersManagementSectionHeader() {
 };
 
 UsersManagementSection.Content = function UsersManagementSectionContent() {
-  const { users, isLoading, handlePromote } = useUsersContext();
+  const { users, isLoading, handleEdit } = useUsersContext();
   return (
     <>
       <Card>
@@ -234,8 +235,7 @@ UsersManagementSection.Content = function UsersManagementSectionContent() {
         <CardContent>
           <UsersTable
             users={users || []}
-            onPromote={handlePromote}
-            onEdit={async () => {}}
+            onEdit={handleEdit}
             isLoading={isLoading}
           />
         </CardContent>

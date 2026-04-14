@@ -18,15 +18,14 @@ import {
 } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import type { UserResponse } from "../../interface/Auth.interface";
+import type { UserResponse, UserRole } from "../../interface/Auth.interface";
 import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
   users: UserResponse[];
-  onPromote: (user: UserResponse) => void;
   onEdit: (
     user: UserResponse,
-    data: { name: string; email: string },
+    data: { name: string; email: string; role: UserRole },
   ) => Promise<void>;
   isLoading?: boolean;
 }
@@ -35,11 +34,11 @@ interface EditState {
   userId: number;
   name: string;
   email: string;
+  role: UserRole;
 }
 
 export function UsersTable({
   users,
-  onPromote,
   onEdit,
   isLoading,
 }: UsersTableProps) {
@@ -48,7 +47,12 @@ export function UsersTable({
   const [isSaving, setIsSaving] = useState(false);
 
   const handleEditClick = (user: UserResponse) => {
-    setEditState({ userId: user.userId, name: user.name, email: user.email });
+    setEditState({ 
+      userId: user.userId, 
+      name: user.name, 
+      email: user.email,
+      role: user.role 
+    });
   };
 
   const handleCancel = () => {
@@ -59,7 +63,11 @@ export function UsersTable({
     if (!editState) return;
     setIsSaving(true);
     try {
-      await onEdit(user, { name: editState.name, email: editState.email });
+      await onEdit(user, { 
+        name: editState.name, 
+        email: editState.email,
+        role: editState.role 
+      });
       setEditState(null);
     } finally {
       setIsSaving(false);
@@ -141,17 +149,36 @@ export function UsersTable({
 
               {/* Role */}
               <TableCell>
-                <Badge
-                  variant={user.role === "Admin" ? "default" : "secondary"}
-                  className="gap-1"
-                >
-                  {user.role === "Admin" ? (
-                    <ShieldCheck className="w-3 h-3" />
-                  ) : (
-                    <User className="w-3 h-3" />
-                  )}
-                  {user.role}
-                </Badge>
+                {isEditing ? (
+                  <select
+                    value={editState.role}
+                    onChange={(e) =>
+                      setEditState(
+                        (prev) => prev && { ...prev, role: e.target.value as UserRole },
+                      )
+                    }
+                    className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    disabled={user.userId === currentUser?.userId}
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Staff">Staff</option>
+                    <option value="User">User</option>
+                  </select>
+                ) : (
+                  <Badge
+                    variant={user.role === "Admin" ? "default" : "secondary"}
+                    className="gap-1"
+                  >
+                    {user.role === "Admin" ? (
+                      <ShieldCheck className="w-3 h-3" />
+                    ) : user.role === "Staff" ? (
+                      <ShieldAlert className="w-3 h-3" />
+                    ) : (
+                      <User className="w-3 h-3" />
+                    )}
+                    {user.role}
+                  </Badge>
+                )}
               </TableCell>
 
               {/* Actions */}
@@ -183,27 +210,6 @@ export function UsersTable({
                   </div>
                 ) : (
                   <div className="flex items-center justify-end gap-2">
-                    {/* Edit button — available for all users */}
-                    {/* Promote or options button */}
-                    {user.role !== "Admin" ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                        onClick={() => onPromote(user)}
-                      >
-                        <ShieldAlert className="w-4 h-4" />
-                        Appoint Admin
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={user.userId === currentUser?.userId}
-                      >
-                        {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
-                      </Button>
-                    )}
                     <Button
                       variant="outline"
                       size="sm"

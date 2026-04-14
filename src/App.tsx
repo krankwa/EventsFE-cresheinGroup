@@ -21,6 +21,7 @@ import { TicketRedemptionPage } from "./pages/TicketRedemptionPage";
 import { UserLayout } from "./components/templates/UserLayout";
 import { useUser } from "./features/authentication/useUser";
 import { TicketManagement } from "./pages/admin/TicketManagement";
+import { VenuesManagement } from "./pages/admin/VenuesManagement";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,7 @@ function App() {
                   <Route path="users" element={<UsersManagement />} />
                   <Route path="settings" element={<MyAccount />} />
                   <Route path="tickets" element={<TicketManagement />} />
+                  <Route path="venues" element={<VenuesManagement />} />
                 </Route>
               </Route>
             </Route>

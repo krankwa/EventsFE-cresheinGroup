@@ -23,26 +23,18 @@ import { eventsService } from "../../services/eventsService";
 import { useUser } from "../../features/authentication/useUser";
 import type { EventResponse } from "../../interface/Event.interface";
 import { toast } from "react-hot-toast";
+import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
-function LandingEventCard({ event }: { event: EventResponse }) {
-  const { user, isAdmin } = useUser();
-  const navigate = useNavigate();
+function LandingEventCard({
+  event,
+  onBook,
+}: {
+  event: EventResponse;
+  onBook: (event: EventResponse) => void;
+}) {
   const isSoldOut = event.ticketsSold >= event.capacity;
   const fillPct = Math.min((event.ticketsSold / event.capacity) * 100, 100);
-
-  const handleBook = async () => {
-    if (!user) {
-      toast("Please sign in to book tickets.", { icon: "🎟️" });
-      navigate("/login");
-      return;
-    }
-    if (isAdmin) {
-      toast.error("Admins cannot book tickets.");
-      return;
-    }
-    navigate(`/events/${event.eventID}`);
-  };
 
   return (
     <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-muted/40 bg-card/60 backdrop-blur-sm">
@@ -122,15 +114,15 @@ function LandingEventCard({ event }: { event: EventResponse }) {
       </CardContent>
 
       <CardFooter className="p-5 pt-4">
-        <Button
-          className="w-full gap-2 font-semibold group/btn"
-          variant={isSoldOut ? "outline" : "default"}
-          disabled={isSoldOut}
-          onClick={handleBook}
-        >
+          <Button
+            className="w-full gap-2 font-semibold group/btn"
+            variant={isSoldOut ? "outline" : "default"}
+            disabled={isSoldOut}
+            onClick={() => onBook(event)}
+          >
           {isSoldOut ? (
             "Sold Out"
-          ) : !user ? (
+          ) : !Users ? (
             <>
               Sign In to Book
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
@@ -141,9 +133,9 @@ function LandingEventCard({ event }: { event: EventResponse }) {
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
             </>
           )}
-        </Button>
-      </CardFooter>
-    </Card>
+          </Button>
+        </CardFooter>
+      </Card>
   );
 }
 
@@ -151,7 +143,22 @@ function LandingEventCard({ event }: { event: EventResponse }) {
 export function LandingSection() {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
   const navigate = useNavigate();
+  const { user, isAdmin } = useUser();
+
+  const handleBook = (event: EventResponse) => {
+    if (!user) {
+      toast("Please sign in to book tickets.", { icon: "🎟️" });
+      navigate("/login");
+      return;
+    }
+    if (isAdmin) {
+      toast.error("Admins cannot book tickets.");
+      return;
+    }
+    setSelectedEvent(event);
+  };
 
   useEffect(() => {
     eventsService
@@ -255,7 +262,7 @@ export function LandingSection() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <LandingEventCard key={event.eventID} event={event} />
+              <LandingEventCard key={event.eventID} event={event} onBook={handleBook} />
             ))}
           </div>
         )}
@@ -269,6 +276,12 @@ export function LandingSection() {
           </p>
         </div>
       </footer>
+      <TicketBookingDialog
+        isOpen={selectedEvent !== null}
+        onClose={() => setSelectedEvent(null)}
+        event={selectedEvent}
+        onSuccess={() => navigate("/tickets")}
+      />
     </>
   );
 }

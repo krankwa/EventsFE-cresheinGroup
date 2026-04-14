@@ -7,7 +7,6 @@ export interface VenueResponse {
 }
 
 export interface TicketTierResponse {
-  tierId: number;
   id: number;
   name: string;
   price: number;
@@ -22,14 +21,14 @@ export type EventAvailability =
   | { readonly status: "upcoming" };
 
 export interface TicketTierCreateDTO {
+  id?: number;
   name: string;
   price: number;
   capacity: number;
+  ticketsSold?: number;
 }
 
 export interface EventResponse {
-  establishment: string;
-  address: VenueResponse;
   eventID: number;
   title: string;
   date: string;
@@ -45,10 +44,11 @@ export interface EventResponse {
 export interface EventCreateDTO {
   title: string;
   date: string;
-  venueName: string;
-  venueAddress: string;
-  venueLatitude: number;
-  venueLongitude: number;
+  venueId?: number | undefined;
+  venueName?: string;
+  venueAddress?: string;
+  venueLatitude?: number;
+  venueLongitude?: number;
   capacity: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string | null;
@@ -58,10 +58,11 @@ export interface EventCreateDTO {
 export interface EventUpdateDTO {
   title: string;
   date: string;
-  venueName: string;
-  venueAddress: string;
-  venueLatitude: number;
-  venueLongitude: number;
+  venueId?: number | undefined;
+  venueName?: string;
+  venueAddress?: string;
+  venueLatitude?: number;
+  venueLongitude?: number;
   capacity: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string | null;

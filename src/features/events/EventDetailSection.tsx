@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -80,6 +80,7 @@ export function EventDetailSection() {
     const [isLoading, setIsLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [bookingTierId, setBookingTierId] = useState<number | null>(null);
+    const tiersRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -88,6 +89,10 @@ export function EventDetailSection() {
             .catch(() => setNotFound(true))
             .finally(() => setIsLoading(false));
     }, [id]);
+
+    const scrollToTiers = () => {
+        tiersRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     const handleBook = async (tierId: number) => {
         if (!user) {
@@ -180,7 +185,18 @@ export function EventDetailSection() {
 
             {/* Title + meta */}
             <div className="space-y-4">
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{event.title}</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{event.title}</h1>
+                    <Button
+                        size="lg"
+                        className="gap-2 px-8 font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                        disabled={isSoldOut}
+                        onClick={scrollToTiers}
+                    >
+                        <Ticket className="w-5 h-5" />
+                        {isSoldOut ? "Sold Out" : "Get Tickets"}
+                    </Button>
+                </div>
 
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
@@ -197,26 +213,27 @@ export function EventDetailSection() {
                         </div>
                     </div>
                 </div>
-
-                {/* Capacity bar */}
-                <div className="rounded-xl border bg-card/50 p-4 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <Users className="w-4 h-4 text-primary" />
-                            <span>{event.ticketsSold} / {event.capacity} attendees</span>
-                        </div>
-                        <span className="font-semibold text-primary">{Math.round(pct)}% full</span>
-                    </div>
-                    <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                        <div className="h-full bg-primary transition-all duration-700" style={{ width: `${pct}%` }} />
-                    </div>
-                    <p className="text-xs text-muted-foreground">{event.availableTickets} tickets remaining</p>
-                </div>
             </div>
+
+            {/* Capacity bar */}
+            <div className="rounded-xl border bg-card/50 p-4 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span>{event.ticketsSold} / {event.capacity} attendees</span>
+                    </div>
+                    <span className="font-semibold text-primary">{Math.round(pct)}% full</span>
+                </div>
+                <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-700" style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-xs text-muted-foreground">{event.availableTickets} tickets remaining</p>
+            </div>
+
 
             {/* Ticket tiers */}
             {event.tiers.length > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-3 scroll-mt-20" ref={tiersRef}>
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         <Ticket className="w-5 h-5 text-primary" /> Ticket Tiers
                     </h2>

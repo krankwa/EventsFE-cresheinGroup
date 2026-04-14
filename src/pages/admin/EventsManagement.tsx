@@ -51,9 +51,11 @@ export function EventsManagement() {
 
   const filteredEvents = events.filter((event) => {
     const query = searchQuery.toLowerCase();
+    const venueName = event.venue?.name || "";
+    const title = event.title || "";
     return (
-      event.venue.toLowerCase().includes(query) ||
-      event.title.toLowerCase().includes(query)
+      venueName.toLowerCase().includes(query) ||
+      title.toLowerCase().includes(query)
     );
   });
 

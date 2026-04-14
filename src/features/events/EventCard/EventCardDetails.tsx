@@ -104,7 +104,7 @@ export function EventCardDetails({ event }: EventCardDetailsProps): JSX.Element 
           </InfoRow>
           <InfoRow>
             <MapPin />
-            <span>{event.venue}</span>
+            <span>{event.venue?.name || "TBA"}</span>
           </InfoRow>
         </div>
 

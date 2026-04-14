@@ -152,6 +152,7 @@ export function EventDialog({
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
+          venueId: event.venue?.id,
           venueName: event.venue?.name || "",
           venueAddress: event.venue?.address || "",
           venueLatitude: event.venue?.latitude || 0,
@@ -162,15 +163,18 @@ export function EventDialog({
           tiers:
             event.tiers && event.tiers.length > 0
               ? event.tiers.map((t) => ({
+                  id: t.id,
                   name: t.name,
                   price: t.price,
                   capacity: t.capacity,
+                  ticketsSold: t.ticketsSold
                 }))
-              : [{ name: "Regular", price: 0, capacity: event.capacity }],
+              : [{ name: "Regular", price: 0, capacity: event.capacity, ticketsSold: 0 }],
         }
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
+          venueId: undefined,
           venueName: "",
           venueAddress: "",
           venueLatitude: 0,
@@ -283,6 +287,7 @@ export function EventDialog({
 
     setFormData((prev) => ({ 
       ...prev, 
+      venueId: undefined,
       venueName: establishment || "",
       venueAddress: result.display_name,
       venueLatitude: pos.lat,
@@ -304,6 +309,7 @@ export function EventDialog({
     // We'll use the first part of address as establishment for now
     setFormData((prev) => ({ 
       ...prev, 
+      venueId: undefined,
       venueName: address.split(",")[0] || "",
       venueAddress: address,
       venueLatitude: latlng.lat,

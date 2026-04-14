@@ -88,15 +88,15 @@ export function TicketRedemptionSection() {
       await ticketsService.scan(id);
       setScanResult("success");
       setLastRedeemedId(id);
-      toast.success("Ticket redeemed successfully!");
+      toast.success("Ticket redeemed successfully!", { duration: 5000 });
 
       // Optionally stop scanner on success to save battery
       // await stopScanner();
 
-      // Clear success state after 3 seconds to allow next scan
+      // Clear success state after 5 seconds to allow next scan
       setTimeout(() => {
         setScanResult(null);
-      }, 3000);
+      }, 5000);
     } catch (error: unknown) {
       console.error("Redemption failed", error);
       setScanResult("error");

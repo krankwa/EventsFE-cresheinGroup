@@ -11,7 +11,7 @@ import {
   Loader2,
   Users,
 } from "lucide-react";
-import { getAllTickets, scanTicket } from "../../services/apiTickets";
+import { ticketsService } from "../../services/ticketsService";
 import type { TicketResponse } from "../../interface/Ticket.interface";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -100,7 +100,7 @@ export function TicketManagement() {
   const load = async (silent = false) => {
     if (!silent) setIsLoading(true);
     try {
-      const data = await getAllTickets();
+      const data = await ticketsService.getAll();
       setTickets(data);
     } catch {
       toast.error("Failed to load tickets.");
@@ -116,7 +116,7 @@ export function TicketManagement() {
   const handleScan = async (id: number) => {
     setScanningId(id);
     try {
-      await scanTicket(id);
+      await ticketsService.scan(id);
       toast.success(`Ticket #${id} redeemed successfully.`);
       setTickets((prev) =>
         prev.map((t) => (t.ticketId === id ? { ...t, isRedeemed: true } : t)),

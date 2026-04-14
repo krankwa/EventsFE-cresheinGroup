@@ -11,7 +11,7 @@ export function LoginPage() {
         loginComponent={<LoginForm />}
         registerComponent={<RegisterForm />}
       />
-      <AuthSection.Footer />
+      {/* <AuthSection.Footer /> */}
     </AuthSection>
   );
 }

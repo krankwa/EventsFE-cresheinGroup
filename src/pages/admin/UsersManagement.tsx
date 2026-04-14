@@ -224,6 +224,6 @@ export function UsersManagement() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

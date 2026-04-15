@@ -1,27 +1,15 @@
-// import type {
-//   PaginatedResponse,
-//   PaginationParams,
-// } from "@/interface/pagination";
-import type { PaginationParams } from "@/interface/pagination";
+import { apiRequest } from "./client";
 import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
 } from "../interface/Event.interface";
-import { apiRequest } from "./client";
 
 export const eventsService = {
   getAll: (): Promise<EventResponse[]> =>
     apiRequest<EventResponse[]>("/Event", {
       method: "GET",
       requiresAuth: false,
-    }),
-
-  getAllPaginated: (params: PaginationParams): Promise<EventResponse[]> =>
-    apiRequest<EventResponse[]>("/Event", {
-      method: "GET",
-      requiresAuth: false,
-      params,
     }),
 
   getById: (id: number): Promise<EventResponse> =>

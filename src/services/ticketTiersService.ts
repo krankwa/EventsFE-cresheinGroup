@@ -4,7 +4,7 @@ import type {
   TicketTierResponse,
 } from "../interface/Event.interface";
 
-export const ticketsService = {
+export const ticketTiersService = {
   getAllTiers: (): Promise<TicketTierResponse[]> =>
     apiRequest<TicketTierResponse[]>("/TicketTier", {
       method: "GET",

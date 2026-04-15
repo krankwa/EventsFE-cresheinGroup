@@ -46,11 +46,21 @@ interface EventsSectionProps {
 
 // --- Compound Components ---
 export function EventsSection({ children, id, className }: EventsSectionProps) {
-  const { data: events = [], isLoading, isError, error, refetch } = useEvents();
+  const { data, isLoading, isError, error, refetch } = useEvents();
+
+  // FIX: Force to an array. If API returns null, this prevents the white screen.
+  const safeEvents = Array.isArray(data) ? data : [];
 
   return (
     <EventsSectionContext.Provider
-      value={{ events, isLoading, isError, error: error ?? null, refetch, withinEventsSection: true }}
+      value={{
+        events: safeEvents,
+        isLoading,
+        isError,
+        error: error ?? null,
+        refetch,
+        withinEventsSection: true,
+      }}
     >
       <StyledSection id={id ?? ""} className={className ?? ""}>
         {children}
@@ -66,6 +76,9 @@ EventsSection.Header = function EventsSectionHeader({
 }) {
   const { events } = useEventsSectionContext("EventsSection.Header");
 
+  // Safe length check
+  const eventCount = events?.length || 0;
+
   return (
     <SectionHeader className={className ?? ""}>
       <SectionHeader.Content>
@@ -76,9 +89,9 @@ EventsSection.Header = function EventsSectionHeader({
       </SectionHeader.Content>
 
       <SectionHeader.Action>
-        {events.length > 0 && (
+        {eventCount > 0 && (
           <Badge variant="secondary" className="text-sm px-3 py-1">
-            {events.length} Events
+            {eventCount} Events
           </Badge>
         )}
       </SectionHeader.Action>
@@ -87,7 +100,8 @@ EventsSection.Header = function EventsSectionHeader({
 };
 
 EventsSection.Grid = function EventsSectionGrid() {
-  const { events, isLoading, isError, error, refetch } = useEventsSectionContext("EventsSection.Grid");
+  const { events, isLoading, isError, error, refetch } =
+    useEventsSectionContext("EventsSection.Grid");
 
   if (isError) {
     return (

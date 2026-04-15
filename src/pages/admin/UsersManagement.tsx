@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Search,
   RefreshCcw,
@@ -28,21 +28,28 @@ import {
 import { UsersTable } from "../../components/organisms/UsersTable";
 import { toast } from "react-hot-toast";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { usePagination } from "@/utils/pagination/usePagination";
 
 export function UsersManagement() {
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedUserForRole, setSelectedUserForRole] = useState<UserResponse | null>(null);
+  const [selectedUserForRole, setSelectedUserForRole] =
+    useState<UserResponse | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Pagination state
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+  // Client-side pagination hook
+  const {
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    setTotalItems,
+    goToPage,
+    setPageSize,
+    searchQuery: debouncedSearch,
+    handleSearch,
+  } = usePagination({ initialPageSize: 10 });
 
   const isInitialMount = useRef(true);
   const isLoadingRef = useRef(false);
@@ -50,84 +57,48 @@ export function UsersManagement() {
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchQuery !== debouncedSearch) {
-        setDebouncedSearch(searchQuery);
-        setPageNumber(1); // Reset to first page on search
-      }
+      handleSearch(searchQuery);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
-  // Load users function - accepts parameters directly
-  const loadUsers = useCallback(async (
-    page: number,
-    size: number,
-    search: string
-  ) => {
-    // Prevent duplicate calls
-    if (isLoadingRef.current) return;
-    isLoadingRef.current = true;
-
+  const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await userService.getAllPaginated({
-        pageNumber: page,
-        pageSize: size,
-        ...(search && { searchTerm: search }),
-      });
-
-      setUsers(response.items);
-      setTotalPages(response.totalPages);
-      setTotalCount(response.totalCount);
-      // Don't set pageNumber here to avoid state mismatch
-      console.log("Loading users with:", { page, size, search });
-      console.log("Response:", response);
-
+      const data = await userService.getAll();
+      setUsers(data || []);
     } catch (error) {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
     }
   }, []);
 
-  // Initial load only
+  const filteredUsers = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase();
+    return users.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(searchLower) ||
+        u.email?.toLowerCase().includes(searchLower),
+    );
+  }, [users, debouncedSearch]);
+
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      loadUsers(1, pageSize, "");
-    }
-  }, []);
+    setTotalItems(filteredUsers.length);
+  }, [filteredUsers, setTotalItems]);
 
-  // Handle page change - use the current state values directly
-  const handlePageChange = useCallback((page: number) => {
-    if (page !== pageNumber && !isLoadingRef.current) {
-      setPageNumber(page);
-      loadUsers(page, pageSize, debouncedSearch);
-    }
-  }, [pageNumber, pageSize, debouncedSearch, loadUsers]);
+  const paginatedUsers = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, page, pageSize]);
 
-  // Handle page size change
-  const handlePageSizeChange = useCallback((newSize: number) => {
-    if (newSize !== pageSize && !isLoadingRef.current) {
-      setPageSize(newSize);
-      setPageNumber(1);
-      loadUsers(1, newSize, debouncedSearch);
-    }
-  }, [pageSize, debouncedSearch, loadUsers]);
-
-  // Handle search changes
   useEffect(() => {
-    if (!isInitialMount.current) {
-      loadUsers(1, pageSize, debouncedSearch);
-    }
-  }, [debouncedSearch]); // Only when debounced search changes
+    loadUsers();
+  }, [loadUsers]);
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    loadUsers(pageNumber, pageSize, debouncedSearch);
+    loadUsers();
   };
 
   const handleEdit = async (
@@ -140,7 +111,7 @@ export function UsersManagement() {
         email: data.email,
       });
       toast.success(`${data.name}'s details have been updated.`);
-      loadUsers(pageNumber, pageSize, debouncedSearch);
+      loadUsers();
     } catch (error) {
       toast.error("Failed to update user details.");
       throw error;
@@ -155,7 +126,7 @@ export function UsersManagement() {
       await userService.update(selectedUserForRole.userId, { role });
       toast.success(`${selectedUserForRole.name} is now a ${role}.`);
       setSelectedUserForRole(null);
-      loadUsers(pageNumber, pageSize, debouncedSearch);
+      loadUsers();
     } catch (error) {
       console.error("Failed to update user role", error);
       toast.error("Failed to update user role.");
@@ -177,10 +148,10 @@ export function UsersManagement() {
           variant="outline"
           className="gap-2 focus-visible:ring-offset-2"
           onClick={handleRefresh}
-          disabled={isRefreshing}
+          disabled={isLoading}
         >
           <RefreshCcw
-            className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+            className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>
@@ -191,7 +162,7 @@ export function UsersManagement() {
           <div className="space-y-1">
             <CardTitle>User Directory</CardTitle>
             <CardDescription>
-              Total of {totalCount} registered accounts.
+              Total of {totalItems} registered accounts found.
             </CardDescription>
           </div>
           <div className="relative w-full md:w-64">
@@ -213,18 +184,18 @@ export function UsersManagement() {
           ) : (
             <>
               <UsersTable
-                users={users}
+                users={paginatedUsers}
                 onPromote={setSelectedUserForRole}
                 isLoading={isLoading}
                 onEdit={handleEdit}
               />
               <PaginationWrapper
-                currentPage={pageNumber}
+                currentPage={page}
                 totalPages={totalPages}
                 pageSize={pageSize}
-                totalItems={totalCount}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
+                totalItems={totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
               />
             </>
           )}
@@ -308,6 +279,6 @@ export function UsersManagement() {
           </div>
         </DialogContent>
       </Dialog>
-    </div >
+    </div>
   );
 }

@@ -26,6 +26,8 @@ import {
 import { EventsTable } from "../../components/organisms/EventsTable";
 import { EventDialog } from "../../components/organisms/EventDialog";
 import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
+import { useServerPagination } from "../../components/hooks/useServerPagination";
+import { PaginationWrapper } from "../../components/organisms/PaginationWrapper";
 import { toast } from "react-hot-toast";
 
 const ActionButtons = styled.div`
@@ -73,6 +75,14 @@ interface EventsManagementContextType {
   isEventDialogOpen: boolean;
   isDeleteDialogOpen: boolean;
   selectedEvent: EventResponse | null;
+  searchQuery: string;
+  setSearchQuery: (val: string) => void;
+  pageNumber: number;
+  totalPages: number;
+  pageSize: number;
+  totalCount: number;
+  goToPage: (page: number) => void;
+  changePageSize: (size: number) => void;
   handleCreate: () => void;
   handleEdit: (event: EventResponse) => void;
   handleDeleteClick: (event: EventResponse) => void;
@@ -102,22 +112,84 @@ export function EventsManagementSection({ children }: { children: ReactNode }) {
     null,
   );
 
-  async function loadEvents() {
+  // Search States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Initialize the Pagination Hook
+  const {
+    pageNumber,
+    pageSize,
+    totalPages,
+    totalCount,
+    goToPage,
+    changePageSize,
+    updatePaginationInfo,
+  } = useServerPagination({
+    initialPageSize: 10,
+    onPageChange: (page, size) => {
+      loadEvents(page, size, debouncedSearch);
+    },
+  });
+
+  // Debounce effect for searching
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      if (pageNumber !== 1) goToPage(1);
+      else loadEvents(1, pageSize, searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  async function loadEvents(
+    page: number = pageNumber,
+    size: number = pageSize,
+    search: string = debouncedSearch,
+  ) {
     setIsLoading(true);
     try {
-      const data = await eventsService.getAll();
-      setEvents(data);
+      const response = await eventsService.getAllPaginated({
+        pageNumber: page,
+        pageSize: size,
+        ...(search && { searchTerm: search }),
+      });
+
+      type ExpectedServerResponse = {
+        events?: EventResponse[];
+        data?: EventResponse[];
+        items?: EventResponse[];
+        pagination?: {
+          totalPages?: number;
+          totalCount?: number;
+        };
+      };
+
+      const responseData = response as unknown as ExpectedServerResponse;
+
+      const eventList =
+        responseData?.events || responseData?.data || responseData?.items || [];
+      const newTotalPages = responseData?.pagination?.totalPages || 1;
+      const newTotalCount =
+        responseData?.pagination?.totalCount || eventList.length;
+
+      setEvents(eventList);
+
+      updatePaginationInfo({
+        totalPages: newTotalPages,
+        totalCount: newTotalCount,
+      });
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
+      setEvents([]);
     } finally {
       setIsLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  // Initial load is handled by the search debounce effect above
+  // so we don't need a separate bare useEffect to prevent double-fetching
 
   const handleCreate = () => {
     setSelectedEvent(null);
@@ -147,7 +219,6 @@ export function EventsManagementSection({ children }: { children: ReactNode }) {
       setIsEventDialogOpen(false);
       loadEvents();
     } catch (error) {
-      console.error("Failed to save event", error);
       toast.error(
         selectedEvent ? "Failed to update event." : "Failed to create event.",
       );
@@ -165,7 +236,6 @@ export function EventsManagementSection({ children }: { children: ReactNode }) {
       setIsDeleteDialogOpen(false);
       loadEvents();
     } catch (error) {
-      console.error("Failed to delete event", error);
       toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
@@ -181,6 +251,14 @@ export function EventsManagementSection({ children }: { children: ReactNode }) {
         isEventDialogOpen,
         isDeleteDialogOpen,
         selectedEvent,
+        searchQuery,
+        setSearchQuery,
+        pageNumber,
+        totalPages,
+        pageSize,
+        totalCount,
+        goToPage,
+        changePageSize,
         handleCreate,
         handleEdit,
         handleDeleteClick,
@@ -238,7 +316,19 @@ EventsManagementSection.Header = function EventsManagementSectionHeader() {
 };
 
 EventsManagementSection.Content = function EventsManagementSectionContent() {
-  const { events, handleEdit, handleDeleteClick } = useEventsContext();
+  const {
+    events,
+    handleEdit,
+    handleDeleteClick,
+    searchQuery,
+    setSearchQuery,
+    pageNumber,
+    totalPages,
+    pageSize,
+    totalCount,
+    goToPage,
+    changePageSize,
+  } = useEventsContext();
 
   return (
     <Card>
@@ -246,7 +336,7 @@ EventsManagementSection.Content = function EventsManagementSectionContent() {
         <div className="space-y-1">
           <CardTitle>Events List</CardTitle>
           <CardDescription>
-            You have {events.length} events scheduled in the database.
+            You have {totalCount} events scheduled in the database.
           </CardDescription>
         </div>
         <SearchContainer>
@@ -261,7 +351,12 @@ EventsManagementSection.Content = function EventsManagementSectionContent() {
                 color: "hsl(var(--muted-foreground))",
               }}
             />
-            <SearchInput type="search" placeholder="Filter events..." />
+            <SearchInput
+              type="search"
+              placeholder="Filter events..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </SearchInputWrapper>
           <Button variant="outline" size="icon">
             <Filter style={{ width: "1rem", height: "1rem" }} />
@@ -274,6 +369,18 @@ EventsManagementSection.Content = function EventsManagementSectionContent() {
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
         />
+        {totalCount > 0 && (
+          <div className="mt-4">
+            <PaginationWrapper
+              currentPage={pageNumber}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={goToPage}
+              onPageSizeChange={changePageSize}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

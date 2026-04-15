@@ -1,15 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import styled, { keyframes } from "styled-components";
-import { Plus, TrendingUp, CalendarDays, Loader2 } from "lucide-react";
-import {
-  AdminSectionContainer,
-  DashboardHeaderContainer,
-  AdminHeaderText,
-  AdminTitle,
-  AdminSubtitle,
-} from "./adminSectionStyles";
-import { NotFound } from "../../components/molecules/NotFound";
+import { useEffect, useState } from "react";
+import { Plus, Calendar, TrendingUp } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -18,271 +8,153 @@ import {
   CardDescription,
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { StatsGrid } from "../../components/organisms/StatsGrid";
+import { StatsGrid } from "../../features/admin/components/StatsGrid";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import {
   dashboardService,
   type DashboardStats,
-} from "../../services/dashboardService";
-import { format } from "date-fns";
+} from "@/services/dashboardService";
+import { DashboardCharts } from "@/components/organisms/DashboardCharts";
 
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-const GridContainer = styled.div`
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-  }
-`;
-
-const ChartPlaceholder = styled.div`
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: hsl(var(--muted-foreground));
-  border: 2px dashed hsl(var(--border) / 0.6);
-  border-radius: var(--radius);
-  background-color: hsl(var(--muted) / 0.05);
-
-  > svg {
-    opacity: 0.2;
-    margin-bottom: 1rem;
-    width: 3rem;
-    height: 3rem;
-  }
-  > p:first-of-type {
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-  > p:last-of-type {
-    font-size: 0.75rem;
-    opacity: 0.6;
-  }
-`;
-
-const LoadingWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem 0;
-  color: hsl(var(--primary) / 0.4);
-  > svg {
-    animation: ${spin} 1s linear infinite;
-  }
-`;
-
-const EventRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: default;
-
-  .image-wrapper {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 0.25rem;
-    overflow: hidden;
-    background-color: hsl(var(--muted));
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.2s;
-    }
-  }
-
-  &:hover .image-wrapper img {
-    transform: scale(1.1);
-  }
-
-  .content {
-    flex: 1;
-    min-width: 0;
-
-    .title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1;
-      margin-bottom: 0.25rem;
-    }
-
-    .date {
-      font-size: 0.75rem;
-      color: hsl(var(--muted-foreground));
-    }
-  }
-
-  .stats {
-    text-align: right;
-
-    .revenue {
-      font-size: 0.875rem;
-      font-weight: 700;
-      color: rgb(5 150 105); /* emerald-600 */
-    }
-
-    .sold {
-      font-size: 10px;
-      font-weight: 500;
-      color: hsl(var(--muted-foreground));
-    }
-  }
-`;
-
-interface DashboardContextType {
-  stats: DashboardStats | null;
-  loading: boolean;
-}
-
-const DashboardContext = createContext<DashboardContextType | undefined>(
-  undefined,
-);
-
-const useDashboardContext = () => {
-  const context = useContext(DashboardContext);
-  if (!context) throw new Error("Must be used within DashboardSection");
-  return context;
-};
-
-export function DashboardSection({ children }: { children: ReactNode }) {
+export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        const data = await dashboardService.getStats();
-        setStats(data);
-      } catch (error) {
-        console.error("Failed to load dashboard data", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDashboardData();
+    dashboardService
+      .getStats()
+      .then(setStats)
+      .catch((err) => {
+        console.error("Failed to load dashboard stats:", err);
+        setStats(null); // Fallback on error
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
+  // Safely extract the array to prevent the "blinking" crash
+  const safeTopEvents = Array.isArray(stats?.topEvents) ? stats.topEvents : [];
+
   return (
-    <DashboardContext.Provider value={{ stats, loading }}>
-      <AdminSectionContainer>{children}</AdminSectionContainer>
-    </DashboardContext.Provider>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Dashboard Overview
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Real-time performance metrics for your event platform.
+          </p>
+        </div>
+        <Link to="/admin/events">
+          <Button className="gap-2 shadow-lg shadow-primary/20">
+            <Plus className="w-4 h-4" />
+            New Event
+          </Button>
+        </Link>
+      </div>
+
+      <StatsGrid stats={stats} isLoading={isLoading} />
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4 border-none shadow-sm bg-gradient-to-br from-background to-muted/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Engagement Trends</CardTitle>
+                <CardDescription>
+                  Daily sales and registration activity.
+                </CardDescription>
+              </div>
+              <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Live Feed
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <DashboardCharts />
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle className="text-lg">Top Performing Events</CardTitle>
+            <CardDescription>
+              Based on real-time conversion rates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-2">
+            {isLoading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 animate-pulse">
+                  <div className="w-12 h-12 rounded bg-muted" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 bg-muted rounded" />
+                    <div className="h-3 w-1/2 bg-muted rounded" />
+                  </div>
+                </div>
+              ))
+            ) : safeTopEvents.length === 0 ? (
+              <div className="h-[200px] flex flex-col items-center justify-center text-center p-6 border-2 border-dashed rounded-xl grayscale opacity-50">
+                <Calendar className="w-10 h-10 mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">No events found</p>
+                <p className="text-xs text-muted-foreground">
+                  Start by creating your first event
+                </p>
+              </div>
+            ) : (
+              safeTopEvents.map((event, index) => {
+                // Determine safe capacity to prevent division by zero NaN errors
+                const capacity =
+                  event.capacity && event.capacity > 0 ? event.capacity : 1;
+                const sold = event.ticketsSold || 0;
+                const percentage = ((sold / capacity) * 100).toFixed(0);
+
+                return (
+                  // FIX: Check for event.id, fallback to event.Id, fallback to index
+                  <div
+                    key={event.Id || index}
+                    className="flex items-center gap-4 group cursor-default"
+                  >
+                    <div className="w-12 h-12 rounded overflow-hidden border bg-muted flex-shrink-0">
+                      {event.coverImageUrl ? (
+                        <img
+                          src={event.coverImageUrl}
+                          className="w-full h-full object-cover"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <Calendar className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                        {event.title || "Untitled Event"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {event.date
+                          ? format(new Date(event.date), "MMM d, yyyy")
+                          : "No date set"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-emerald-600">
+                        {percentage}%
+                      </div>
+                      <div className="text-[10px] text-muted-foreground uppercase font-medium">
+                        {sold >= capacity ? "Sold-out" : "Filling"}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
-
-DashboardSection.Header = function DashboardSectionHeader() {
-  return (
-    <DashboardHeaderContainer>
-      <AdminHeaderText>
-        <AdminTitle>Dashboard</AdminTitle>
-        <AdminSubtitle>
-          Welcome back! Here's what's happening with your events today.
-        </AdminSubtitle>
-      </AdminHeaderText>
-      <Button className="gap-2 shadow-lg shadow-primary/20">
-        <Plus style={{ width: "1rem", height: "1rem" }} />
-        Create Event
-      </Button>
-    </DashboardHeaderContainer>
-  );
-};
-
-DashboardSection.Stats = function DashboardSectionStats() {
-  return <StatsGrid />;
-};
-
-DashboardSection.Content = function DashboardSectionContent() {
-  const { stats, loading } = useDashboardContext();
-
-  return (
-    <GridContainer>
-      <Card className="col-span-4" style={{ gridColumn: "span 4 / span 4" }}>
-        <CardHeader>
-          <CardTitle>Recent Sales</CardTitle>
-          <CardDescription>
-            {stats
-              ? `You have sold ${stats.totalTicketsSold.toLocaleString()} tickets in total.`
-              : "Loading sales data..."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartPlaceholder>
-            <TrendingUp />
-            <p>Sales Charting coming soon</p>
-            <p>Visualizing your growth trends</p>
-          </ChartPlaceholder>
-        </CardContent>
-      </Card>
-
-      <Card className="col-span-3" style={{ gridColumn: "span 3 / span 3" }}>
-        <CardHeader>
-          <CardTitle>Top Performing Events</CardTitle>
-          <CardDescription>Based on ticket conversion rates.</CardDescription>
-        </CardHeader>
-        <CardContent
-          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-        >
-          {loading ? (
-            <LoadingWrapper>
-              <Loader2 style={{ width: "2rem", height: "2rem" }} />
-            </LoadingWrapper>
-          ) : stats?.topEvents && stats.topEvents.length > 0 ? (
-            stats.topEvents.map((event) => (
-              <EventRow key={event.Id}>
-                <div className="image-wrapper">
-                  {event.coverImageUrl ? (
-                    <img src={event.coverImageUrl} alt={event.title} />
-                  ) : (
-                    <CalendarDays
-                      style={{
-                        width: "1.25rem",
-                        height: "1.25rem",
-                        color: "hsl(var(--muted-foreground) / 0.4)",
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="content">
-                  <p className="title">{event.title}</p>
-                  <p className="date">
-                    {format(new Date(event.date), "MMM dd, yyyy")}
-                  </p>
-                </div>
-                <div className="stats">
-                  <div className="revenue">
-                    ₱
-                    {(
-                      event.tiers?.reduce(
-                        (acc, t) => acc + t.ticketsSold * t.price,
-                        0,
-                      ) ?? 0
-                    ).toLocaleString()}
-                  </div>
-                  <p className="sold">{event.ticketsSold} sold</p>
-                </div>
-              </EventRow>
-            ))
-          ) : (
-            <NotFound>No event data available yet.</NotFound>
-          )}
-        </CardContent>
-      </Card>
-    </GridContainer>
-  );
-};

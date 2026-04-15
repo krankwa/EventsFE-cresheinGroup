@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Search, Plus, Filter, Download } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Search, Plus, Filter, Download, RefreshCcw } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
 import type { EventResponse } from "../../interface/Event.interface";
 import { Button } from "../../components/ui/button";
@@ -18,7 +18,7 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
 } from "../../interface/Event.interface";
-import { useServerPagination } from "@/components/hooks/useServerPagination";
+import { usePagination } from "@/utils/pagination/usePagination";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function EventsManagement() {
@@ -26,7 +26,6 @@ export function EventsManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Dialog States
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -35,59 +34,72 @@ export function EventsManagement() {
     null,
   );
 
-  // Server-side pagination
+  // Client-side pagination hook
   const {
-    pageNumber,
+    page,
     pageSize,
     totalPages,
-    totalCount,
+    totalItems,
+    setTotalItems,
     goToPage,
-    changePageSize,
-    updatePaginationInfo,
-  } = useServerPagination({
-    initialPageSize: 10,
-    onPageChange: (page, size) => {
-      loadEvents(page, size, debouncedSearch);
-    },
-  });
+    setPageSize,
+    searchQuery: debouncedSearch,
+    handleSearch,
+  } = usePagination({ initialPageSize: 10 });
 
-  // Debounce search to avoid too many API calls
+  // Debounce search to update the pagination hook
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      goToPage(1); // Reset to first page when search changes
+      handleSearch(searchQuery);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery, goToPage]);
+  }, [searchQuery, handleSearch]);
 
-  async function loadEvents(
-    page: number = pageNumber,
-    size: number = pageSize,
-    search: string = debouncedSearch,
-  ) {
+  // Derived data for display
+  const filteredEvents = useMemo(() => {
+    const filtered = events.filter((event) => {
+      const searchLower = debouncedSearch.toLowerCase();
+      return (
+        event.title?.toLowerCase().includes(searchLower) ||
+        event.venue?.toLowerCase().includes(searchLower) ||
+        event.venueAddress?.toLowerCase().includes(searchLower)
+      );
+    });
+    return filtered;
+  }, [events, debouncedSearch]);
+
+  // Update total items when filtered data changes
+  useEffect(() => {
+    setTotalItems(filteredEvents.length);
+  }, [filteredEvents, setTotalItems]);
+
+  const paginatedEvents = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredEvents.slice(start, start + pageSize);
+  }, [filteredEvents, page, pageSize]);
+
+  // Fetch all events
+  async function loadEvents() {
     setIsLoading(true);
     try {
-      const response = await eventsService.getAllPaginated({
-        pageNumber: page,
-        pageSize: size,
-        ...(search && { searchTerm: search }),
-      });
-      const { events: eventList, pagination } = response as unknown as {
-        events: EventResponse[];
-        pagination: { totalPages: number; totalCount: number };
-      }; // Destructure response
-      setEvents(eventList); // Assign the events array from the response
-      updatePaginationInfo({
-        totalPages: pagination.totalPages,
-        totalCount: pagination.totalCount,
-      });
+      const data = await eventsService.getAll();
+      // The backend returns a direct array, so no extraction needed anymore
+      setEvents(data || []);
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
+      setEvents([]);
     } finally {
       setIsLoading(false);
     }
   }
+
+  // Initial load
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  // --- Handlers ---
   const handleCreate = () => {
     setSelectedEvent(null);
     setIsEventDialogOpen(true);
@@ -113,12 +125,9 @@ export function EventsManagement() {
         await eventsService.create(data as EventCreateDTO);
         toast.success("Event created successfully!");
       }
-
       setIsEventDialogOpen(false);
-      // Reload current page after save
-      loadEvents(pageNumber, pageSize, debouncedSearch);
+      loadEvents();
     } catch (error) {
-      console.error("Failed to save event", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to save event.",
       );
@@ -134,10 +143,8 @@ export function EventsManagement() {
       await eventsService.delete(selectedEvent.Id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
-      // Reload current page after delete
-      loadEvents(pageNumber, pageSize, debouncedSearch);
+      loadEvents();
     } catch (error) {
-      console.error("Failed to delete event", error);
       toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
@@ -154,6 +161,17 @@ export function EventsManagement() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={loadEvents}
+            disabled={isLoading}
+          >
+            <RefreshCcw
+              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
           <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
             Export
@@ -170,7 +188,7 @@ export function EventsManagement() {
           <div className="space-y-1">
             <CardTitle>Events List</CardTitle>
             <CardDescription>
-              Total of {totalCount} events in the database.
+              Total of {totalItems} events found.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -197,17 +215,17 @@ export function EventsManagement() {
           ) : (
             <>
               <EventsTable
-                events={events}
+                events={paginatedEvents}
                 onEdit={handleEdit}
                 onDelete={handleDeleteClick}
               />
               <PaginationWrapper
-                currentPage={pageNumber}
+                currentPage={page}
                 totalPages={totalPages}
                 pageSize={pageSize}
-                totalItems={totalCount}
+                totalItems={totalItems}
                 onPageChange={goToPage}
-                onPageSizeChange={changePageSize}
+                onPageSizeChange={setPageSize}
               />
             </>
           )}

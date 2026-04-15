@@ -7,7 +7,6 @@ import { useLogoutWithConfirm } from "../hooks/useLogoutwithConfirm";
 export function PublicNavbar() {
   const { logoutWithConfirm } = useLogoutWithConfirm();
   const { user, isAdmin, isStaff } = useUser();
-  const { logout } = useLogout();
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
@@ -19,7 +18,6 @@ export function PublicNavbar() {
       navigate("/events");
     }
   };
-
 
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
@@ -74,9 +72,6 @@ export function PublicNavbar() {
           </>
         ) : (
           <>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
             <Button size="sm" asChild>
               <Link to="/login">Get Tickets</Link>
             </Button>

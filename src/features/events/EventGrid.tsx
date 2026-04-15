@@ -18,13 +18,16 @@ function EventGridItem({
   event: EventResponse;
   onBook: (event: EventResponse) => void;
 }) {
-  const isSoldOut = event.ticketsSold >= event.capacity;
+  // Safely calculate capacity to prevent NaN math errors
+  const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+  const sold = event.ticketsSold || 0;
+  const isSoldOut = sold >= capacity;
 
   return (
     <EventCard className="group">
       <EventCard.Image
         imageUrl={event.coverImageUrl}
-        title={event.title}
+        title={event.title || "Untitled Event"}
         isSoldOut={isSoldOut}
       />
       <EventCard.Details event={event} />
@@ -66,7 +69,10 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
     return <Loading count={6} />;
   }
 
-  if (events.length === 0) {
+  // Force to array to prevent .map crashes
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  if (safeEvents.length === 0) {
     return (
       <NotFound>
         <p className="text-xl font-medium">No events found</p>
@@ -78,9 +84,14 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
   return (
     <>
       <LoadingGridContainer>
-        {events.map((event) => (
-          <EventGridItem key={event.Id} event={event} onBook={handleBook} />
-        ))}
+        {safeEvents.map((event, index) => {
+          // FIX: Check for 'id' (C# standard), then 'Id', then fallback to index
+          const uniqueKey = event.Id || `event-${index}`;
+
+          return (
+            <EventGridItem key={uniqueKey} event={event} onBook={handleBook} />
+          );
+        })}
       </LoadingGridContainer>
 
       <TicketBookingDialog

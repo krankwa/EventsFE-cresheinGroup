@@ -30,9 +30,8 @@ import type {
 } from "../../interface/Event.interface";
 import { format } from "date-fns";
 import { uploadEventImage } from "../../services/uploadService";
-import { eventsService } from "../../services/eventsService";
 import { toast } from "react-hot-toast";
-import { ticketsService } from "../../services/ticketsService";
+import { ticketTiersService } from "../../services/ticketTiersService";
 
 // Leaflet
 import {
@@ -158,11 +157,8 @@ export function EventDialog({
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
-          venueId: event.venue?.id,
           venueName: event.venue || "",
-          venueAddress: event.venue?.address || "",
-          venueLatitude: event.venue?.latitude || 0,
-          venueLongitude: event.venue?.longitude || 0,
+          venueAddress: event.venueAddress || "",
           capacity: event.capacity,
           maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
           coverImageUrl: event.coverImageUrl || "",
@@ -187,11 +183,8 @@ export function EventDialog({
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
-          venueId: undefined,
           venueName: "",
           venueAddress: "",
-          venueLatitude: 0,
-          venueLongitude: 0,
           capacity: 100,
           maxTicketsPerPerson: 5,
           coverImageUrl: "",
@@ -223,12 +216,12 @@ export function EventDialog({
   // Fetch Tier Types
   useEffect(() => {
     if (isOpen) {
-      ticketsService
-        .getTicketTiers()
+      ticketTiersService
+        .getTiersByEventId(event?.Id || 0)
         .then(setTierTypes)
         .catch((err) => console.error("Failed to load ticket tiers", err));
     }
-  }, [isOpen]);
+  }, [isOpen, event?.Id]);
 
   // ── Tier Management ────────────────────────────────────────────────────
   const addTier = () => {
@@ -615,7 +608,7 @@ export function EventDialog({
                     <Input
                       className="pl-9 border-2 h-11"
                       placeholder="Locate venue..."
-                      value={formData.venue}
+                      value={formData.venueAddress}
                       onChange={(e) => handleVenueChange(e.target.value)}
                       onFocus={() => setShowDropdown(suggestions.length > 0)}
                     />

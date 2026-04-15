@@ -1,34 +1,58 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
-interface UseServerPaginationProps {
+interface UseServerPaginationOptions {
   initialPageSize?: number;
-  onPageChange?: (page: number, pageSize: number) => void;
+  initialPage?: number;
+  onPageChange?: (page: number, size: number) => void;
 }
 
-export function useServerPagination({ 
-  initialPageSize = 10, 
-  onPageChange 
-}: UseServerPaginationProps = {}) {
-  const [pageNumber, setPageNumber] = useState(1);
+export function useServerPagination({
+  initialPageSize = 10,
+  initialPage = 1,
+  onPageChange,
+}: UseServerPaginationOptions = {}) {
+  // --- State ---
+  const [pageNumber, setPageNumber] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const goToPage = useCallback((page: number) => {
-    setPageNumber(page);
-    onPageChange?.(page, pageSize);
-  }, [pageSize, onPageChange]);
+  // --- Handlers ---
+  const goToPage = useCallback(
+    (page: number) => {
+      setPageNumber(page);
+      if (onPageChange) {
+        onPageChange(page, pageSize);
+      }
+    },
+    [pageSize, onPageChange],
+  );
 
-  const changePageSize = useCallback((newSize: number) => {
-    setPageSize(newSize);
-    setPageNumber(1); // Reset to first page when changing page size
-    onPageChange?.(1, newSize);
-  }, [onPageChange]);
+  const changePageSize = useCallback(
+    (size: number) => {
+      setPageSize(size);
+      setPageNumber(1); // Always reset to page 1 when changing page sizes
+      if (onPageChange) {
+        onPageChange(1, size);
+      }
+    },
+    [onPageChange],
+  );
 
-  const updatePaginationInfo = useCallback((response: { totalPages: number; totalCount: number }) => {
-    setTotalPages(response.totalPages);
-    setTotalCount(response.totalCount);
-  }, []);
+  // THIS IS THE MISSING FUNCTION
+  const updatePaginationInfo = useCallback(
+    ({
+      totalPages: newTotalPages,
+      totalCount: newTotalCount,
+    }: {
+      totalPages: number;
+      totalCount: number;
+    }) => {
+      setTotalPages(newTotalPages);
+      setTotalCount(newTotalCount);
+    },
+    [],
+  );
 
   return {
     pageNumber,

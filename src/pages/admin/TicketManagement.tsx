@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { format, isPast } from "date-fns";
 import {
   Ticket,
@@ -33,6 +33,7 @@ import {
 } from "../../components/ui/table";
 import { toast } from "react-hot-toast";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { usePagination } from "@/utils/pagination/usePagination";
 
 // Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
@@ -91,19 +92,24 @@ function StatCard({
 export function TicketManagement() {
   const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [scanningId, setScanningId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<
     "all" | "upcoming" | "redeemed" | "past"
   >("all");
   
-  // Pagination state
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+  // Client-side pagination hook
+  const {
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    setTotalItems,
+    goToPage,
+    setPageSize,
+    searchQuery: debouncedSearch,
+    handleSearch,
+  } = usePagination({ initialPageSize: 10 });
   
   // Refs to prevent infinite loops
   const isInitialMount = useRef(true);
@@ -113,94 +119,54 @@ export function TicketManagement() {
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchQuery !== debouncedSearch) {
-        setDebouncedSearch(searchQuery);
-        setPageNumber(1); // Reset to first page on search
-      }
+      handleSearch(searchQuery);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
-  // Load tickets function
-  const loadTickets = useCallback(async (
-    page: number = pageNumber,
-    size: number = pageSize,
-    search: string = debouncedSearch,
-    status: string = filterStatus
-  ) => {
+  const loadTickets = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await ticketsService.getAllPaginated({
-        pageNumber: page,
-        pageSize: size,
-        ...(search && { searchTerm: search }),
-        // searchTerm: search || undefined,
-        // status: status === "all" ? undefined : status,
-      });
-      setTickets(response.items);
-      setTotalPages(response.totalPages);
-      setTotalCount(response.totalCount);
+      const data = await ticketsService.getAll();
+      setTickets(data || []);
     } catch (error) {
       console.error("Failed to load tickets", error);
       toast.error("Failed to load tickets.");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   }, []);
 
-  // Initial load only
+  const filteredTickets = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase();
+    return tickets.filter((t) => {
+      const matchesSearch = 
+        t.eventTitle?.toLowerCase().includes(searchLower) ||
+        t.tierName?.toLowerCase().includes(searchLower) ||
+        t.ticketId.toString().includes(searchLower);
+      
+      const status = getStatus(t);
+      const matchesStatus = filterStatus === "all" || status === filterStatus;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [tickets, debouncedSearch, filterStatus]);
+
   useEffect(() => {
-    if (isInitialMount.current) {
-      loadTickets(1, pageSize, "", filterStatus);
-      isInitialMount.current = false;
-    }
-  }, []);
+    setTotalItems(filteredTickets.length);
+  }, [filteredTickets, setTotalItems]);
 
-  // Handle page change
-  const handlePageChange = useCallback((page: number) => {
-    if (page !== pageNumber) {
-      setPageNumber(page);
-      loadTickets(page, pageSize, debouncedSearch, filterStatus);
-    }
-  }, [pageNumber, pageSize, debouncedSearch, filterStatus, loadTickets]);
+  const paginatedTickets = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredTickets.slice(start, start + pageSize);
+  }, [filteredTickets, page, pageSize]);
 
-  // Handle page size change
-  const handlePageSizeChange = useCallback((newSize: number) => {
-    if (newSize !== pageSize) {
-      setPageSize(newSize);
-      setPageNumber(1);
-      loadTickets(1, newSize, debouncedSearch, filterStatus);
-    }
-  }, [pageSize, debouncedSearch, filterStatus, loadTickets]);
-
-  // Handle filter status change
-  const handleFilterChange = useCallback((newStatus: typeof filterStatus) => {
-    if (newStatus !== filterStatus) {
-      setFilterStatus(newStatus);
-      setPageNumber(1);
-      isFilterChange.current = true;
-      loadTickets(1, pageSize, debouncedSearch, newStatus);
-      setTimeout(() => {
-        isFilterChange.current = false;
-      }, 100);
-    }
-  }, [filterStatus, pageSize, debouncedSearch, loadTickets]);
-
-  // Handle search (when debounced search changes)
   useEffect(() => {
-    if (!isInitialMount.current && debouncedSearch !== undefined) {
-      isSearchChange.current = true;
-      loadTickets(1, pageSize, debouncedSearch, filterStatus);
-      setTimeout(() => {
-        isSearchChange.current = false;
-      }, 100);
-    }
-  }, [debouncedSearch]);
+    loadTickets();
+  }, [loadTickets]);
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    loadTickets(pageNumber, pageSize, debouncedSearch, filterStatus);
+    loadTickets();
   };
 
   const handleScan = async (id: number) => {
@@ -208,8 +174,7 @@ export function TicketManagement() {
     try {
       await ticketsService.scan(id);
       toast.success(`Ticket #${id} redeemed successfully.`);
-      // Refresh current page
-      loadTickets(pageNumber, pageSize, debouncedSearch, filterStatus);
+      loadTickets();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to redeem ticket.";
       toast.error(msg);
@@ -218,9 +183,8 @@ export function TicketManagement() {
     }
   };
 
-  // Calculate stats from current tickets
   const stats = {
-    total: totalCount,
+    total: tickets.length,
     upcoming: tickets.filter((t) => getStatus(t) === "upcoming").length,
     redeemed: tickets.filter((t) => getStatus(t) === "redeemed").length,
     past: tickets.filter((t) => getStatus(t) === "past").length,
@@ -240,9 +204,9 @@ export function TicketManagement() {
           variant="outline"
           className="gap-2"
           onClick={handleRefresh}
-          disabled={isRefreshing}
+          disabled={isLoading}
         >
-          <RefreshCcw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          <RefreshCcw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
@@ -281,7 +245,7 @@ export function TicketManagement() {
           <div>
             <CardTitle>All Tickets</CardTitle>
             <CardDescription>
-              {totalCount} total tickets found
+              {totalItems} total tickets found
             </CardDescription>
           </div>
 
@@ -302,7 +266,10 @@ export function TicketManagement() {
             {/* Status filter */}
             <select
               value={filterStatus}
-              onChange={(e) => handleFilterChange(e.target.value as typeof filterStatus)}
+              onChange={(e) => {
+                setFilterStatus(e.target.value as typeof filterStatus);
+                goToPage(1);
+              }}
               className="h-10 rounded-md border border-input bg-background px-3 text-sm
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -321,7 +288,7 @@ export function TicketManagement() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : tickets.length === 0 ? (
+          ) : filteredTickets.length === 0 ? (
             <div className="py-16 text-center text-muted-foreground border-2 border-dashed rounded-xl">
               <Ticket className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="font-medium">No tickets found</p>
@@ -343,7 +310,7 @@ export function TicketManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tickets.map((ticket) => {
+                  {paginatedTickets.map((ticket) => {
                     const status = getStatus(ticket);
                     const { label, icon: Icon, class: cls } = statusConfig[status];
                     const isScanning = scanningId === ticket.ticketId;
@@ -403,12 +370,12 @@ export function TicketManagement() {
                 </TableBody>
               </Table>
               <PaginationWrapper
-                currentPage={pageNumber}
+                currentPage={page}
                 totalPages={totalPages}
                 pageSize={pageSize}
-                totalItems={totalCount}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
+                totalItems={totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
               />
             </>
           )}

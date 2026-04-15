@@ -33,8 +33,10 @@ function LandingEventCard({
   event: EventResponse;
   onBook: (event: EventResponse) => void;
 }) {
-  const isSoldOut = event.ticketsSold >= event.capacity;
-  const fillPct = Math.min((event.ticketsSold / event.capacity) * 100, 100);
+  const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+  const sold = event.ticketsSold || 0;
+  const isSoldOut = sold >= capacity;
+  const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
     <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-muted/40 bg-card/60 backdrop-blur-sm">
@@ -103,7 +105,7 @@ function LandingEventCard({
           <div className="flex items-center gap-1.5">
             <Users className="w-3 h-3" />
             <span>
-              {event.ticketsSold} / {event.capacity}
+              {sold} / {capacity}
             </span>
           </div>
           <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -167,8 +169,21 @@ export function LandingSection() {
   useEffect(() => {
     eventsService
       .getAll()
-      .then((data) => setEvents(data))
-      .catch((err) => console.error("Failed to load events:", err))
+      .then((response) => {
+        // Safe extraction for paginated or direct array responses
+        if (Array.isArray(response)) {
+          setEvents(response);
+        } else if (response && typeof response === "object") {
+          const res = response as any;
+          setEvents(res.events || res.data || res.items || []);
+        } else {
+          setEvents([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load events:", err);
+        setEvents([]);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

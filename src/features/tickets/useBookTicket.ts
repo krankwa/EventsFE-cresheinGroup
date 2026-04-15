@@ -25,7 +25,7 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
       return;
     }
     // Navigate to the event detail page so the user can choose a tier
-    navigate(`/events/${event.eventID}`);
+    navigate(`/events/${event.Id}`);
   };
 
   return { isBooking, handleBook };

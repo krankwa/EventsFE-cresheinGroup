@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import type { EventResponse } from "../../interface/Event.interface";
 import { EventCard } from "./EventCard/EventCard";
-import { Loading, LoadingGridContainer } from "../../components/molecules/Loading";
+import {
+  Loading,
+  LoadingGridContainer,
+} from "../../components/molecules/Loading";
 import { NotFound } from "../../components/molecules/NotFound";
 import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
 import { useUser } from "../authentication/useUser";
@@ -42,7 +45,9 @@ interface EventGridProps {
 export function EventGrid({ events, isLoading }: EventGridProps) {
   const { user, isAdmin } = useUser();
   const navigate = useNavigate();
-  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
+    null,
+  );
 
   const handleBook = (event: EventResponse) => {
     if (!user) {
@@ -74,7 +79,7 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
     <>
       <LoadingGridContainer>
         {events.map((event) => (
-          <EventGridItem key={event.eventID} event={event} onBook={handleBook} />
+          <EventGridItem key={event.Id} event={event} onBook={handleBook} />
         ))}
       </LoadingGridContainer>
 

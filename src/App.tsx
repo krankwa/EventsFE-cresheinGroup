@@ -21,7 +21,6 @@ import { TicketRedemptionPage } from "./pages/TicketRedemptionPage";
 import { UserLayout } from "./components/templates/UserLayout";
 import { useUser } from "./features/authentication/useUser";
 import { TicketManagement } from "./pages/admin/TicketManagement";
-import { VenuesManagement } from "./pages/admin/VenuesManagement";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,7 +61,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["Admin", "Staff"]} />}>
             <Route element={<AdminLayout />}>
               <Route path="/redemption" element={<TicketRedemptionPage />} />
-              
+
               <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
                 <Route path="/admin">
                   <Route index element={<DashboardOverview />} />
@@ -70,18 +69,13 @@ function App() {
                   <Route path="users" element={<UsersManagement />} />
                   <Route path="settings" element={<MyAccount />} />
                   <Route path="tickets" element={<TicketManagement />} />
-                  <Route path="venues" element={<VenuesManagement />} />
                 </Route>
               </Route>
             </Route>
           </Route>
 
           {/* Protected User Routes */}
-          <Route
-            element={
-              <ProtectedRoute allowedRoles={["Admin", "User"]} />
-            }
-          >
+          <Route element={<ProtectedRoute allowedRoles={["Admin", "User"]} />}>
             <Route element={<UserLayout />}>
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id" element={<EventDetail />} />

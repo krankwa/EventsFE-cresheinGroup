@@ -1,4 +1,3 @@
-import { apiFetch } from "./api";
 import type {
   TicketResponse,
   TicketCreateRequest,
@@ -9,7 +8,7 @@ import { apiRequest } from "./client";
 export async function registerTicket(
   data: TicketCreateRequest,
 ): Promise<TicketResponse> {
-  return apiFetch<TicketResponse>("/tickets", {
+  return apiRequest<TicketResponse>("/tickets", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -17,12 +16,12 @@ export async function registerTicket(
 
 // GET /api/tickets/mine — User only
 export async function getMyTickets(): Promise<TicketResponse[]> {
-  return apiFetch<TicketResponse[]>("/tickets/mine");
+  return apiRequest<TicketResponse[]>("/tickets/mine");
 }
 
 // DELETE /api/tickets/{id} — User only
 export async function cancelTicket(id: number): Promise<null> {
-  return apiFetch<null>(`/tickets/${id}`, { method: "DELETE" });
+  return apiRequest<null>(`/tickets/${id}`, { method: "DELETE" });
 }
 
 export const getAllTickets = (): Promise<TicketResponse[]> =>

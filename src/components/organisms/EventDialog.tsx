@@ -381,7 +381,6 @@ export function EventDialog({
     e.preventDefault();
     if (isLoading || isUploading || isSearching || isGeocoding) return;
 
-
     const totalTierCapacity = formData.tiers.reduce(
       (acc, t) => acc + t.capacity,
       0,
@@ -415,7 +414,7 @@ export function EventDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        key={isOpen ? `open-${event?.eventID ?? "new"}` : "closed"}
+        key={isOpen ? `open-${event?.Id ?? "new"}` : "closed"}
         className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto bg-background/95 backdrop-blur-md border-2"
       >
         <DialogHeader>
@@ -615,7 +614,7 @@ export function EventDialog({
                     <Input
                       className="pl-9 border-2 h-11"
                       placeholder="Locate venue..."
-                      value={formData.venueName}
+                      value={formData.venue}
                       onChange={(e) => handleVenueChange(e.target.value)}
                       onFocus={() => setShowDropdown(suggestions.length > 0)}
                     />

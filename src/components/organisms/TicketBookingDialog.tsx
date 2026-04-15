@@ -40,7 +40,7 @@ export function TicketBookingDialog({
     setIsBooking(true);
     try {
       await ticketsService.register({
-        eventId: event.eventID,
+        Id: event.Id,
         tierId: selectedTierId,
       });
       toast.success(`Successfully booked ticket for ${event.title}!`);
@@ -125,7 +125,9 @@ export function TicketBookingDialog({
                         }
                       `}
                     >
-                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      {isSelected && (
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      )}
                     </div>
                   </div>
                 </div>

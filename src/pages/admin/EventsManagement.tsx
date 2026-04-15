@@ -77,11 +77,8 @@ export function EventsManagement() {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
-      if (selectedEvent && selectedEvent.eventID) {
-        await eventsService.update(
-          selectedEvent.eventID,
-          data as EventUpdateDTO,
-        );
+      if (selectedEvent && selectedEvent.Id) {
+        await eventsService.update(selectedEvent.Id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
@@ -104,10 +101,10 @@ export function EventsManagement() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedEvent || !selectedEvent.eventID) return;
+    if (!selectedEvent || !selectedEvent.Id) return;
     setIsSaving(true);
     try {
-      await eventsService.delete(selectedEvent.eventID);
+      await eventsService.delete(selectedEvent.Id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
       loadEvents();
@@ -184,7 +181,7 @@ export function EventsManagement() {
       </Card>
 
       <EventDialog
-        key={selectedEvent?.eventID || "new"}
+        key={selectedEvent?.Id || "new"}
         isOpen={isEventDialogOpen}
         onClose={() => setIsEventDialogOpen(false)}
         onSave={handleSave}

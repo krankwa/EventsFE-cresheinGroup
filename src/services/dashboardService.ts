@@ -27,7 +27,7 @@ export const dashboardService = {
     const topEvents = [...events]
       .sort((a, b) => b.ticketsSold / b.capacity - a.ticketsSold / a.capacity)
       .slice(0, 4);
-
+ 
     return {
       totalUsers: users.length,
       totalEvents: events.length,

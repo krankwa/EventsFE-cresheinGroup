@@ -32,7 +32,7 @@ export const ticketsService = {
 
   getAll: (): Promise<TicketResponse[]> =>
     apiRequest<TicketResponse[]>("/tickets", {
-      method: "GET",
+      method: "GET", 
       requiresAuth: true,
     }),
 };

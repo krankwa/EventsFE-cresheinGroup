@@ -137,11 +137,8 @@ export function EventsManagementSection({ children }: { children: ReactNode }) {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
-      if (selectedEvent && selectedEvent.eventID) {
-        await eventsService.update(
-          selectedEvent.eventID,
-          data as EventUpdateDTO,
-        );
+      if (selectedEvent && selectedEvent.Id) {
+        await eventsService.update(selectedEvent.Id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
@@ -160,10 +157,10 @@ export function EventsManagementSection({ children }: { children: ReactNode }) {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedEvent || !selectedEvent.eventID) return;
+    if (!selectedEvent || !selectedEvent.Id) return;
     setIsSaving(true);
     try {
-      await eventsService.delete(selectedEvent.eventID);
+      await eventsService.delete(selectedEvent.Id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
       loadEvents();

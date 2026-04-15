@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Settings,
   Scan,
-  MapPin,
 } from "lucide-react";
 
 export const ADMIN_STATS = [
@@ -45,7 +44,6 @@ export const NAV_ITEMS = [
   { href: "/admin/events", label: "Events", icon: CalendarDays },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/tickets", label: "Tickets", icon: Ticket },
-  { href: "/admin/venues", label: "Venues", icon: MapPin },
   { href: "/redemption", label: "Redemption", icon: Scan },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

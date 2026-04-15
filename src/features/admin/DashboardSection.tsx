@@ -146,7 +146,6 @@ const EventRow = styled.div`
   }
 `;
 
-
 interface DashboardContextType {
   stats: DashboardStats | null;
   loading: boolean;
@@ -245,7 +244,7 @@ DashboardSection.Content = function DashboardSectionContent() {
             </LoadingWrapper>
           ) : stats?.topEvents && stats.topEvents.length > 0 ? (
             stats.topEvents.map((event) => (
-              <EventRow key={event.eventID}>
+              <EventRow key={event.Id}>
                 <div className="image-wrapper">
                   {event.coverImageUrl ? (
                     <img src={event.coverImageUrl} alt={event.title} />

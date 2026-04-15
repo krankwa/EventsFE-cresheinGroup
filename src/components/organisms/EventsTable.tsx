@@ -40,7 +40,7 @@ export const EventsTable = memo(function EventsTable({
       <TableBody>
         {events.map((event, index) => (
           <TableRow
-            key={event.eventID || `event-${index}`}
+            key={event.Id || `event-${index}`}
             className="group cursor-pointer"
           >
             <TableCell>

@@ -5,9 +5,20 @@ import { useLogout } from "../../features/authentication/useLogout";
 import { Button } from "../ui/button";
 
 export function PublicNavbar() {
-  const { user, isAdmin } = useUser();
+  const { user, isAdmin, isStaff } = useUser();
   const { logout } = useLogout();
   const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    if (isAdmin) {
+      navigate("/admin");
+    } else if (isStaff) {
+      navigate("/redemption");
+    } else {
+      navigate("/events");
+    }
+  };
+
 
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
@@ -42,7 +53,7 @@ export function PublicNavbar() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => navigate("/myaccount")}
+              onClick={handleProfileClick}
             >
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">

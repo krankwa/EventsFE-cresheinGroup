@@ -92,7 +92,9 @@ function LandingEventCard({
             <span className="font-semibold text-foreground leading-tight">
               {event.venue?.name || "TBA"}
             </span>
-            <span className="text-[11px] line-clamp-1">{event.venue?.address}</span>
+            <span className="text-[11px] line-clamp-1">
+              {event.venue?.address}
+            </span>
           </div>
         </div>
 
@@ -114,12 +116,12 @@ function LandingEventCard({
       </CardContent>
 
       <CardFooter className="p-5 pt-4">
-          <Button
-            className="w-full gap-2 font-semibold group/btn"
-            variant={isSoldOut ? "outline" : "default"}
-            disabled={isSoldOut}
-            onClick={() => onBook(event)}
-          >
+        <Button
+          className="w-full gap-2 font-semibold group/btn"
+          variant={isSoldOut ? "outline" : "default"}
+          disabled={isSoldOut}
+          onClick={() => onBook(event)}
+        >
           {isSoldOut ? (
             "Sold Out"
           ) : !Users ? (
@@ -133,9 +135,9 @@ function LandingEventCard({
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
             </>
           )}
-          </Button>
-        </CardFooter>
-      </Card>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -143,7 +145,9 @@ function LandingEventCard({
 export function LandingSection() {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
+    null,
+  );
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
 
@@ -262,7 +266,11 @@ export function LandingSection() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <LandingEventCard key={event.eventID} event={event} onBook={handleBook} />
+              <LandingEventCard
+                key={event.Id}
+                event={event}
+                onBook={handleBook}
+              />
             ))}
           </div>
         )}

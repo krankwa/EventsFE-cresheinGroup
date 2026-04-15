@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(ls -d c:/Users/serei/OneDrive/Desktop/eventBEapi/EventTix/src/interface*)",
-      "Read(//c/Users/serei/OneDrive/Desktop/udemy notes/REACT COURSE/comprehensive react course/authentication/**)",
-      "Bash(xargs grep:*)"
-    ]
-  }
-}

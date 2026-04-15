@@ -3,7 +3,6 @@ import {
   ShieldCheck,
   User,
   Mail,
-  ShieldAlert,
   Pencil,
   X,
   Check,
@@ -86,8 +85,6 @@ export function UsersTable({
       setIsSaving(false);
     }
   };
-
-
 
   return (
     <Table>

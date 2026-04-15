@@ -58,26 +58,26 @@ export function PaginationWrapper({
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span>Show</span>
+    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mt-8 pt-6 border-t border-muted/30">
+      <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-muted-foreground/80">
+        <div className="flex items-center gap-3 bg-muted/20 px-3 py-1.5 rounded-full border border-muted/30">
+          <span className="font-medium">Show</span>
           <Select value={pageSize.toString()} onValueChange={(v) => onPageSizeChange(Number(v))}>
-            <SelectTrigger className="w-20 h-8">
+            <SelectTrigger className="w-[70px] h-8 bg-background border-muted/50 rounded-full focus:ring-primary/20 transition-all">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl overflow-hidden shadow-xl border-muted/30">
               {pageSizeOptions.map((size) => (
-                <SelectItem key={size} value={size.toString()}>
+                <SelectItem key={size} value={size.toString()} className="focus:bg-primary/5">
                   {size}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <span>per page</span>
+          <span className="font-medium">per page</span>
         </div>
-        <div>
-          Showing {startItem}-{endItem} of {totalItems}
+        <div className="font-medium tracking-tight">
+          Displaying <span className="text-foreground">{startItem}—{endItem}</span> <span className="opacity-60 text-[10px] mx-1">of</span> <span className="text-foreground font-bold">{totalItems}</span> items
         </div>
       </div>
 

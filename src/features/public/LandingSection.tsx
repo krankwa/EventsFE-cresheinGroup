@@ -90,8 +90,13 @@ function LandingEventCard({
             {format(new Date(event.date), "PPP")}
           </span>
         </div>
-        <div className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px]">
-          <MapPin className="w-3.5 h-3.5 text-blue-950 shrink-0 mt-0.5" />
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue} ${event.venueAddress}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px] hover:text-primary transition-colors group/map"
+        >
+          <MapPin className="w-3.5 h-3.5 text-blue-950 shrink-0 mt-0.5 group-hover/map:animate-bounce" />
           <div className="flex flex-col">
             <span className="font-semibold text-foreground leading-tight">
               {event.venue || "TBA"}
@@ -100,7 +105,7 @@ function LandingEventCard({
               {event.venueAddress}
             </span>
           </div>
-        </div>
+        </a>
 
         {/* Capacity bar */}
         <div className="pt-3 border-t border-blue-950/50 flex items-center justify-between text-xs text-muted-foreground">

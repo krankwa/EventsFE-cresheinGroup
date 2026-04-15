@@ -38,6 +38,17 @@ const InfoRow = styled.div`
   gap: 0.5rem;
   font-size: 0.875rem;
   color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &.map-link:hover {
+    color: hsl(var(--primary));
+    cursor: pointer;
+
+    svg {
+      transform: translateY(-2px);
+    }
+  }
 
   &.italic {
     font-style: italic;
@@ -104,7 +115,13 @@ export function EventCardDetails({
             <Calendar />
             {format(new Date(event.date), "PPP")}
           </InfoRow>
-          <InfoRow>
+          <InfoRow
+            as="a"
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue} ${event.venueAddress || ""}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="map-link"
+          >
             <MapPin />
             <span>{event.venue || "TBA"}</span>
           </InfoRow>

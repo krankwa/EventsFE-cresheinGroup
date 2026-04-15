@@ -242,6 +242,37 @@ function EventsSectionGrid() {
   } = useEventsSectionContext("EventsSection.Grid");
   const isSearchActive = searchTerm.trim().length > 0;
 
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    document.getElementById("events-section")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   if (isError) {
     return (
       <ErrorState
@@ -267,7 +298,7 @@ function EventsSectionGrid() {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
+                  if (currentPage > 1) handlePageChange(currentPage - 1);
                 }}
                 className={
                   currentPage === 1
@@ -276,18 +307,22 @@ function EventsSectionGrid() {
                 }
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, i) => (
+            {getPageNumbers().map((page, i) => (
               <PaginationItem key={i}>
-                <PaginationLink
-                  href="#"
-                  isActive={currentPage === i + 1}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage(i + 1);
-                  }}
-                >
-                  {i + 1}
-                </PaginationLink>
+                {page === "..." ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    href="#"
+                    isActive={currentPage === page}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(page as number);
+                    }}
+                  >
+                    {page}
+                  </PaginationLink>
+                )}
               </PaginationItem>
             ))}
             <PaginationItem>
@@ -295,7 +330,8 @@ function EventsSectionGrid() {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                  if (currentPage < totalPages)
+                    handlePageChange(currentPage + 1);
                 }}
                 className={
                   currentPage === totalPages

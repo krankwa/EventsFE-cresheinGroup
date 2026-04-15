@@ -54,7 +54,7 @@ export function NotificationCenter() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 md:w-96 bg-background border rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200 origin-top-right">
+        <div className="fixed left-4 right-4 top-[70px] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-80 md:w-96 bg-background border rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200 origin-top sm:origin-top-right">
           <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
             <h3 className="font-bold text-sm">Notifications</h3>
             {unreadCount > 0 && (
@@ -144,17 +144,23 @@ export function NotificationCenter() {
                           )}
                           {notification.payload.OldVenue !==
                             notification.payload.NewVenue && (
-                            <div className="flex items-start gap-1.5">
-                              <MapPin className="w-3 h-3 text-muted-foreground mt-0.5" />
-                              <div className="flex-1">
-                                <span className="text-muted-foreground line-through block">
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${notification.payload.NewVenue} ${notification.payload.NewVenueAddress || ""}`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-start gap-1.5 hover:text-primary transition-colors group/notif-map"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MapPin className="w-3 h-3 text-muted-foreground mt-0.5 group-hover/notif-map:animate-bounce shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-muted-foreground line-through block text-[9px] opacity-70">
                                   {notification.payload.OldVenue}
                                 </span>
-                                <span className="text-primary font-semibold block">
+                                <span className="text-primary font-bold block truncate">
                                   {notification.payload.NewVenue}
                                 </span>
                               </div>
-                            </div>
+                            </a>
                           )}
                         </div>
                       )}

@@ -1,5 +1,6 @@
 import { NavLink, Link } from "react-router-dom";
 import { CalendarDays, Ticket, Search, User, LogOut, Bell } from "lucide-react";
+import { NotificationCenter } from "./NotificationCenter";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
 import { Button } from "../ui/button";
@@ -78,7 +79,7 @@ export function UserNavbar() {
 
       {/* Right: Notifications & Profile */}
       <div className="flex items-center gap-2 md:gap-4">
-       
+        <NotificationCenter />
 
         <div className="h-8 w-px bg-border mx-1" />
 

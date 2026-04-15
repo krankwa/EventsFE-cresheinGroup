@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -29,9 +29,11 @@ import { TicketBookingDialog } from "../../components/organisms/TicketBookingDia
 function LandingEventCard({
   event,
   onBook,
+  isLoggedIn,
 }: {
   event: EventResponse;
   onBook: (event: EventResponse) => void;
+  isLoggedIn: boolean;
 }) {
   const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
   const sold = event.ticketsSold || 0;
@@ -126,7 +128,7 @@ function LandingEventCard({
         >
           {isSoldOut ? (
             "Sold Out"
-          ) : !useUser ? (
+          ) : !isLoggedIn ? (
             <>
               Sign In to Book
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
@@ -282,9 +284,10 @@ export function LandingSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
               <LandingEventCard
-                key={event.Id}
+                key={event.id}
                 event={event}
                 onBook={handleBook}
+                isLoggedIn={!!user}
               />
             ))}
           </div>

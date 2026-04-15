@@ -26,7 +26,11 @@ export function useEvents() {
       // Throwing this error triggers your UI <ErrorState /> component!
       throw new Error("Invalid data format received from the server.");
     },
-    // Optional: Prevent React Query from aggressively retrying broken formatting 3 times
+    // Keep data fresh for 1 minute before checking for updates
+    staleTime: 60000, 
+    // Keep data in cache for 5 minutes even if not used
+    gcTime: 1000 * 60 * 5,
+    // Prevent React Query from aggressively retrying broken formatting 3 times
     retry: 1,
   });
 }

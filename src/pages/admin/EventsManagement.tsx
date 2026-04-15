@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { Search, Plus, Filter, Download, RefreshCcw } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
+import { useEvents } from "../../features/events/useEvents";
+import { useQueryClient } from "@tanstack/react-query";
 import type { EventResponse } from "../../interface/Event.interface";
 import { Button } from "../../components/ui/button";
 import {
@@ -23,8 +25,8 @@ import { usePagination } from "@/utils/pagination/usePagination";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function EventsManagement() {
-  const [events, setEvents] = useState<EventResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: events = [], isLoading, refetch } = useEvents();
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -81,25 +83,8 @@ export function EventsManagement() {
   }, [filteredEvents, page, pageSize]);
 
   // Fetch all events
-  async function loadEvents() {
-    setIsLoading(true);
-    try {
-      const data = await eventsService.getAll();
-      // The backend returns a direct array, so no extraction needed anymore
-      setEvents(data || []);
-    } catch (error) {
-      console.error("Failed to load events", error);
-      toast.error("Failed to fetch events from the server.");
-      setEvents([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // Initial load
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  // Fetch and state are now managed by useEvents hook
+  const loadEvents = () => refetch();
 
   // --- Handlers ---
   const handleCreate = () => {
@@ -133,7 +118,7 @@ export function EventsManagement() {
         toast.success("Event created successfully!");
       }
       setIsEventDialogOpen(false);
-      loadEvents();
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to save event.",
@@ -150,7 +135,7 @@ export function EventsManagement() {
       await eventsService.delete(selectedEvent.Id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
-      loadEvents();
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     } catch (error) {
       toast.error("Failed to delete the event. It might have linked data.");
     } finally {

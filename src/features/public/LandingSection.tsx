@@ -20,7 +20,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { Skeleton } from "../../components/ui/skeleton";
-import { eventsService } from "../../services/eventsService";
+import { useEvents } from "../../features/events/useEvents";
 import { useUser } from "../../features/authentication/useUser";
 import type { EventResponse } from "../../interface/Event.interface";
 import { toast } from "react-hot-toast";
@@ -145,9 +145,8 @@ function LandingEventCard({
 
 // ─── Landing Page ─────────
 export function LandingSection() {
-  const [allEvents, setAllEvents] = useState<EventResponse[]>([]);
+  const { data: allEvents = [], isLoading } = useEvents(); 
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
     null,
   );
@@ -186,26 +185,7 @@ export function LandingSection() {
     });
   }, [allEvents, searchTerm]);
 
-  useEffect(() => {
-    eventsService
-      .getAll()
-      .then((response) => {
-        // Safe extraction for paginated or direct array responses
-        if (Array.isArray(response)) {
-          setAllEvents(response);
-        } else if (response && typeof response === "object") {
-          const res = response as any;
-          setAllEvents(res.events || res.data || res.items || []);
-        } else {
-          setAllEvents([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load events:", err);
-        setAllEvents([]);
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
+  // Data fetching is now handled by the optimized useEvents hook with integrated caching
 
   const isSearchActive = searchTerm.trim().length > 0;
 

@@ -3,7 +3,7 @@ import {
   ShieldCheck,
   User,
   Mail,
-  ShieldAlert,
+  //ShieldAlert,
   Pencil,
   X,
   Check,
@@ -23,10 +23,10 @@ import { useUser } from "../../features/authentication/useUser";
 
 interface UsersTableProps {
   users: UserResponse[];
-  onPromote: (user: UserResponse) => void;
+  onPromote?: (user: UserResponse) => void;
   onEdit: (
     user: UserResponse,
-    data: { name: string; email: string },
+    data: { name: string; email: string; role?: string },
   ) => Promise<void>;
   isLoading?: boolean;
 }
@@ -39,7 +39,7 @@ interface EditState {
 
 export function UsersTable({
   users,
-  onPromote,
+  //onPromote,
   onEdit,
   isLoading,
 }: UsersTableProps) {

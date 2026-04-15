@@ -21,7 +21,7 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
 
-  const handleBook = async (tierId: number) => {
+  const handleBook = async (tierId?: number) => {
     if (isBooking) return;
 
     if (!user) {
@@ -33,12 +33,11 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
       toast.error("Admins cannot book tickets.");
       return;
     }
-    
+
     // Navigate to the event detail page so the user can choose a tier
-    const eventId = event.Id || event.eventID || event.id;
-    navigate(`/events/${eventId}`);
+    const eventId = event.id;
+    navigate(`/events/${eventId}${tierId ? `?tier=${tierId}` : ""}`);
   };
 
   return { isBooking, isOpen, openModal, closeModal, handleBook };
 }
-

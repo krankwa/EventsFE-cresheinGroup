@@ -49,20 +49,30 @@ export function MyAccountSection() {
             <div className="bg-muted p-3 rounded-md space-y-1 mt-2">
               <p className="text-sm">
                 <span className="font-medium">Name:</span>{" "}
-                <span className="text-muted-foreground line-through">{user.name}</span>
+                <span className="text-muted-foreground line-through">
+                  {user.name}
+                </span>
                 {" → "}
-                <span className="text-green-600 dark:text-green-400">{profile.pendingData?.name}</span>
+                <span className="text-green-600 dark:text-green-400">
+                  {profile.pendingData?.name}
+                </span>
               </p>
               <p className="text-sm">
                 <span className="font-medium">Email:</span>{" "}
-                <span className="text-muted-foreground line-through">{user.email}</span>
+                <span className="text-muted-foreground line-through">
+                  {user.email}
+                </span>
                 {" → "}
-                <span className="text-green-600 dark:text-green-400">{profile.pendingData?.email}</span>
+                <span className="text-green-600 dark:text-green-400">
+                  {profile.pendingData?.email}
+                </span>
               </p>
             </div>
           </div>
         }
         confirmText="Save Changes"
+        cancelText="Cancel"
+        variant="default"
         isLoading={profile.isSaving}
       />
 

@@ -13,6 +13,23 @@ export const eventsService = {
       //requiresAuth: false,
     }),
 
+  getAllPaginated: (params: {
+    pageNumber: number;
+    pageSize: number;
+    searchTerm?: string;
+  }): Promise<EventsFeedResponse> => {
+    const queryParams = new URLSearchParams({
+      pageNumber: params.pageNumber.toString(),
+      pageSize: params.pageSize.toString(),
+    });
+    if (params.searchTerm) {
+      queryParams.append("searchTerm", params.searchTerm);
+    }
+    return apiRequest<EventsFeedResponse>(`/Event?${queryParams.toString()}`, {
+      method: "GET",
+    });
+  },
+
   getById: (id: number): Promise<EventResponse> =>
     apiRequest<EventResponse>(`/Event/${id}`, {
       method: "GET",

@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { userService } from "@/services/userService";
 import { toast } from "react-hot-toast";
-import type { PasswordFormData, PasswordErrors } from "@/features/account/types/account.type";
+import type {
+  PasswordFormData,
+  PasswordErrors,
+} from "@/features/account/types/account.type";
 
 export function usePasswordForm(user: any) {
   const [form, setForm] = useState<PasswordFormData>({
@@ -12,15 +15,20 @@ export function usePasswordForm(user: any) {
   const [errors, setErrors] = useState<PasswordErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingData, setPendingData] = useState<Omit<PasswordFormData, "confirmPassword"> | null>(null);
+  const [pendingData, setPendingData] = useState<Omit<
+    PasswordFormData,
+    "confirmPassword"
+  > | null>(null);
 
   const validate = (): boolean => {
     const newErrors: PasswordErrors = {};
-    if (!form.currentPassword) newErrors.currentPassword = "Current password is required.";
+    if (!form.currentPassword)
+      newErrors.currentPassword = "Current password is required.";
     if (!form.newPassword) newErrors.newPassword = "New password is required.";
     else if (form.newPassword.length < 8)
       newErrors.newPassword = "Password must be at least 8 characters.";
-    if (!form.confirmPassword) newErrors.confirmPassword = "Please confirm your new password.";
+    if (!form.confirmPassword)
+      newErrors.confirmPassword = "Please confirm your new password.";
     else if (form.newPassword !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match.";
     setErrors(newErrors);
@@ -44,7 +52,9 @@ export function usePasswordForm(user: any) {
         password: pendingData.currentPassword,
         newPassword: pendingData.newPassword,
       });
-      toast.success("Password changed successfully! Please use your new password next login.");
+      toast.success(
+        "Password changed successfully! Please use your new password next login.",
+      );
       setForm({
         currentPassword: "",
         newPassword: "",
@@ -54,7 +64,9 @@ export function usePasswordForm(user: any) {
       setShowConfirm(false);
       setPendingData(null);
     } catch (err) {
-      toast.error("Failed to change password. Please check your current password.");
+      toast.error(
+        "Failed to change password. Please check your current password.",
+      );
     } finally {
       setIsSaving(false);
     }

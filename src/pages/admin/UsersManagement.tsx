@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Search,
   RefreshCcw,
@@ -50,9 +50,6 @@ export function UsersManagement() {
     searchQuery: debouncedSearch,
     handleSearch,
   } = usePagination({ initialPageSize: 10 });
-
-  const isInitialMount = useRef(true);
-  const isLoadingRef = useRef(false);
 
   // Debounce search
   useEffect(() => {

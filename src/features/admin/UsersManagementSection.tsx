@@ -10,7 +10,7 @@ import {
   AdminSubtitle,
 } from "./adminSectionStyles";
 import { userService } from "../../services/userService";
-import type { UserResponse, UserRole } from "../../interface/Auth.interface";
+import type { UserResponse } from "../../interface/Auth.interface";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -111,7 +111,7 @@ interface UsersManagementContextType {
   loadUsers: (showRefresh?: boolean) => Promise<void>;
   handleEdit: (
     user: UserResponse,
-    data: { name: string; email: string; role: UserRole },
+    data: { name: string; email: string; role?: string },
   ) => Promise<void>;
 }
 
@@ -150,10 +150,10 @@ export function UsersManagementSection({ children }: { children: ReactNode }) {
 
   const handleEdit = async (
     user: UserResponse,
-    data: { name: string; email: string; role: UserRole },
+    data: { name: string; email: string; role?: string },
   ) => {
     try {
-      await userService.update(user.userId, data);
+      await userService.update(user.userId, data as any);
       toast.success(`${user.name}'s account has been updated.`);
       loadUsers();
     } catch (error) {

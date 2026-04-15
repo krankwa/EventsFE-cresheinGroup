@@ -39,13 +39,14 @@ export const EventsTable = memo(function EventsTable({
       </TableHeader>
       <TableBody>
         {events.map((event, index) => {
-          const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+          const capacity =
+            event.capacity && event.capacity > 0 ? event.capacity : 1;
           const sold = event.ticketsSold || 0;
           const percentage = ((sold / capacity) * 100).toFixed(0);
 
           return (
             <TableRow
-              key={event.Id || `event-${index}`}
+              key={event.id || `event-${index}`}
               className="group cursor-pointer"
             >
               <TableCell>
@@ -108,46 +109,46 @@ export const EventsTable = memo(function EventsTable({
                   {sold >= capacity ? "Sold Out" : "Active"}
                 </Badge>
               </TableCell>
-            <TableCell className="text-right">
-              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <TableCell className="text-right">
+                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(event);
+                    }}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(event);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                  className="group-hover:hidden h-8 w-8"
                 >
-                  <Eye className="w-4 h-4" />
+                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(event);
-                  }}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(event);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="group-hover:hidden h-8 w-8"
-              >
-                <MoreVertical className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </TableCell>
+              </TableCell>
             </TableRow>
           );
         })}

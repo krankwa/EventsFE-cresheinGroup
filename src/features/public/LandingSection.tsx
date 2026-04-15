@@ -282,7 +282,7 @@ export function LandingSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
               <LandingEventCard
-                key={event.Id}
+                key={event.id}
                 event={event}
                 onBook={handleBook}
               />

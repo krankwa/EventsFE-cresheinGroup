@@ -86,7 +86,7 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
       <LoadingGridContainer>
         {safeEvents.map((event, index) => {
           // FIX: Check for 'id' (C# standard), then 'Id', then fallback to index
-          const uniqueKey = event.Id || `event-${index}`;
+          const uniqueKey = event.id || `event-${index}`;
 
           return (
             <EventGridItem key={uniqueKey} event={event} onBook={handleBook} />

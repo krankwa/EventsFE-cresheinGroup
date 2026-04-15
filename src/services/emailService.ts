@@ -1,25 +1,29 @@
-import { renderToStaticMarkup } from 'react-dom/server';
-import React from 'react';
-import { TicketEmail } from '../components/emails/TicketEmail';
-import { apiFetch } from './api';
+import { renderToStaticMarkup } from "react-dom/server";
+import React from "react";
+import { TicketEmail } from "../components/emails/TicketEmail";
+import { apiRequest } from "./client";
 
-export async function sendWelcomeEmail(email: string, name: string, htmlContent?: string) {
+export async function sendWelcomeEmail(
+  email: string,
+  name: string,
+  htmlContent?: string,
+) {
   try {
-    // Call our backend endpoint. 
+    // Call our backend endpoint.
     // If htmlContent is omitted, the backend will use its own professional template.
-    const response = await apiFetch<{ message: string }>('/email/welcome', {
+    const response = await apiRequest<{ message: string }>("/email/welcome", {
       method: "POST",
       body: JSON.stringify({
         email,
         name,
-        htmlContent
+        htmlContent,
       }),
     });
 
-    console.log('Welcome email request sent to backend:', response.message);
+    console.log("Welcome email request sent to backend:", response.message);
     return { success: true, data: response };
   } catch (err) {
-    console.error('Error triggering welcome email through backend:', err);
+    console.error("Error triggering welcome email through backend:", err);
     return { success: false, error: err };
   }
 }
@@ -29,33 +33,39 @@ export async function sendWelcomeEmail(email: string, name: string, htmlContent?
  * Use this only if you need to manually re-send a ticket.
  */
 export async function sendTicketEmail(
-  email: string, 
-  name: string, 
-  eventTitle: string, 
-  eventDate: string, 
-  venue: string, 
-  ticketId: string | number
+  email: string,
+  name: string,
+  eventTitle: string,
+  eventDate: string,
+  venue: string,
+  ticketId: string | number,
 ) {
   try {
-    // Note: The backend currently doesn't have a specific "re-send ticket" endpoint 
+    // Note: The backend currently doesn't have a specific "re-send ticket" endpoint
     // that doesn't require HTML payload. If needed, one should be added to the API.
     // For now, we keep the rendering if manual sending is still required from FE.
     const htmlContent = renderToStaticMarkup(
-      React.createElement(TicketEmail, { name, eventTitle, eventDate, venue, ticketId })
+      React.createElement(TicketEmail, {
+        name,
+        eventTitle,
+        eventDate,
+        venue,
+        ticketId,
+      }),
     );
 
-    const response = await apiFetch<{ message: string }>('/email/welcome', {
+    const response = await apiRequest<{ message: string }>("/email/welcome", {
       method: "POST",
       body: JSON.stringify({
         email,
         name,
-        htmlContent
+        htmlContent,
       }),
     });
 
     return !!response;
   } catch (err) {
-    console.error('Error sending ticket email through backend:', err);
+    console.error("Error sending ticket email through backend:", err);
     return false;
   }
 }

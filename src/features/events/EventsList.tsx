@@ -14,9 +14,19 @@ export function EventsList() {
     );
   }
 
+  const flatEvents = Array.isArray(events)
+    ? events
+    : events
+      ? [
+          ...(events.recommended || []),
+          ...(events.popular || []),
+          ...(events.allOthers || []),
+        ]
+      : [];
+
   return (
     <div className="space-y-6">
-      <EventGrid events={events ?? []} isLoading={isLoading} />
+      <EventGrid events={flatEvents} isLoading={isLoading} />
     </div>
   );
 }

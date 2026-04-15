@@ -114,7 +114,7 @@ export function DashboardOverview() {
                 return (
                   // FIX: Check for event.id, fallback to event.Id, fallback to index
                   <div
-                    key={event.Id || index}
+                    key={event.id || index}
                     className="flex items-center gap-4 group cursor-default"
                   >
                     <div className="w-12 h-12 rounded overflow-hidden border bg-muted flex-shrink-0">

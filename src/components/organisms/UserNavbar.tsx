@@ -110,13 +110,15 @@ export function UserNavbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all overflow-hidden"
-            >
-              <User className="w-5 h-5 text-primary" />
-            </Button>
+            <Link to="/myaccount">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all overflow-hidden"
+              >
+                <User className="w-5 h-5 text-primary" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="icon"

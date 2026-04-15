@@ -98,7 +98,7 @@ export function TicketManagement() {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "upcoming" | "redeemed" | "past"
   >("all");
-  
+
   // Client-side pagination hook
   const {
     page,
@@ -111,7 +111,7 @@ export function TicketManagement() {
     searchQuery: debouncedSearch,
     handleSearch,
   } = usePagination({ initialPageSize: 10 });
-  
+
 
 
   // Debounce search
@@ -297,7 +297,7 @@ export function TicketManagement() {
           ) : (
             <>
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-gray-100">
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Event</TableHead>
@@ -346,7 +346,7 @@ export function TicketManagement() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1.5 hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 transition-colors"
+                              className="gap-1.5 bg-blue-950 hover:text-white text-white transition-colors"
                               disabled={isScanning}
                               onClick={() => handleScan(ticket.ticketId)}
                             >
@@ -357,7 +357,7 @@ export function TicketManagement() {
                                 </>
                               ) : (
                                 <>
-                                  <ScanLine className="w-3.5 h-3.5" />
+                                  <ScanLine className="w-3.5 h-3.5 " />
                                   Redeem
                                 </>
                               )}

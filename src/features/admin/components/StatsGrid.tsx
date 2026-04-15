@@ -1,18 +1,19 @@
-import { 
-  Users, 
-  CalendarDays, 
-  Ticket, 
+import {
+  Users,
+  CalendarDays,
+  Ticket,
   TrendingUp,
   ArrowUpRight
 } from "lucide-react";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
 } from "../../../components/ui/card";
 import { cn } from "../../../lib/utils";
 import type { DashboardStats } from "../../../services/dashboardService";
+import { Spinner } from "@/components/ui/spinner";
 
 interface StatsGridProps {
   stats: DashboardStats | null;
@@ -21,33 +22,33 @@ interface StatsGridProps {
 
 export function StatsGrid({ stats, isLoading }: StatsGridProps) {
   const items = [
-    { 
-      label: "Total Events", 
-      value: stats?.totalEvents.toString() || "0", 
-      icon: CalendarDays, 
+    {
+      label: "Total Events",
+      value: stats?.totalEvents.toString() || "0",
+      icon: CalendarDays,
       color: "text-blue-600",
-      change: "+3 this month" 
+      change: "+3 this month"
     },
-    { 
-      label: "Tickets Sold", 
-      value: stats?.totalTicketsSold.toLocaleString() || "0", 
-      icon: Ticket, 
+    {
+      label: "Tickets Sold",
+      value: stats?.totalTicketsSold.toLocaleString() || "0",
+      icon: Ticket,
       color: "text-emerald-600",
-      change: "+14% from last week" 
+      change: "+14% from last week"
     },
-    { 
-      label: "Active Users", 
-      value: stats?.activeUsers.toString() || "0", 
-      icon: Users, 
+    {
+      label: "Active Users",
+      value: stats?.activeUsers.toString() || "0",
+      icon: Users,
       color: "text-violet-600",
-      change: "Live count" 
+      change: "Live count"
     },
-    { 
-      label: "App Revenue", 
-      value: `₱${stats?.totalRevenue.toLocaleString() || "0"}`, 
-      icon: TrendingUp, 
+    {
+      label: "App Revenue",
+      value: `₱${stats?.totalRevenue.toLocaleString() || "0"}`,
+      icon: TrendingUp,
       color: "text-amber-600",
-      change: "Simulated" 
+      change: "Simulated"
     },
   ];
 
@@ -61,7 +62,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+              <Spinner/>
             ) : (
               <div className="text-2xl font-bold">{stat.value}</div>
             )}

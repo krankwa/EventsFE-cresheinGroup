@@ -120,6 +120,10 @@ export function UsersManagement() {
     }
   };
 
+  const handlePromote = async (user: UserResponse): Promise<void> => {
+    setSelectedUserForRole(user);
+  };
+
   const handleUpdateRole = async (role: UserRole) => {
     if (!selectedUserForRole) return;
 
@@ -187,7 +191,7 @@ export function UsersManagement() {
             <>
               <UsersTable
                 users={paginatedUsers}
-                onPromote={setSelectedUserForRole}
+                onPromote={handlePromote}
                 isLoading={isLoading}
                 onEdit={handleEdit}
               />
@@ -230,13 +234,7 @@ export function UsersManagement() {
               <UserCog className="w-6 h-6 text-primary" />
               Edit User Role
             </DialogTitle>
-            <DialogDescription>
-              Select the administrative level for{" "}
-              <span className="font-bold text-foreground">
-                {selectedUserForRole?.name}
-              </span>
-              .
-            </DialogDescription>
+
           </DialogHeader>
 
           <div className="grid gap-4 py-4">

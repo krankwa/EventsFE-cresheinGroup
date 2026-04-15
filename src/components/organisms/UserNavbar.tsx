@@ -7,7 +7,7 @@ import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
 import { useConfirm } from "../ui/confirm-context";
-
+import logo from "../../assets/logo.png";
 
 export function UserNavbar() {
   const { user } = useUser();
@@ -38,8 +38,8 @@ export function UserNavbar() {
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
       {/* Left: Website Name */}
       <Link to="/" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:rotate-12 transition-transform">
-          <CalendarDays className="text-primary-foreground w-5 h-5" />
+         <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
+          <img src={logo} alt="Logo" />
         </div>
         <span className="font-bold text-xl tracking-tight hidden sm:block">
           EventTix
@@ -88,16 +88,7 @@ export function UserNavbar() {
 
       {/* Right: Notifications & Profile */}
       <div className="flex items-center gap-2 md:gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-muted-foreground hover:text-primary"
-        >
-          <Bell className="w-5 h-5" />
-          <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-primary text-[10px] border-background animate-pulse">
-            3
-          </Badge>
-        </Button>
+       
 
         <div className="h-8 w-px bg-border mx-1" />
 

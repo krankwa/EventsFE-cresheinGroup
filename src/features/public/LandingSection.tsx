@@ -24,6 +24,7 @@ import { useUser } from "../../features/authentication/useUser";
 import type { EventResponse } from "../../interface/Event.interface";
 import { toast } from "react-hot-toast";
 import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
+import Footer from "@/components/organisms/Footer";
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
 function LandingEventCard({
@@ -39,7 +40,7 @@ function LandingEventCard({
   const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
-    <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-muted/40 bg-card/60 backdrop-blur-sm">
+    <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-blue-950/20 bg-white/60 backdrop-blur-sm">
       {/* Cover Image */}
       <div className="relative h-44 overflow-hidden">
         {event.coverImageUrl ? (
@@ -49,17 +50,17 @@ function LandingEventCard({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <CalendarDays className="w-12 h-12 text-primary/30" />
+          <div className="w-full h-full bg-gradient-to-br from-blue-950/20 to-blue-950/5 flex items-center justify-center">
+            <CalendarDays className="w-12 h-12 text-blue-950/30" />
           </div>
         )}
         <div className="absolute top-3 left-3">
-          <Badge className="bg-background/80 backdrop-blur-md text-foreground border-none shadow-lg text-xs">
+          <Badge className="bg-blue-950/80 backdrop-blur-md text-white border-none shadow-lg text-xs">
             Upcoming
           </Badge>
         </div>
         {isSoldOut && (
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
             <Badge
               variant="destructive"
               className="px-4 py-1 text-sm font-bold uppercase tracking-wider"
@@ -72,10 +73,10 @@ function LandingEventCard({
 
       <CardHeader className="px-5 pt-5 pb-2">
         <div className="flex justify-between items-start gap-2">
-          <h3 className="text-lg font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="text-lg font-bold tracking-tight line-clamp-1 group-hover:text-blue-950 transition-colors">
             {event.title}
           </h3>
-          <span className="text-primary font-bold text-sm whitespace-nowrap">
+          <span className="text-blue-950 font-bold text-sm whitespace-nowrap">
             ₱999+
           </span>
         </div>
@@ -83,13 +84,13 @@ function LandingEventCard({
 
       <CardContent className="px-5 pb-0 space-y-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+          <Calendar className="w-3.5 h-3.5 text-blue-950 shrink-0" />
           <span className="italic truncate">
             {format(new Date(event.date), "PPP")}
           </span>
         </div>
         <div className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px]">
-          <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+          <MapPin className="w-3.5 h-3.5 text-blue-950 shrink-0 mt-0.5" />
           <div className="flex flex-col">
             <span className="font-semibold text-foreground leading-tight">
               {event.venue || "TBA"}
@@ -101,7 +102,7 @@ function LandingEventCard({
         </div>
 
         {/* Capacity bar */}
-        <div className="pt-3 border-t border-muted/50 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="pt-3 border-t border-blue-950/50 flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Users className="w-3 h-3" />
             <span>
@@ -110,7 +111,7 @@ function LandingEventCard({
           </div>
           <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary transition-all duration-1000 rounded-full"
+              className="h-full bg-blue-950 transition-all duration-1000 rounded-full"
               style={{ width: `${fillPct}%` }}
             />
           </div>
@@ -119,14 +120,14 @@ function LandingEventCard({
 
       <CardFooter className="p-5 pt-4">
         <Button
-          className="w-full gap-2 font-semibold group/btn"
+          className="w-full gap-2 font-semibold group/btn bg-blue-950 hover:bg-blue-900 text-white"
           variant={isSoldOut ? "outline" : "default"}
           disabled={isSoldOut}
           onClick={() => onBook(event)}
         >
           {isSoldOut ? (
             "Sold Out"
-          ) : !Users ? (
+          ) : !useUser ? (
             <>
               Sign In to Book
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
@@ -190,27 +191,27 @@ export function LandingSection() {
   return (
     <>
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden py-20 md:py-32 px-4">
+      <section className="relative overflow-hidden py-20 md:py-32 px-4 bg-white">
         {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -mr-64 -mt-48 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -ml-48 -mb-32 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-950/5 rounded-full blur-[120px] -mr-64 -mt-48 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-950/5 rounded-full blur-[100px] -ml-48 -mb-32 pointer-events-none" />
 
         <div className="container mx-auto text-center relative z-10 max-w-3xl">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-pulse">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-950/10 border border-blue-950/20 text-blue-950 text-sm font-medium mb-6 animate-pulse">
             <Zap className="w-3.5 h-3.5" />
             Discover Live Events Near You
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-gray-900">
             Your Next{" "}
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-950 to-blue-800 bg-clip-text text-transparent">
               Unforgettable
             </span>{" "}
             Experience Awaits
           </h1>
 
-          <p className="text-lg text-muted-foreground mb-10 leading-relaxed max-w-xl mx-auto">
+          <p className="text-lg text-gray-600 mb-10 leading-relaxed max-w-xl mx-auto">
             Browse hundreds of events — concerts, conferences, sports, and more.
             Secure your tickets in seconds.
           </p>
@@ -218,7 +219,7 @@ export function LandingSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="text-base font-semibold gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+              className="text-base font-semibold gap-2 shadow-lg shadow-blue-950/20 hover:scale-105 transition-transform bg-blue-950 hover:bg-blue-900 text-white"
               onClick={() => {
                 document
                   .getElementById("events-section")
@@ -231,7 +232,7 @@ export function LandingSection() {
             <Button
               size="lg"
               variant="outline"
-              className="text-base font-semibold gap-2 hover:scale-105 transition-transform"
+              className="text-base font-semibold gap-2 hover:scale-105 transition-transform border-blue-950 text-blue-950 hover:bg-blue-950 hover:text-white"
               onClick={() => navigate("/login")}
             >
               Sign In
@@ -242,18 +243,18 @@ export function LandingSection() {
       </section>
 
       {/* ── Events Grid ── */}
-      <section id="events-section" className="container mx-auto px-4 pb-24">
+      <section id="events-section" className="container mx-auto px-4 pb-24 bg-white">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
               Upcoming Events
             </h2>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-gray-600 mt-1">
               Book your spot before they sell out
             </p>
           </div>
           {events.length > 0 && (
-            <Badge variant="secondary" className="text-sm px-3 py-1">
+            <Badge variant="secondary" className="text-sm px-3 py-1 bg-blue-950 text-white">
               {events.length} Events
             </Badge>
           )}
@@ -271,7 +272,7 @@ export function LandingSection() {
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="py-24 text-center text-muted-foreground border-2 border-dashed rounded-3xl">
+          <div className="py-24 text-center text-gray-500 border-2 border-dashed rounded-3xl border-blue-950/20">
             <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-30" />
             <p className="text-xl font-medium">No events yet</p>
             <p className="text-sm mt-1">
@@ -291,14 +292,10 @@ export function LandingSection() {
         )}
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 border-t bg-muted/20 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground font-medium">
-            © 2026 EventTix — The Premier Event Management Platform
-          </p>
-        </div>
-      </footer>
+      <div className="bg-black ">
+        <Footer />
+
+      </div>
       <TicketBookingDialog
         isOpen={selectedEvent !== null}
         onClose={() => setSelectedEvent(null)}

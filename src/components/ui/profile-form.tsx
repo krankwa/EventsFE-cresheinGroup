@@ -72,9 +72,9 @@ export function ProfileForm({
 
   const handleChange =
     (field: keyof ProfileFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      };
 
   return (
     <Card className="border-primary/10 shadow-lg">
@@ -114,8 +114,8 @@ export function ProfileForm({
         <div className="h-px bg-border/60 my-2" />
 
         <div className="space-y-6">
-          <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            <Lock className="w-4 h-4" />
+          <div className="flex items-center mt-9 mb-4 gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            <Lock className="w-4 h-4 " />
             Security & Credentials
           </div>
 
@@ -201,7 +201,7 @@ export function ProfileForm({
           <Button
             onClick={onSave}
             disabled={isSaving}
-            className="gap-2 px-8 py-6 rounded-xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5"
+            className="gap-2 px-8 py-6 bg-blue-950 rounded-xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5"
           >
             {isSaving ? (
               <div className="flex items-center gap-2">

@@ -179,11 +179,11 @@ export function EventsManagement() {
             />
             Refresh
           </Button>
-          <Button variant="outline" className="gap-2">
+          {/* <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
             Export
-          </Button>
-          <Button className="gap-2" onClick={handleCreate}>
+          </Button> */}
+          <Button className="gap-2 bg-blue-900" onClick={handleCreate}>
             <Plus className="w-4 h-4" />
             New Event
           </Button>

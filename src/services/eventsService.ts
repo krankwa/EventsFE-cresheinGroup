@@ -6,7 +6,7 @@ import type {
 } from "../interface/Event.interface";
 
 export const eventsService = {
-  getAll: (): Promise<EventResponse[]> =>
+  getAll: (p0: { page: number; limit: number; }): Promise<EventResponse[]> =>
     apiRequest<EventResponse[]>("/Event", {
       method: "GET",
       requiresAuth: false,

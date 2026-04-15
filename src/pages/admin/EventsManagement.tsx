@@ -226,6 +226,7 @@ export function EventsManagement() {
                 onEdit={handleEdit}
                 onView={handleView}
                 onDelete={handleDeleteClick}
+                onCreateNew={() => setIsEventDialogOpen(true)}
               />
               <PaginationWrapper
                 currentPage={page}

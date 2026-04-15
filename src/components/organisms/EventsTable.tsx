@@ -13,11 +13,14 @@ import { Badge } from "../../components/ui/badge";
 import { format } from "date-fns";
 import type { EventResponse } from "../../interface/Event.interface";
 
+import { TableEmptyState } from "./TableEmptyState";
+
 interface EventsTableProps {
   events: EventResponse[];
   onEdit: (event: EventResponse) => void;
   onDelete: (event: EventResponse) => void;
   onView: (event: EventResponse) => void;
+  onCreateNew?: () => void;
 }
 
 export const EventsTable = memo(function EventsTable({
@@ -25,7 +28,20 @@ export const EventsTable = memo(function EventsTable({
   onEdit,
   onDelete,
   onView,
+  onCreateNew,
 }: EventsTableProps) {
+  if (events.length === 0) {
+    return (
+      <TableEmptyState
+        icon={CalendarDays}
+        title="No Masterwork Events Found"
+        description="Your stage is currently empty. Start by creating a new event to begin managing your masterwork."
+        actionLabel={onCreateNew ? "Create New Event" : undefined}
+        onAction={onCreateNew}
+      />
+    );
+  }
+
   return (
     <Table>
       <TableHeader>

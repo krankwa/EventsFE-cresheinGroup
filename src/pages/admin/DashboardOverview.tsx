@@ -97,9 +97,9 @@ export function DashboardOverview() {
                 </p>
               </div>
             ) : (
-              stats?.topEvents.map((event) => (
+              stats?.topEvents.map((event, index) => (
                 <div
-                  key={event.Id}
+                  key={event.Id || (event as any).id || `top-event-${index}`}
                   className="flex items-center gap-4 group cursor-default"
                 >
                   <div className="w-12 h-12 rounded overflow-hidden border bg-muted flex-shrink-0">

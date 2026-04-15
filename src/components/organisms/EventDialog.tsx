@@ -153,14 +153,13 @@ export function EventDialog({
   const [tierTypes, setTierTypes] = useState<TierTypeResponse[]>([]);
 
   // ── Form state ─────────────────────────────────────────────────────────
-  const [formData, setFormData] = useState<EventCreateDTO & { venue?: string }>(
+  const [formData, setFormData] = useState<EventCreateDTO>(
     event
       ? {
           title: event.title,
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
-          venueName: event.venue || "",
           venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
@@ -187,7 +186,6 @@ export function EventDialog({
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
-          venueName: "",
           venue: "",
           venueAddress: "",
           capacity: 100,
@@ -256,10 +254,7 @@ export function EventDialog({
   const handleVenueChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      venueName: value,
       venue: value,
-      venueLatitude: 0,
-      venueLongitude: 0,
     }));
     setShowDropdown(true);
 
@@ -313,12 +308,8 @@ export function EventDialog({
 
     setFormData((prev) => ({
       ...prev,
-      venueId: undefined,
-      venueName: establishment || "",
       venue: establishment || "",
       venueAddress: result.display_name,
-      venueLatitude: pos.lat,
-      venueLongitude: pos.lng,
     }));
     setMarkerPos(pos);
     setFlyTarget(pos);
@@ -332,16 +323,10 @@ export function EventDialog({
     setIsGeocoding(true);
     const address = await reverseGeocode(latlng.lat, latlng.lng);
 
-    // For map click, we don't always have a clear establishment name from simple string
-    // We'll use the first part of address as establishment for now
     setFormData((prev) => ({
       ...prev,
-      venueId: undefined,
-      venueName: address.split(",")[0] || "",
       venue: address.split(",")[0] || "",
       venueAddress: address,
-      venueLatitude: latlng.lat,
-      venueLongitude: latlng.lng,
     }));
     setSuggestions([]);
     setShowDropdown(false);

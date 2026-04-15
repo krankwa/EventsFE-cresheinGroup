@@ -34,6 +34,7 @@ import {
 import { toast } from "react-hot-toast";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 import { usePagination } from "@/utils/pagination/usePagination";
+import { TableEmptyState } from "@/components/organisms/TableEmptyState";
 
 // Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
@@ -286,11 +287,13 @@ export function TicketManagement() {
               ))}
             </div>
           ) : filteredTickets.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground border-2 border-dashed rounded-xl">
-              <Ticket className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="font-medium">No tickets found</p>
-              <p className="text-sm">Try adjusting your search or filter.</p>
-            </div>
+            <TableEmptyState
+              icon={Ticket}
+              title="No Tickets Found"
+              description="Your box office is currently quiet. Tickets will appear here once attendees start booking events."
+              actionLabel={searchQuery ? "Clear Search" : undefined}
+              onAction={searchQuery ? () => setSearchQuery("") : undefined}
+            />
           ) : (
             <>
               <Table>

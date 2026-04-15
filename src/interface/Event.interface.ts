@@ -42,7 +42,7 @@ export interface EventResponse {
 export interface EventCreateDTO {
   title: string;
   date: string;
-  venueName?: string;
+  venue: string;
   venueAddress?: string;
   capacity: number;
   maxTicketsPerPerson: number;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,27 @@ export function TicketBookingDialog({
 }: TicketBookingDialogProps) {
   const [selectedTierId, setSelectedTierId] = useState<number | null>(null);
   const [isBooking, setIsBooking] = useState(false);
+  const [userBookedCount, setUserBookedCount] = useState(0);
+  const [isLoadingQuota, setIsLoadingQuota] = useState(true);
+
+  // Fetch current user's tickets for this event
+  useEffect(() => {
+    if (isOpen && event) {
+      const fetchHistory = async () => {
+        setIsLoadingQuota(true);
+        try {
+          const tickets = await ticketsService.getMine();
+          const count = tickets.filter((t) => t.eventId === event.Id).length;
+          setUserBookedCount(count);
+        } catch (error) {
+          console.error("Failed to fetch booking history", error);
+        } finally {
+          setIsLoadingQuota(false);
+        }
+      };
+      fetchHistory();
+    }
+  }, [isOpen, event]);
 
   if (!event) return null;
 
@@ -41,8 +62,14 @@ export function TicketBookingDialog({
 
     setIsBooking(true);
     try {
+      const eventId = event.Id || (event as any).id;
+      if (!eventId) {
+        toast.error("Invalid event reference.");
+        return;
+      }
+
       await ticketsService.register({
-        Id: event.Id,
+        eventId: eventId,
         tierId: selectedTierId,
       });
       toast.success(`Successfully booked ticket for ${event.title}!`);
@@ -75,6 +102,11 @@ export function TicketBookingDialog({
           <DialogDescription>
             Choose a ticket tier for <strong>{event.title}</strong>
           </DialogDescription>
+          {!isLoadingQuota && (
+            <div className="mt-2 text-xs font-bold text-primary bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full inline-block">
+              Registration Status: {userBookedCount} / {event.maxTicketsPerPerson} tickets booked
+            </div>
+          )}
         </DialogHeader>
 
         <div className="py-4 space-y-4">
@@ -153,7 +185,12 @@ export function TicketBookingDialog({
           </Button>
           <Button
             onClick={handleBook}
-            disabled={isBooking || !selectedTierId}
+            disabled={
+              isBooking || 
+              !selectedTierId || 
+              isLoadingQuota || 
+              userBookedCount >= event.maxTicketsPerPerson
+            }
             className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
           >
             {isBooking ? (
@@ -161,6 +198,8 @@ export function TicketBookingDialog({
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Processing...
               </>
+            ) : userBookedCount >= event.maxTicketsPerPerson ? (
+              "Limit Reached"
             ) : (
               "Confirm Booking"
             )}

@@ -21,6 +21,8 @@ import { Badge } from "../../components/ui/badge";
 import type { UserResponse } from "../../interface/Auth.interface";
 import { useUser } from "../../features/authentication/useUser";
 
+import { TableEmptyState } from "./TableEmptyState";
+
 interface UsersTableProps {
   users: UserResponse[];
   onPromote: (user: UserResponse) => void;
@@ -46,6 +48,24 @@ export function UsersTable({
   const { user: currentUser } = useUser();
   const [editState, setEditState] = useState<EditState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground animate-pulse">
+        Fetching user accounts...
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <TableEmptyState
+        icon={User}
+        title="No Users Registered"
+        description="Your professional network is currently empty. Users will appear here once they register or are added."
+      />
+    );
+  }
 
   const handleEditClick = (user: UserResponse) => {
     setEditState({ userId: user.userId, name: user.name, email: user.email });

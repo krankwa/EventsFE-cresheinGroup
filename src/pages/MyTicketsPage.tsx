@@ -160,7 +160,7 @@ export function MyTicketsPage() {
                   onClick={() => handleCancel(ticket.ticketId)}
                   disabled={isCancelling === ticket.ticketId}
                 >
-                  {isCancelling === ticket.ticketId ? (
+                  {isCancelling === ticket.id ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Trash2 className="w-4 h-4" />

@@ -3,6 +3,7 @@ import type {
   TicketResponse,
   TicketCreateRequest,
 } from "../interface/Ticket.interface";
+import type { PaginationParams, PaginatedResponse } from "@/interface/pagination";
 
 export const ticketsService = {
   getMine: (): Promise<TicketResponse[]> =>
@@ -33,6 +34,13 @@ export const ticketsService = {
   getAll: (): Promise<TicketResponse[]> =>
     apiRequest<TicketResponse[]>("/tickets", {
       method: "GET", 
+      requiresAuth: true,
+    }),
+
+      getAllPaginated: (params: PaginationParams & { status?: string }): Promise<PaginatedResponse<TicketResponse>> =>
+    apiRequest<PaginatedResponse<TicketResponse>>("/tickets/paginated", {
+      method: "GET",
+      params: params,
       requiresAuth: true,
     }),
 };

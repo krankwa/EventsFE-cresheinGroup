@@ -3,14 +3,16 @@ import type { ApiError } from "../interface/api.interface";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
+interface ApiRequestOptions {
+  method: string;
+  body?: string;
+  requiresAuth?: boolean;
+  params?: Record<string, any>; // Add this
+}
+
 export async function apiRequest<T>(
   endpoint: string,
-  options: {
-    method?: string;
-    body?: string;
-    requiresAuth?: boolean;
-    headers?: Record<string, string>;
-  } = {},
+  options: ApiRequestOptions,
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

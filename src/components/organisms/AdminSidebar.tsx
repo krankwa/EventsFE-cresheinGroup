@@ -1,16 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { 
-  CalendarDays, 
+import {
+  CalendarDays,
   LogOut,
   X
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useUser } from "../../features/authentication/useUser";
-import { useLogout } from "../../features/authentication/useLogout";
 import { UserInfo } from "./UserInfo";
 
 import { NAV_ITEMS } from "../../features/admin/constants";
 import { Button } from "../ui/button";
+import { useLogoutWithConfirm } from "../hooks/useLogoutwithConfirm";
 
 interface SidebarProps {
   className?: string;
@@ -19,7 +19,7 @@ interface SidebarProps {
 
 export function Sidebar({ className, onClose }: SidebarProps) {
   const { user } = useUser();
-  const { logout } = useLogout();
+  const { logoutWithConfirm } = useLogoutWithConfirm();
 
   const filteredNavItems = NAV_ITEMS.filter(item => {
     if (user?.role === "Staff") {
@@ -40,10 +40,10 @@ export function Sidebar({ className, onClose }: SidebarProps) {
           <span className="font-bold text-xl tracking-tight">EventTix</span>
         </div>
         {onClose && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="lg:hidden" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
             onClick={onClose}
           >
             <X className="w-5 h-5" />
@@ -78,8 +78,8 @@ export function Sidebar({ className, onClose }: SidebarProps) {
           <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-50">
             Session
           </div>
-          <button 
-            onClick={() => logout()}
+          <button
+            onClick={logoutWithConfirm}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-destructive transition-all hover:bg-destructive/10 hover:pl-4 group"
           >
             <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />

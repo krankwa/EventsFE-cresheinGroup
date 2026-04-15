@@ -18,12 +18,15 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
 } from "../../interface/Event.interface";
+import { useServerPagination } from "@/components/hooks/useServerPagination";
+import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function EventsManagement() {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Dialog States
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -32,11 +35,41 @@ export function EventsManagement() {
     null,
   );
 
-  async function loadEvents() {
+  // Server-side pagination
+  const {
+    pageNumber,
+    pageSize,
+    totalPages,
+    totalCount,
+    goToPage,
+    changePageSize,
+    updatePaginationInfo,
+  } = useServerPagination({
+    initialPageSize: 10,
+    onPageChange: (page, size) => {
+      loadEvents(page, size, debouncedSearch);
+    },
+  });
+
+  // Debounce search to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      goToPage(1); // Reset to first page when search changes
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, goToPage]);
+
+  async function loadEvents(page: number = pageNumber, size: number = pageSize, search: string = debouncedSearch) {
     setIsLoading(true);
     try {
-      const data = await eventsService.getAll();
-      setEvents(data);
+      const response = await eventsService.getAllPaginated({
+        pageNumber: page,
+        pageSize: size,
+        searchTerm: search || undefined,
+      });
+      setEvents(response.items);
+      updatePaginationInfo(response);
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
@@ -45,7 +78,10 @@ export function EventsManagement() {
     }
   }
 
+  // Load events when page, pageSize, or debouncedSearch changes
   useEffect(() => {
+    loadEvents(pageNumber, pageSize, debouncedSearch);
+  }, [pageNumber, pageSize, debouncedSearch]);
     loadEvents();
   }, []);
 
@@ -77,6 +113,8 @@ export function EventsManagement() {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
+      if (selectedEvent && selectedEvent.eventID) {
+        await eventsService.update(selectedEvent.eventID, data as EventUpdateDTO);
       if (selectedEvent && selectedEvent.Id) {
         await eventsService.update(selectedEvent.Id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
@@ -85,16 +123,11 @@ export function EventsManagement() {
         toast.success("Event created successfully!");
       }
       setIsEventDialogOpen(false);
-      loadEvents();
+      // Reload current page after save
+      loadEvents(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       console.error("Failed to save event", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : selectedEvent
-            ? "Failed to update event."
-            : "Failed to create event.";
-      toast.error(message);
+      toast.error(error instanceof Error ? error.message : "Failed to save event.");
     } finally {
       setIsSaving(false);
     }
@@ -107,14 +140,11 @@ export function EventsManagement() {
       await eventsService.delete(selectedEvent.Id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
-      loadEvents();
+      // Reload current page after delete
+      loadEvents(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       console.error("Failed to delete event", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to delete the event. It might have linked data.";
-      toast.error(message);
+      toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
     }
@@ -125,9 +155,7 @@ export function EventsManagement() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Manage Events</h1>
-          <p className="text-muted-foreground">
-            Review, edit, and organize your upcoming event list.
-          </p>
+          <p className="text-muted-foreground">Review, edit, and organize your upcoming event list.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2">
@@ -146,7 +174,7 @@ export function EventsManagement() {
           <div className="space-y-1">
             <CardTitle>Events List</CardTitle>
             <CardDescription>
-              You have {events.length} events scheduled in the database.
+              Total of {totalCount} events in the database.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -171,11 +199,21 @@ export function EventsManagement() {
               Loading your events...
             </div>
           ) : (
-            <EventsTable
-              events={filteredEvents}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-            />
+            <>
+              <EventsTable
+                events={events}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
+              <PaginationWrapper
+                currentPage={pageNumber}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalCount}
+                onPageChange={goToPage}
+                onPageSizeChange={changePageSize}
+              />
+            </>
           )}
         </CardContent>
       </Card>

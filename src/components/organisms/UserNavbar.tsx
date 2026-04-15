@@ -6,10 +6,33 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
+import { useConfirm } from "../ui/confirm-context";
+
 
 export function UserNavbar() {
   const { user } = useUser();
   const { logout } = useLogout();
+  const { confirm } = useConfirm();
+
+  const handleLogout = () => {
+    confirm({
+      title: "Sign Out",
+      description: (
+        <div className="space-y-2">
+          <p>Are you sure you want to sign out?</p>
+          <p className="text-sm text-muted-foreground">
+            You will need to log in again to access your account.
+          </p>
+        </div>
+      ),
+      confirmText: "Sign Out",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        await logout();
+      },
+    });
+  };
 
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
@@ -97,7 +120,7 @@ export function UserNavbar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="text-muted-foreground hover:text-destructive transition-colors"
               title="Sign Out"
             >

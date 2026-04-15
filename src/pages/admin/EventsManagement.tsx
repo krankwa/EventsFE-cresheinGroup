@@ -12,6 +12,7 @@ import {
 } from "../../components/ui/card";
 import { EventsTable } from "../../components/organisms/EventsTable";
 import { EventDialog } from "../../components/organisms/EventDialog";
+import { ViewEventDialog } from "../../components/organisms/ViewEventDialog";
 import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
 import { toast } from "react-hot-toast";
 import type {
@@ -29,6 +30,7 @@ export function EventsManagement() {
 
   // Dialog States
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
     null,
@@ -108,6 +110,11 @@ export function EventsManagement() {
   const handleEdit = (event: EventResponse) => {
     setSelectedEvent(event);
     setIsEventDialogOpen(true);
+  };
+
+  const handleView = (event: EventResponse) => {
+    setSelectedEvent(event);
+    setIsViewDialogOpen(true);
   };
 
   const handleDeleteClick = (event: EventResponse) => {
@@ -217,6 +224,7 @@ export function EventsManagement() {
               <EventsTable
                 events={paginatedEvents}
                 onEdit={handleEdit}
+                onView={handleView}
                 onDelete={handleDeleteClick}
               />
               <PaginationWrapper
@@ -235,15 +243,30 @@ export function EventsManagement() {
       <EventDialog
         key={selectedEvent?.Id || "new"}
         isOpen={isEventDialogOpen}
-        onClose={() => setIsEventDialogOpen(false)}
+        onClose={() => {
+          setIsEventDialogOpen(false);
+          setSelectedEvent(null);
+        }}
         onSave={handleSave}
         event={selectedEvent}
         isLoading={isSaving}
       />
 
+      <ViewEventDialog
+        isOpen={isViewDialogOpen}
+        onClose={() => {
+          setIsViewDialogOpen(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+      />
+
       <DeleteConfirmDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setSelectedEvent(null);
+        }}
         onConfirm={handleDeleteConfirm}
         title={selectedEvent?.title || ""}
         isLoading={isSaving}

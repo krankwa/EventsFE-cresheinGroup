@@ -1,4 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
+
 import {
   Dialog,
   DialogContent,
@@ -150,7 +153,7 @@ export function EventDialog({
   const [tierTypes, setTierTypes] = useState<TierTypeResponse[]>([]);
 
   // ── Form state ─────────────────────────────────────────────────────────
-  const [formData, setFormData] = useState<EventCreateDTO>(
+  const [formData, setFormData] = useState<EventCreateDTO & { venue?: string }>(
     event
       ? {
           title: event.title,
@@ -158,6 +161,7 @@ export function EventDialog({
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
           venueName: event.venue || "",
+          venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
           maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
@@ -184,6 +188,7 @@ export function EventDialog({
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
           venueName: "",
+          venue: "",
           venueAddress: "",
           capacity: 100,
           maxTicketsPerPerson: 5,
@@ -252,6 +257,7 @@ export function EventDialog({
     setFormData((prev) => ({
       ...prev,
       venueName: value,
+      venue: value,
       venueLatitude: 0,
       venueLongitude: 0,
     }));
@@ -309,6 +315,7 @@ export function EventDialog({
       ...prev,
       venueId: undefined,
       venueName: establishment || "",
+      venue: establishment || "",
       venueAddress: result.display_name,
       venueLatitude: pos.lat,
       venueLongitude: pos.lng,
@@ -331,6 +338,7 @@ export function EventDialog({
       ...prev,
       venueId: undefined,
       venueName: address.split(",")[0] || "",
+      venue: address.split(",")[0] || "",
       venueAddress: address,
       venueLatitude: latlng.lat,
       venueLongitude: latlng.lng,
@@ -409,7 +417,7 @@ export function EventDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         key={isOpen ? `open-${event?.Id ?? "new"}` : "closed"}
-        className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto bg-background/95 backdrop-blur-md border-2"
+        className={cn("sm:max-w-[800px] max-h-[95vh] overflow-y-auto", MODAL_STYLES)}
       >
         <DialogHeader>
           <DialogTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">

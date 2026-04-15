@@ -12,6 +12,8 @@ import { Loader2, Ticket, Check } from "lucide-react";
 import type { EventResponse } from "../../interface/Event.interface";
 import { ticketsService } from "../../services/ticketsService";
 import { toast } from "react-hot-toast";
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
 
 interface TicketBookingDialogProps {
   isOpen: boolean;
@@ -65,7 +67,7 @@ export function TicketBookingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px] border-2 bg-background/95 backdrop-blur-md">
+      <DialogContent className={cn("sm:max-w-[500px]", MODAL_STYLES)}>
         <DialogHeader>
           <DialogTitle className="text-2xl font-extrabold tracking-tight">
             Select Your Ticket

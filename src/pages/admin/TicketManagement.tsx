@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { format, isPast } from "date-fns";
 import {
   Ticket,
@@ -111,10 +111,7 @@ export function TicketManagement() {
     handleSearch,
   } = usePagination({ initialPageSize: 10 });
   
-  // Refs to prevent infinite loops
-  const isInitialMount = useRef(true);
-  const isFilterChange = useRef(false);
-  const isSearchChange = useRef(false);
+
 
   // Debounce search
   useEffect(() => {
@@ -140,14 +137,14 @@ export function TicketManagement() {
   const filteredTickets = useMemo(() => {
     const searchLower = debouncedSearch.toLowerCase();
     return tickets.filter((t) => {
-      const matchesSearch = 
-        t.eventTitle?.toLowerCase().includes(searchLower) ||
-        t.tierName?.toLowerCase().includes(searchLower) ||
-        t.ticketId.toString().includes(searchLower);
-      
+      const matchesSearch =
+        (t.eventTitle?.toLowerCase() || "").includes(searchLower) ||
+        (t.tierName?.toLowerCase() || "").includes(searchLower) ||
+        (t.ticketId?.toString() || "").includes(searchLower);
+
       const status = getStatus(t);
       const matchesStatus = filterStatus === "all" || status === filterStatus;
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [tickets, debouncedSearch, filterStatus]);

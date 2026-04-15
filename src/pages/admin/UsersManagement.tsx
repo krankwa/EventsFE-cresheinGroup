@@ -15,6 +15,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../../components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
 import { userService } from "../../services/userService";
 import type { UserResponse, UserRole } from "../../interface/Auth.interface";
 import { Button } from "../../components/ui/button";
@@ -222,7 +224,7 @@ export function UsersManagement() {
         open={!!selectedUserForRole}
         onOpenChange={(open) => !open && setSelectedUserForRole(null)}
       >
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950 border-2 shadow-2xl">
+        <DialogContent className={cn("sm:max-w-[425px]", MODAL_STYLES)}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
               <UserCog className="w-6 h-6 text-primary" />

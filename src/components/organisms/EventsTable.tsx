@@ -17,12 +17,14 @@ interface EventsTableProps {
   events: EventResponse[];
   onEdit: (event: EventResponse) => void;
   onDelete: (event: EventResponse) => void;
+  onView: (event: EventResponse) => void;
 }
 
 export const EventsTable = memo(function EventsTable({
   events,
   onEdit,
   onDelete,
+  onView,
 }: EventsTableProps) {
   return (
     <Table>
@@ -114,6 +116,10 @@ export const EventsTable = memo(function EventsTable({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onView(event);
+                  }}
                 >
                   <Eye className="w-4 h-4" />
                 </Button>

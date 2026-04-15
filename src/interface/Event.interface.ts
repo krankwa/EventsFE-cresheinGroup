@@ -22,11 +22,14 @@ export interface TicketTierCreateDTO {
   name: string;
   price: number;
   capacity: number;
-  ticketsSold?: number;
+}
+ 
+export interface TicketTierUpdateDTO extends TicketTierCreateDTO {
+  id: number;
 }
 
 export interface EventResponse {
-  Id: number;
+  id: number;
   title: string;
   date: string;
   capacity: number;
@@ -43,7 +46,7 @@ export interface EventCreateDTO {
   title: string;
   date: string;
   venue: string;
-  venueAddress?: string;
+  venueAddress: string;
   capacity: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string | null;
@@ -54,7 +57,7 @@ export interface EventUpdateDTO {
   title: string;
   date: string;
   venue: string;
-  venueAddress?: string;
+  venueAddress: string;
   capacity: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string;

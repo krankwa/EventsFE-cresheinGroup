@@ -156,43 +156,41 @@ export function EventDialog({
   const [formData, setFormData] = useState<EventCreateDTO>(
     event
       ? {
-        title: event.title,
-        date: event.date
-          ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
-          : format(new Date(), "yyyy-MM-dd"),
-        venue: event.venue || "",
-        venueAddress: event.venueAddress || "",
-        capacity: event.capacity,
-        maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
-        coverImageUrl: event.coverImageUrl || "",
-        tiers:
-          event.tiers && event.tiers.length > 0
-            ? event.tiers.map((t) => ({
-              id: t.id,
-              name: t.name,
-              price: t.price,
-              capacity: t.capacity,
-              ticketsSold: t.ticketsSold,
-            }))
-            : [
-              {
-                name: "Regular",
-                price: 0,
-                capacity: event.capacity,
-                ticketsSold: 0,
-              },
-            ],
-      }
+          title: event.title,
+          date: event.date
+            ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
+            : format(new Date(), "yyyy-MM-dd"),
+          venue: event.venue || "",
+          venueAddress: event.venueAddress || "",
+          capacity: event.capacity,
+          maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
+          coverImageUrl: event.coverImageUrl || "",
+          tiers:
+            event.tiers && event.tiers.length > 0
+              ? event.tiers.map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  price: t.price,
+                  capacity: t.capacity,
+                }))
+              : [
+                  {
+                    name: "Regular",
+                    price: 0,
+                    capacity: event.capacity,
+                  },
+                ],
+        }
       : {
-        title: "",
-        date: format(new Date(), "yyyy-MM-dd"),
-        venue: "",
-        venueAddress: "",
-        capacity: 100,
-        maxTicketsPerPerson: 5,
-        coverImageUrl: "",
-        tiers: [{ name: "Regular", price: 0, capacity: 100 }],
-      },
+          title: "",
+          date: format(new Date(), "yyyy-MM-dd"),
+          venue: "",
+          venueAddress: "",
+          capacity: 100,
+          maxTicketsPerPerson: 5,
+          coverImageUrl: "",
+          tiers: [{ name: "Regular", price: 0, capacity: 100 }],
+        },
   );
 
   // ── Map / geocoding state ───────────────────────────────────────────────
@@ -219,8 +217,8 @@ export function EventDialog({
   // ── Synchronize form when event prop changes or dialog opens ──────────
   useEffect(() => {
     if (isOpen) {
-      if (event) { 
-        setFormData({ 
+      if (event) {
+        setFormData({
           title: event.title,
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
@@ -237,14 +235,12 @@ export function EventDialog({
                   name: t.name,
                   price: t.price,
                   capacity: t.capacity,
-                  ticketsSold: t.ticketsSold,
                 }))
               : [
                   {
                     name: "Regular",
                     price: 0,
                     capacity: event.capacity,
-                    ticketsSold: 0,
                   },
                 ],
         });
@@ -273,15 +269,15 @@ export function EventDialog({
 
   // Fetch Tier Types
   useEffect(() => {
-    if (isOpen && event?.Id) {
+    if (isOpen && event?.id) {
       ticketTiersService
-        .getTiersByEventId(event.Id)
+        .getTiersByEventId(event.id)
         .then(setTierTypes)
         .catch((err) => console.error("Failed to load ticket tiers", err));
     } else {
       setTierTypes([]);
     }
-  }, [isOpen, event?.Id]);
+  }, [isOpen, event?.id]);
 
   // ── Tier Management ────────────────────────────────────────────────────
   const addTier = () => {
@@ -365,7 +361,7 @@ export function EventDialog({
 
     setFormData((prev) => ({
       ...prev,
-      venue: prev.venue || shortName || "",
+      venue: shortName || prev.venue || "",
       venueAddress: result.display_name,
     }));
     setMarkerPos(pos);
@@ -382,7 +378,7 @@ export function EventDialog({
 
     setFormData((prev) => ({
       ...prev,
-      venue: prev.venue || address.split(",")[0] || "",
+      venue: address.split(",")[0] || prev.venue || "",
       venueAddress: address,
     }));
     setSuggestions([]);
@@ -450,7 +446,19 @@ export function EventDialog({
       setIsUploading(false);
     }
 
-    onSave({ ...formData, coverImageUrl: finalImageUrl || null });
+    // Final sanitization: We map the tiers to ensure only required fields are sent
+    const sanitizedTiers = formData.tiers.map((t) => ({
+      id: t.id,
+      name: t.name,
+      price: t.price,
+      capacity: t.capacity,
+    }));
+
+    onSave({
+      ...formData,
+      coverImageUrl: finalImageUrl || null,
+      tiers: sanitizedTiers,
+    });
   };
 
   const isBusy = isLoading || isUploading;
@@ -458,8 +466,11 @@ export function EventDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        key={isOpen ? `open-${event?.Id ?? "new"}` : "closed"}
-        className={cn("sm:max-w-[800px] max-h-[90dvh] overflow-y-auto", MODAL_STYLES)}
+        key={isOpen ? `open-${event?.id ?? "new"}` : "closed"}
+        className={cn(
+          "sm:max-w-[800px] max-h-[90dvh] overflow-y-auto",
+          MODAL_STYLES,
+        )}
       >
         <DialogHeader>
           <DialogTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -585,13 +596,13 @@ export function EventDialog({
                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {formData.tiers.map((tier, idx) => (
                     <div
-                      key={tier.id || `new-tier-${idx}-${tier.name}`}
+                      key={`tier-${idx}-${tier.name}`}
                       className="p-3 rounded-xl bg-muted/40 border-2 border-transparent hover:border-primary/10 transition-all flex items-center gap-3 animate-in fade-in slide-in-from-top-1"
                     >
                       <div className="flex-1 space-y-2">
                         <Input
-                          placeholder="Tier Name (e.g. General, VIP)"
-                          className="h-8 border-none bg-transparent font-bold p-0 focus-visible:ring-0"
+                          placeholder="Tier Name (e.g. Regular, VIP)"
+                          className="h-10 border-2 bg-background font-bold px-3 focus-visible:ring-primary shadow-sm rounded-lg"
                           value={tier.name}
                           onChange={(e) =>
                             updateTier(idx, { name: e.target.value })
@@ -699,7 +710,9 @@ export function EventDialog({
                     <div className="absolute z-[1000] left-0 right-0 mt-1 bg-background border-2 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="p-2 bg-muted/30 border-b text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
                         <span>Top Results</span>
-                        <span className="text-primary/40 italic">OpenStreetMap</span>
+                        <span className="text-primary/40 italic">
+                          OpenStreetMap
+                        </span>
                       </div>
                       <ul className="divide-y divide-border/50 max-h-60 overflow-y-auto custom-scrollbar">
                         {suggestions.map((s) => (

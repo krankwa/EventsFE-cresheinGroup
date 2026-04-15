@@ -61,13 +61,16 @@ export const EventsTable = memo(function EventsTable({
       <TableBody>
         {events.map((event) => {
           if (!event) return null;
-          const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+          const capacity =
+            event.capacity && event.capacity > 0 ? event.capacity : 1;
           const sold = event.ticketsSold || 0;
           const percentage = ((sold / capacity) * 100).toFixed(0);
 
           return (
             <TableRow
-              key={event.Id || `ev-${event.title || "un"}-${event.date || "un"}`}
+              key={
+                event.id || `ev-${event.title || "un"}-${event.date || "un"}`
+              }
               className="group cursor-pointer"
             >
               <TableCell>
@@ -128,12 +131,11 @@ export const EventsTable = memo(function EventsTable({
                     "font-medium",
                     sold >= capacity
                       ? "bg-red-100 text-red-700 hover:bg-red-100 border-red-200"
-                      : "bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
+                      : "bg-green-100 text-green-700 hover:bg-green-100 border-green-200",
                   )}
                 >
                   {sold >= capacity ? "Sold Out" : "Active"}
                 </Badge>
-
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

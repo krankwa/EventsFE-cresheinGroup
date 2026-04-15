@@ -14,7 +14,7 @@ export const ticketTiersService = {
   getTiersByEventId: (eventId: number): Promise<TicketTierResponse[]> =>
     apiRequest<TicketTierResponse[]>(`/Event/${eventId}/TicketTiers`, {
       method: "GET",
-      requiresAuth: false,
+      requiresAuth: true,
     }),
 
   createTier: (tier: TicketTierCreateDTO): Promise<TicketTierResponse> =>

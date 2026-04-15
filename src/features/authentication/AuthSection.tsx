@@ -14,7 +14,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const useAuthContext = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("Auth components must be used within an AuthSection provider");
+  if (!context)
+    throw new Error(
+      "Auth components must be used within an AuthSection provider",
+    );
   return context;
 };
 
@@ -81,8 +84,7 @@ AuthSection.Header = function AuthSectionHeader() {
   const { activeTab } = useAuthContext();
   return (
     <div className="pt-8 pb-6 px-6 flex flex-col items-center text-center">
-
-      <div className=" flex items-center justify-center mb-4 transition-transform hover:scale-105 overflow-hidden p-2">
+      <div className="w-20 h-20 flex items-center justify-center mb-4 transition-transform hover:scale-105 overflow-hidden p-2 mx-auto">
         <img
           src={logo}
           alt="EventTix Logo"
@@ -111,7 +113,7 @@ AuthSection.Tabs = function AuthSectionTabs() {
             "flex-1 text-sm font-medium py-2 rounded-md transition-all duration-200",
             activeTab === "login"
               ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
           onClick={() => setActiveTab("login")}
           type="button"
@@ -123,7 +125,7 @@ AuthSection.Tabs = function AuthSectionTabs() {
             "flex-1 text-sm font-medium py-2 rounded-md transition-all duration-200",
             activeTab === "register"
               ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
           onClick={() => setActiveTab("register")}
           type="button"

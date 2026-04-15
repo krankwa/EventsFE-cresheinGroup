@@ -110,8 +110,8 @@ export function EventsManagement() {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
-      if (selectedEvent && selectedEvent.Id) {
-        await eventsService.update(selectedEvent.Id, data as EventUpdateDTO);
+      if (selectedEvent && selectedEvent.id) {
+        await eventsService.update(selectedEvent.id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
@@ -129,10 +129,10 @@ export function EventsManagement() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedEvent || !selectedEvent.Id) return;
+    if (!selectedEvent || !selectedEvent.id) return;
     setIsSaving(true);
     try {
-      await eventsService.delete(selectedEvent.Id);
+      await eventsService.delete(selectedEvent.id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -227,7 +227,7 @@ export function EventsManagement() {
       </Card>
 
       <EventDialog
-        key={selectedEvent?.Id || "new"}
+        key={selectedEvent?.id || "new"}
         isOpen={isEventDialogOpen}
         onClose={() => {
           setIsEventDialogOpen(false);

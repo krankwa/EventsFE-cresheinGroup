@@ -12,7 +12,7 @@ export const ticketTiersService = {
     }),
 
   getTiersByEventId: (eventId: number): Promise<TicketTierResponse[]> =>
-    apiRequest<TicketTierResponse[]>(`/TicketTier/event/${eventId}`, {
+    apiRequest<TicketTierResponse[]>(`/Event/${eventId}/TicketTiers`, {
       method: "GET",
       requiresAuth: false,
     }),

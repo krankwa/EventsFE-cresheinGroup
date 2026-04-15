@@ -218,11 +218,13 @@ export function EventDialog({
 
   // Fetch Tier Types
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && event?.Id) {
       ticketTiersService
-        .getTiersByEventId(event?.Id || 0)
+        .getTiersByEventId(event.Id)
         .then(setTierTypes)
         .catch((err) => console.error("Failed to load ticket tiers", err));
+    } else {
+      setTierTypes([]);
     }
   }, [isOpen, event?.Id]);
 
@@ -250,17 +252,17 @@ export function EventDialog({
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
-  // ── Venue input change ──────────────────────────────────────────────────
-  const handleVenueChange = (value: string) => {
+  // ── Venue search autocomplete logic ────────────────────────────────────
+  const handleVenueSearchChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      venue: value,
+      venueAddress: value,
     }));
     setShowDropdown(true);
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
-    if (value.trim().length < 3) {
+    if (value.trim().length < 2) {
       setSuggestions([]);
       setIsSearching(false);
       return;
@@ -297,18 +299,18 @@ export function EventDialog({
       lng: parseFloat(result.lon),
     };
 
-    // Extract establishment name if possible, otherwise use display name part
-    const establishment = result.address?.house_number
-      ? `${result.address.house_number} ${result.address.road}`
-      : result.address?.amenity ||
-        result.address?.tourism ||
-        result.address?.shop ||
-        result.address?.office ||
-        result.display_name.split(",")[0];
+    // Extract establishment name if possible
+    const shortName =
+      result.address?.amenity ||
+      result.address?.tourism ||
+      result.address?.shop ||
+      result.address?.office ||
+      result.address?.historic ||
+      result.display_name.split(",")[0];
 
     setFormData((prev) => ({
       ...prev,
-      venue: establishment || "",
+      venue: prev.venue || shortName || "",
       venueAddress: result.display_name,
     }));
     setMarkerPos(pos);
@@ -325,7 +327,7 @@ export function EventDialog({
 
     setFormData((prev) => ({
       ...prev,
-      venue: address.split(",")[0] || "",
+      venue: prev.venue || address.split(",")[0] || "",
       venueAddress: address,
     }));
     setSuggestions([]);
@@ -416,23 +418,45 @@ export function EventDialog({
         <form onSubmit={handleSubmit} className="space-y-8 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="title"
-                  className="text-sm font-bold uppercase tracking-wider text-muted-foreground"
-                >
-                  Event Identity
-                </Label>
-                <Input
-                  id="title"
-                  className="text-lg font-semibold h-12 border-2 hover:border-primary/50 focus:border-primary transition-all shadow-sm"
-                  placeholder="e.g. Neon Nights Expo"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                />
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="title"
+                    className="text-sm font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Event Identity
+                  </Label>
+                  <Input
+                    id="title"
+                    className="text-lg font-semibold h-12 border-2 hover:border-primary/50 focus:border-primary transition-all shadow-sm"
+                    placeholder="e.g. Neon Nights Expo"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="venue"
+                    className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    Venue Name
+                  </Label>
+                  <Input
+                    id="venue"
+                    className="h-11 border-2"
+                    placeholder="e.g. Grand Ballroom, SMX Center"
+                    value={formData.venue}
+                    onChange={(e) =>
+                      setFormData({ ...formData, venue: e.target.value })
+                    }
+                    required
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -599,33 +623,53 @@ export function EventDialog({
                   <div className="relative mb-3">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      className="pl-9 border-2 h-11"
-                      placeholder="Locate venue..."
+                      className="pl-9 border-2 h-11 focus-visible:ring-primary/20 transition-shadow"
+                      placeholder="Search for a location or address..."
                       value={formData.venueAddress}
-                      onChange={(e) => handleVenueChange(e.target.value)}
+                      onChange={(e) => handleVenueSearchChange(e.target.value)}
                       onFocus={() => setShowDropdown(suggestions.length > 0)}
                     />
                     {(isSearching || isGeocoding) && (
-                      <Loader2 className="absolute right-3 top-3.5 h-4 w-4 animate-spin text-muted-foreground/50" />
+                      <div className="absolute right-3 top-3.5 flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground font-medium animate-pulse">
+                          {isSearching ? "Searching..." : "Pinning..."}
+                        </span>
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      </div>
                     )}
                   </div>
 
                   {showDropdown && suggestions.length > 0 && (
-                    <ul className="absolute z-[1000] left-0 right-0 mt-[-8px] bg-popover border-2 rounded-xl shadow-xl divide-y max-h-48 overflow-y-auto">
-                      {suggestions.map((s) => (
-                        <li
-                          key={s.place_id}
-                          className="px-4 py-2 hover:bg-muted cursor-pointer text-sm flex gap-2 items-start"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            handleSelectSuggestion(s);
-                          }}
-                        >
-                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-primary/60" />
-                          <span className="line-clamp-2">{s.display_name}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="absolute z-[1000] left-0 right-0 mt-1 bg-background border-2 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="p-2 bg-muted/30 border-b text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+                        <span>Top Results</span>
+                        <span className="text-primary/40 italic">OpenStreetMap</span>
+                      </div>
+                      <ul className="divide-y divide-border/50 max-h-60 overflow-y-auto custom-scrollbar">
+                        {suggestions.map((s) => (
+                          <li
+                            key={s.place_id}
+                            className="px-4 py-3 hover:bg-primary/5 cursor-pointer text-sm flex gap-3 items-start transition-colors group"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSelectSuggestion(s);
+                            }}
+                          >
+                            <div className="mt-0.5 p-1 rounded-md bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                              <MapPin className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <span className="font-semibold text-foreground line-clamp-1">
+                                {s.display_name.split(",")[0]}
+                              </span>
+                              <span className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                {s.display_name}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
 
                   <div className="h-[210px] rounded-2xl overflow-hidden border-2 shadow-inner group">

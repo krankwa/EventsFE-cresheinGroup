@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   MapPin,
   Users,
   ArrowRight,
-  Ticket,
   CalendarDays,
   Zap,
+  Search,
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -18,6 +18,7 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/input";
 import { Skeleton } from "../../components/ui/skeleton";
 import { eventsService } from "../../services/eventsService";
 import { useUser } from "../../features/authentication/useUser";
@@ -29,9 +30,13 @@ import { TicketBookingDialog } from "../../components/organisms/TicketBookingDia
 function LandingEventCard({
   event,
   onBook,
+  user,
+  isListMode = false,
 }: {
   event: EventResponse;
   onBook: (event: EventResponse) => void;
+  user: any;
+  isListMode?: boolean;
 }) {
   const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
   const sold = event.ticketsSold || 0;
@@ -39,9 +44,9 @@ function LandingEventCard({
   const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
-    <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-muted/40 bg-card/60 backdrop-blur-sm">
+    <Card className={`overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-muted/40 bg-card/60 backdrop-blur-sm ${isListMode ? "max-w-2xl mx-auto" : ""}`}>
       {/* Cover Image */}
-      <div className="relative h-44 overflow-hidden">
+      <div className={`relative ${isListMode ? "h-64" : "h-44"} overflow-hidden`}>
         {event.coverImageUrl ? (
           <img
             src={event.coverImageUrl}
@@ -72,69 +77,64 @@ function LandingEventCard({
 
       <CardHeader className="px-5 pt-5 pb-2">
         <div className="flex justify-between items-start gap-2">
-          <h3 className="text-lg font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className={`${isListMode ? "text-2xl" : "text-lg"} font-bold tracking-tight line-clamp-1 group-hover:text-primary transition-colors`}>
             {event.title}
           </h3>
-          <span className="text-primary font-bold text-sm whitespace-nowrap">
+          <span className="text-primary font-bold text-lg whitespace-nowrap">
             ₱999+
           </span>
         </div>
       </CardHeader>
 
       <CardContent className="px-5 pb-0 space-y-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+        <div className="flex items-center gap-2 text-base text-muted-foreground">
+          <Calendar className="w-4 h-4 text-primary shrink-0" />
           <span className="italic truncate">
             {format(new Date(event.date), "PPP")}
           </span>
         </div>
-        <div className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px]">
-          <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 text-base text-muted-foreground min-h-[40px]">
+          <MapPin className="w-4 h-4 text-primary shrink-0 mt-1" />
           <div className="flex flex-col">
             <span className="font-semibold text-foreground leading-tight">
               {event.venue || "TBA"}
             </span>
-            <span className="text-[11px] line-clamp-1">
+            <span className="text-sm">
               {event.venueAddress}
             </span>
           </div>
         </div>
 
         {/* Capacity bar */}
-        <div className="pt-3 border-t border-muted/50 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Users className="w-3 h-3" />
+        <div className="pt-4 border-t border-muted/50 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Users className="w-4 h-4" />
             <span>
-              {sold} / {capacity}
+              {sold} / {capacity} tickets booked
             </span>
           </div>
-          <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
+          <div className="w-32 h-2 bg-secondary rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary transition-all duration-1000 rounded-full"
+              className={`h-full transition-all duration-1000 rounded-full ${fillPct > 90 ? "bg-destructive" : "bg-primary"}`}
               style={{ width: `${fillPct}%` }}
             />
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="p-5 pt-4">
+      <CardFooter className="p-5 pt-6">
         <Button
-          className="w-full gap-2 font-semibold group/btn"
+          className={`w-full gap-2 font-semibold group/btn ${isListMode ? "py-6 text-lg" : ""}`}
           variant={isSoldOut ? "outline" : "default"}
           disabled={isSoldOut}
           onClick={() => onBook(event)}
         >
           {isSoldOut ? (
             "Sold Out"
-          ) : !Users ? (
-            <>
-              Sign In to Book
-              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-            </>
           ) : (
             <>
-              Book Now
-              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+              {user ? "Book My Spot" : "Sign In to Book"}
+              <ArrowRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-1" />
             </>
           )}
         </Button>
@@ -145,7 +145,8 @@ function LandingEventCard({
 
 // ─── Landing Page ─────────
 export function LandingSection() {
-  const [events, setEvents] = useState<EventResponse[]>([]);
+  const [allEvents, setAllEvents] = useState<EventResponse[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
     null,
@@ -166,125 +167,172 @@ export function LandingSection() {
     setSelectedEvent(event);
   };
 
+  const filteredEvents = useMemo(() => {
+    const term = (searchTerm || "").toLowerCase().trim();
+    const filtered = term 
+      ? allEvents.filter(e => 
+          (e.title?.toLowerCase() || "").includes(term) || 
+          (e.venue?.toLowerCase() || "").includes(term)
+        )
+      : allEvents;
+
+    // Deduplicate by Title + Date + Venue to remove any "identical" redundancies
+    const seen = new Set<string>();
+    return filtered.filter(event => {
+      const key = `${event.title}-${event.date}-${event.venue}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [allEvents, searchTerm]);
+
   useEffect(() => {
     eventsService
       .getAll()
       .then((response) => {
         // Safe extraction for paginated or direct array responses
         if (Array.isArray(response)) {
-          setEvents(response);
+          setAllEvents(response);
         } else if (response && typeof response === "object") {
           const res = response as any;
-          setEvents(res.events || res.data || res.items || []);
+          setAllEvents(res.events || res.data || res.items || []);
         } else {
-          setEvents([]);
+          setAllEvents([]);
         }
       })
       .catch((err) => {
         console.error("Failed to load events:", err);
-        setEvents([]);
+        setAllEvents([]);
       })
       .finally(() => setIsLoading(false));
   }, []);
 
+  const isSearchActive = searchTerm.trim().length > 0;
+
   return (
     <>
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden py-20 md:py-32 px-4">
+      <section className="relative overflow-hidden py-20 md:py-32 px-4 bg-muted/5">
         {/* Decorative blobs */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -mr-64 -mt-48 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -ml-48 -mb-32 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] -ml-48 -mb-32 pointer-events-none" />
 
         <div className="container mx-auto text-center relative z-10 max-w-3xl">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-pulse">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8 animate-pulse">
             <Zap className="w-3.5 h-3.5" />
             Discover Live Events Near You
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight mb-8">
             Your Next{" "}
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Unforgettable
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Legendary
             </span>{" "}
-            Experience Awaits
+            Night Out
           </h1>
 
-          <p className="text-lg text-muted-foreground mb-10 leading-relaxed max-w-xl mx-auto">
-            Browse hundreds of events — concerts, conferences, sports, and more.
-            Secure your tickets in seconds.
+          <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-xl mx-auto">
+            Experience the best concerts, festivals, and exclusive gatherings.
+            Find your perfect match below.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="text-base font-semibold gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
-              onClick={() => {
-                document
-                  .getElementById("events-section")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              <Ticket className="w-5 h-5" />
-              Browse Events
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-base font-semibold gap-2 hover:scale-105 transition-transform"
-              onClick={() => navigate("/login")}
-            >
-              Sign In
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+          <div className="flex flex-col gap-8 max-w-xl mx-auto">
+            {/* Search Box in Hero */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative flex items-center bg-card rounded-xl border border-border/50 shadow-2xl p-2">
+                <Search className="ml-4 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="Seach by artist, event, or city..." 
+                  className="border-none bg-transparent focus-visible:ring-0 text-lg h-12 shadow-none placeholder:text-muted-foreground/50"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Button 
+                  size="lg" 
+                  className="hidden sm:flex rounded-lg px-8 mr-1 transition-all"
+                  onClick={() => {
+                    document.getElementById("events-section")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Find Now
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                variant="link"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                onClick={() => {
+                  document
+                    .getElementById("events-section")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Or Browse All Upcoming Events
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Events Grid ── */}
-      <section id="events-section" className="container mx-auto px-4 pb-24">
-        <div className="flex items-center justify-between mb-8">
+      <section id="events-section" className="container mx-auto px-4 pb-24 scroll-mt-24">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">
-              Upcoming Events
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+              {isSearchActive ? "Search Results" : "Upcoming Events"}
             </h2>
-            <p className="text-muted-foreground mt-1">
-              Book your spot before they sell out
+            <p className="text-muted-foreground mt-2 text-lg">
+              {isSearchActive 
+                ? `Showing ${filteredEvents.length} matches for "${searchTerm}"`
+                : "Book your spot before they sell out"}
             </p>
           </div>
-          {events.length > 0 && (
-            <Badge variant="secondary" className="text-sm px-3 py-1">
-              {events.length} Events
+          {filteredEvents.length > 0 && (
+            <Badge variant="secondary" className="text-sm px-4 py-1.5 rounded-full font-bold">
+              {filteredEvents.length} Events
             </Badge>
           )}
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="h-44 w-full rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-64 w-full rounded-2xl" />
+                <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-10 w-full" />
               </div>
             ))}
           </div>
-        ) : events.length === 0 ? (
-          <div className="py-24 text-center text-muted-foreground border-2 border-dashed rounded-3xl">
-            <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p className="text-xl font-medium">No events yet</p>
-            <p className="text-sm mt-1">
-              Check back soon for exciting upcoming events!
+        ) : filteredEvents.length === 0 ? (
+          <div className="py-32 text-center text-muted-foreground border-2 border-dashed rounded-[2.5rem] bg-muted/5">
+            <CalendarDays className="w-16 h-16 mx-auto mb-6 opacity-20" />
+            <p className="text-2xl font-bold text-foreground">No matches found</p>
+            <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+              We couldn't find any events matching your search. Try a different term or browse our full schedule.
             </p>
+            <Button 
+              variant="outline" 
+              className="mt-8 px-8"
+              onClick={() => setSearchTerm("")}
+            >
+              Clear Search
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
+          <div className={`grid gap-10 ${isSearchActive ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}>
+            {filteredEvents.map((event) => (
               <LandingEventCard
                 key={event.Id}
                 event={event}
                 onBook={handleBook}
+                user={user}
+                isListMode={isSearchActive}
               />
             ))}
           </div>

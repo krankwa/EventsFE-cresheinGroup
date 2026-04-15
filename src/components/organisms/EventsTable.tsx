@@ -56,14 +56,15 @@ export const EventsTable = memo(function EventsTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {events.map((event, index) => {
+        {events.map((event) => {
+          if (!event) return null;
           const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
           const sold = event.ticketsSold || 0;
           const percentage = ((sold / capacity) * 100).toFixed(0);
 
           return (
             <TableRow
-              key={event.Id || `event-${index}`}
+              key={event.Id || `ev-${event.title || "un"}-${event.date || "un"}`}
               className="group cursor-pointer"
             >
               <TableCell>

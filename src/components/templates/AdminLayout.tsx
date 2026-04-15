@@ -8,7 +8,7 @@ export function AdminLayout() {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	return (
-		<div className="flex h-screen overflow-hidden bg-muted/30 relative">
+		<div className="flex h-[100dvh] overflow-hidden bg-muted/30 relative">
 			{/* Mobile Sidebar Overlay */}
 			{isMobileMenuOpen && (
 				<div 

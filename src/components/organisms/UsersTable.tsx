@@ -3,11 +3,11 @@ import {
   ShieldCheck,
   User,
   Mail,
-  ShieldAlert,
   Pencil,
   X,
   Check,
   Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Table,
@@ -122,7 +122,7 @@ export function UsersTable({
         {users.map((user) => {
           const isEditingMode = editState?.userId === user.userId;
           const isAdmin = user.role === "Admin";
-          const isStaff = user.role === "Staff";
+          // const isStaff = user.role === "Staff";
           const isCurrentUser = user.userId === currentUser?.userId;
           const isPromotingUser = isPromoting(user.userId);
           const isEditingUser = isEditing(user.userId);

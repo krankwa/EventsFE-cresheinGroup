@@ -216,6 +216,61 @@ export function EventDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Synchronize form when event prop changes or dialog opens ──────────
+  useEffect(() => {
+    if (isOpen) {
+      if (event) { 
+        setFormData({ 
+          title: event.title,
+          date: event.date
+            ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
+            : format(new Date(), "yyyy-MM-dd"),
+          venue: event.venue || "",
+          venueAddress: event.venueAddress || "",
+          capacity: event.capacity,
+          maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
+          coverImageUrl: event.coverImageUrl,
+          tiers:
+            event.tiers && event.tiers.length > 0
+              ? event.tiers.map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  price: t.price,
+                  capacity: t.capacity,
+                  ticketsSold: t.ticketsSold,
+                }))
+              : [
+                  {
+                    name: "Regular",
+                    price: 0,
+                    capacity: event.capacity,
+                    ticketsSold: 0,
+                  },
+                ],
+        });
+        setImagePreview(event.coverImageUrl || null);
+        setMarkerPos(null); // Reset marker until geocoded or clicked
+        setFlyTarget(null);
+      } else {
+        // Reset to default for "New Event"
+        setFormData({
+          title: "",
+          date: format(new Date(), "yyyy-MM-dd"),
+          venue: "",
+          venueAddress: "",
+          capacity: 100,
+          maxTicketsPerPerson: 5,
+          coverImageUrl: "",
+          tiers: [{ name: "Regular", price: 0, capacity: 100 }],
+        });
+        setImagePreview(null);
+        setImageFile(null);
+        setMarkerPos(null);
+        setFlyTarget(null);
+      }
+    }
+  }, [isOpen, event]);
+
   // Fetch Tier Types
   useEffect(() => {
     if (isOpen && event?.Id) {
@@ -404,7 +459,7 @@ export function EventDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         key={isOpen ? `open-${event?.Id ?? "new"}` : "closed"}
-        className={cn("sm:max-w-[800px] max-h-[95vh] overflow-y-auto", MODAL_STYLES)}
+        className={cn("sm:max-w-[800px] max-h-[90dvh] overflow-y-auto", MODAL_STYLES)}
       >
         <DialogHeader>
           <DialogTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -437,26 +492,6 @@ export function EventDialog({
                     required
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="venue"
-                    className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                    Venue Name
-                  </Label>
-                  <Input
-                    id="venue"
-                    className="h-11 border-2"
-                    placeholder="e.g. Grand Ballroom, SMX Center"
-                    value={formData.venue}
-                    onChange={(e) =>
-                      setFormData({ ...formData, venue: e.target.value })
-                    }
-                    required
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -485,7 +520,7 @@ export function EventDialog({
                     className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
                   >
                     <Users className="w-3.5 h-3.5" />
-                    Floor Limit
+                    Capacity
                   </Label>
                   <Input
                     id="capacity"
@@ -547,10 +582,10 @@ export function EventDialog({
                   </Button>
                 </div>
 
-                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {formData.tiers.map((tier, idx) => (
                     <div
-                      key={idx}
+                      key={tier.id || `new-tier-${idx}-${tier.name}`}
                       className="p-3 rounded-xl bg-muted/40 border-2 border-transparent hover:border-primary/10 transition-all flex items-center gap-3 animate-in fade-in slide-in-from-top-1"
                     >
                       <div className="flex-1 space-y-2">
@@ -616,8 +651,29 @@ export function EventDialog({
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Location Canvas
+                <Label
+                  htmlFor="venue"
+                  className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  Venue Name
+                </Label>
+                <Input
+                  id="venue"
+                  className="h-11 border-2"
+                  placeholder="e.g. Grand Ballroom, SMX Center"
+                  value={formData.venue}
+                  onChange={(e) =>
+                    setFormData({ ...formData, venue: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5" />
+                  Location (Venue Address)
                 </Label>
                 <div className="relative" ref={venueWrapperRef}>
                   <div className="relative mb-3">

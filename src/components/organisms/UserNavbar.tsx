@@ -46,7 +46,7 @@ export function UserNavbar() {
         </span>
       </Link>
 
-      {/* Center: Navigation Links & Search */}
+      {/* Center: Navigation Links */}
       <div className="flex items-center gap-6 md:gap-8 flex-1 justify-center md:justify-start md:ml-12">
         <div className="flex items-center gap-1 md:gap-4">
           <NavLink
@@ -73,16 +73,6 @@ export function UserNavbar() {
             <CalendarDays className="w-4 h-4" />
             <span className="hidden sm:inline">Events</span>
           </NavLink>
-        </div>
-
-        {/* Search Bar */}
-        <div className="hidden lg:flex items-center relative max-w-sm w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search amazing events..."
-            className="pl-9 h-10 w-full bg-muted/50 border-muted placeholder:text-muted-foreground focus-visible:ring-primary"
-          />
         </div>
       </div>
 

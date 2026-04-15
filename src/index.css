@@ -126,10 +126,15 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+  html,
+  body,
+  #root {
+    @apply h-full w-full;
+    height: 100dvh;
   }
-  html {
-    @apply font-sans;
+  body {
+    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    padding: 0;
   }
 }

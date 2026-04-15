@@ -11,6 +11,8 @@ import { EventsManagement } from "./pages/admin/EventsManagement";
 import { UsersManagement } from "./pages/admin/UsersManagement";
 import { LoginPage } from "./pages/LoginPage";
 import { LandingPage } from "./pages/LandingPage";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { ResetPassword } from "./pages/ResetPassword";
 import { ProtectedRoute } from "./components/molecules/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import { EventsPage } from "./pages/EventsPage";
@@ -37,10 +39,12 @@ function RoleRedirect() {
   if (isLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
-  if (user.role === "Admin") {
+  const role = user.role.toLowerCase();
+
+  if (role === "admin") {
     return <Navigate to="/admin" replace />;
   }
-  if (user.role === "Staff") {
+  if (role === "staff") {
     return <Navigate to="/redemption" replace />;
   }
   return <Navigate to="/events" replace />;
@@ -56,6 +60,8 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* Post-login role redirect */}
             <Route path="/redirect" element={<RoleRedirect />} />
 

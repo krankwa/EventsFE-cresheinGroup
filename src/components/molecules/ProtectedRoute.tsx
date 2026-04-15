@@ -23,8 +23,11 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorize" replace />;
+  // Smart Redirection: If authenticated but role not allowed, send to their "Home"
+  if (allowedRoles && !allowedRoles.some(role => role.toLowerCase() === user.role.toLowerCase())) {
+    if (user.role === "Admin") return <Navigate to="/admin" replace />;
+    if (user.role === "Staff") return <Navigate to="/redemption" replace />;
+    return <Navigate to="/events" replace />;
   }
 
   return <Outlet />;

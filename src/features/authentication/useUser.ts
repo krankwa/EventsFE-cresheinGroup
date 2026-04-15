@@ -15,8 +15,10 @@ export function useUser(): UseUserReturn {
   const { isLoading, data: user } = useQuery({
     queryKey: ["user"],
     queryFn: getCurrentUser,
-    retry: false, //stop retrying 401s
-    // staleTime: 1000 * 60 * 3, // 3 min revalidation
+    retry: false, // stop retrying 401s
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchInterval: 1000 * 60 * 2, // Check every 2 minutes
+    refetchOnWindowFocus: true,
   });
 
   return {

@@ -24,7 +24,6 @@ import { useUser } from "../../features/authentication/useUser";
 import type { EventResponse } from "../../interface/Event.interface";
 import { toast } from "react-hot-toast";
 import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
-import Footer from "@/components/organisms/Footer";
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
 function LandingEventCard({
@@ -292,10 +291,14 @@ export function LandingSection() {
         )}
       </section>
 
-      <div className="bg-black ">
-        <Footer />
-
-      </div>
+      {/* Footer */}
+      <footer className="py-8 border-t border-blue-950/20 bg-blue-950 text-white mt-auto">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm text-white/80 font-medium">
+            © 2026 EventTix — The Premier Event Management Platform
+          </p>
+        </div>
+      </footer>
       <TicketBookingDialog
         isOpen={selectedEvent !== null}
         onClose={() => setSelectedEvent(null)}

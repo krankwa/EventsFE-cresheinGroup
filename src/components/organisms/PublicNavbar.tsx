@@ -5,7 +5,6 @@ import { Button } from "../ui/button";
 import { useLogoutWithConfirm } from "../hooks/useLogoutwithConfirm";
 
 export function PublicNavbar() {
-  const { user, isAdmin } = useUser();
   const { logoutWithConfirm } = useLogoutWithConfirm();
   const { user, isAdmin, isStaff } = useUser();
   const { logout } = useLogout();

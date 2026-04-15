@@ -2,6 +2,7 @@ export interface PaginationParams {
   pageNumber: number;
   pageSize: number;
   searchTerm?: string;
+  [key: string]: unknown;
 }
 
 export interface PaginatedResponse<T> {

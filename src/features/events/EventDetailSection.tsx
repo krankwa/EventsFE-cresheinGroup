@@ -265,10 +265,10 @@ export function EventDetailSection() {
             <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight">
-                {event.venue?.name || "TBA"}
+                {event.venue || "TBA"}
               </span>
               <span className="text-muted-foreground">
-                {event.venue?.address}
+                {event.venueAddress}
               </span>
             </div>
           </div>

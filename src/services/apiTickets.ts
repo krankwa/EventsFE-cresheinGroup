@@ -16,7 +16,7 @@ export async function registerTicket(
 
 // GET /api/tickets/mine — User only
 export async function getMyTickets(): Promise<TicketResponse[]> {
-  return apiRequest<TicketResponse[]>("/tickets/mine");
+  return apiRequest<TicketResponse[]>("/tickets/mine", { method: "GET" });
 }
 
 // DELETE /api/tickets/{id} — User only

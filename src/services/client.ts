@@ -7,7 +7,8 @@ interface ApiRequestOptions {
   method: string;
   body?: string;
   requiresAuth?: boolean;
-  params?: Record<string, any>; // Add this
+  params?: Record<string, unknown>; // Add this
+  headers?: Record<string, string>; // Add headers property
 }
 
 export async function apiRequest<T>(

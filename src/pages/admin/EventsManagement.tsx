@@ -60,16 +60,27 @@ export function EventsManagement() {
     return () => clearTimeout(timer);
   }, [searchQuery, goToPage]);
 
-  async function loadEvents(page: number = pageNumber, size: number = pageSize, search: string = debouncedSearch) {
+  async function loadEvents(
+    page: number = pageNumber,
+    size: number = pageSize,
+    search: string = debouncedSearch,
+  ) {
     setIsLoading(true);
     try {
       const response = await eventsService.getAllPaginated({
         pageNumber: page,
         pageSize: size,
-        searchTerm: search || undefined,
+        ...(search && { searchTerm: search }),
       });
-      setEvents(response.items);
-      updatePaginationInfo(response);
+      const { events: eventList, pagination } = response as unknown as {
+        events: EventResponse[];
+        pagination: { totalPages: number; totalCount: number };
+      }; // Destructure response
+      setEvents(eventList); // Assign the events array from the response
+      updatePaginationInfo({
+        totalPages: pagination.totalPages,
+        totalCount: pagination.totalCount,
+      });
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
@@ -77,24 +88,6 @@ export function EventsManagement() {
       setIsLoading(false);
     }
   }
-
-  // Load events when page, pageSize, or debouncedSearch changes
-  useEffect(() => {
-    loadEvents(pageNumber, pageSize, debouncedSearch);
-  }, [pageNumber, pageSize, debouncedSearch]);
-    loadEvents();
-  }, []);
-
-  const filteredEvents = events.filter((event) => {
-    const query = searchQuery.toLowerCase();
-    const venueName = event.venue?.name || "";
-    const title = event.title || "";
-    return (
-      venueName.toLowerCase().includes(query) ||
-      title.toLowerCase().includes(query)
-    );
-  });
-
   const handleCreate = () => {
     setSelectedEvent(null);
     setIsEventDialogOpen(true);
@@ -113,8 +106,6 @@ export function EventsManagement() {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
-      if (selectedEvent && selectedEvent.eventID) {
-        await eventsService.update(selectedEvent.eventID, data as EventUpdateDTO);
       if (selectedEvent && selectedEvent.Id) {
         await eventsService.update(selectedEvent.Id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
@@ -122,12 +113,15 @@ export function EventsManagement() {
         await eventsService.create(data as EventCreateDTO);
         toast.success("Event created successfully!");
       }
+
       setIsEventDialogOpen(false);
       // Reload current page after save
       loadEvents(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       console.error("Failed to save event", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save event.");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save event.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -155,7 +149,9 @@ export function EventsManagement() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Manage Events</h1>
-          <p className="text-muted-foreground">Review, edit, and organize your upcoming event list.</p>
+          <p className="text-muted-foreground">
+            Review, edit, and organize your upcoming event list.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2">

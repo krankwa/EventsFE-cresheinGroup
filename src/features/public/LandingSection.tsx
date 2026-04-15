@@ -90,10 +90,10 @@ function LandingEventCard({
           <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
           <div className="flex flex-col">
             <span className="font-semibold text-foreground leading-tight">
-              {event.venue?.name || "TBA"}
+              {event.venue || "TBA"}
             </span>
             <span className="text-[11px] line-clamp-1">
-              {event.venue?.address}
+              {event.venueAddress}
             </span>
           </div>
         </div>

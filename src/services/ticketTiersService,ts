@@ -1,0 +1,42 @@
+import { apiRequest } from "./client";
+import type {
+  TicketTierCreateDTO,
+  TicketTierResponse,
+} from "../interface/Event.interface";
+
+export const ticketsService = {
+  getAllTiers: (): Promise<TicketTierResponse[]> =>
+    apiRequest<TicketTierResponse[]>("/TicketTier", {
+      method: "GET",
+      requiresAuth: false,
+    }),
+
+  getTiersByEventId: (eventId: number): Promise<TicketTierResponse[]> =>
+    apiRequest<TicketTierResponse[]>(`/TicketTier/event/${eventId}`, {
+      method: "GET",
+      requiresAuth: false,
+    }),
+
+  createTier: (tier: TicketTierCreateDTO): Promise<TicketTierResponse> =>
+    apiRequest<TicketTierResponse>("/TicketTier", {
+      method: "POST",
+      body: JSON.stringify(tier),
+      requiresAuth: true,
+    }),
+
+  updateTier: (
+    id: number,
+    tier: TicketTierCreateDTO,
+  ): Promise<TicketTierResponse> =>
+    apiRequest<TicketTierResponse>(`/TicketTier/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(tier),
+      requiresAuth: true,
+    }),
+
+  deleteTier: (id: number): Promise<void> =>
+    apiRequest<void>(`/TicketTier/${id}`, {
+      method: "DELETE",
+      requiresAuth: true,
+    }),
+};

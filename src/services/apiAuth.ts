@@ -34,7 +34,7 @@ export async function getCurrentUser(): Promise<UserResponse | null> {
   if (!getToken()) return null;
 
   try {
-    return await apiRequest<UserResponse>("/users/me");
+    return await apiRequest<UserResponse>("/users/me", { method: "GET" });
   } catch {
     clearToken();
     return null;

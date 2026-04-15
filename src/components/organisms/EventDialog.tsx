@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { uploadEventImage } from "../../services/uploadService";
 import { eventsService } from "../../services/eventsService";
 import { toast } from "react-hot-toast";
+import { ticketsService } from "../../services/ticketsService";
 
 // Leaflet
 import {
@@ -158,7 +159,7 @@ export function EventDialog({
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
           venueId: event.venue?.id,
-          venueName: event.venue?.name || "",
+          venueName: event.venue || "",
           venueAddress: event.venue?.address || "",
           venueLatitude: event.venue?.latitude || 0,
           venueLongitude: event.venue?.longitude || 0,
@@ -222,10 +223,10 @@ export function EventDialog({
   // Fetch Tier Types
   useEffect(() => {
     if (isOpen) {
-      eventsService
-        .getTierTypes()
+      ticketsService
+        .getTicketTiers()
         .then(setTierTypes)
-        .catch((err) => console.error("Failed to load tier types", err));
+        .catch((err) => console.error("Failed to load ticket tiers", err));
     }
   }, [isOpen]);
 

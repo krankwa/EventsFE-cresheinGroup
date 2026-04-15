@@ -32,7 +32,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { toast } from "react-hot-toast";
-import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { PaginationWrapper } from "@/components/PaginationWrapper";
 
 // Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
@@ -98,13 +98,13 @@ export function TicketManagement() {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "upcoming" | "redeemed" | "past"
   >("all");
-  
+
   // Pagination state
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  
+
   // Refs to prevent infinite loops
   const isInitialMount = useRef(true);
   const isFilterChange = useRef(false);

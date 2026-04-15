@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { ticketsService } from "../../services/ticketsService";
 import { useUser } from "../authentication/useUser";
 import type { EventResponse } from "../../interface/Event.interface";
 
@@ -13,7 +12,7 @@ interface UseBookTicketReturn {
 export function useBookTicket(event: EventResponse): UseBookTicketReturn {
   const { user, isAdmin } = useUser();
   const navigate = useNavigate();
-  const [isBooking, setIsBooking] = useState(false);
+  const [isBooking] = useState(false);
 
   const handleBook = async () => {
     if (!user) {
@@ -25,17 +24,8 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
       toast.error("Admins cannot book tickets.");
       return;
     }
-    setIsBooking(true);
-    try {
-      await ticketsService.register({ eventId: event.eventID, tierId: 1 });
-      toast.success(`Booked for ${event.title}! 🎉`);
-      navigate("/tickets");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to book ticket.";
-      toast.error(msg);
-    } finally {
-      setIsBooking(false);
-    }
+    // Navigate to the event detail page so the user can choose a tier
+    navigate(`/events/${event.eventID}`);
   };
 
   return { isBooking, handleBook };

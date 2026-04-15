@@ -6,9 +6,9 @@ import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
+  TierTypeResponse,
 } from "../interface/Event.interface";
 import { apiRequest } from "./client";
-import { paginatedRequest } from "./paginatedClient";
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
@@ -28,20 +28,11 @@ export const eventsService = {
       requiresAuth: false,
     }),
 
-  getAllPaginated: (
-    params: PaginationParams,
-  ): Promise<PaginatedResponse<EventResponse>> => {
-    const queryString = buildQueryString({
-      pageNumber: params.pageNumber,
-      pageSize: params.pageSize,
-      searchTerm: params.searchTerm,
-    });
-
-    return paginatedRequest<PaginatedResponse<EventResponse>>(
-      `/Event/paginated${queryString}`,
-      { method: "GET", requiresAuth: false },
-    );
-  },
+  getTierTypes: (): Promise<TierTypeResponse[]> =>
+    apiRequest<TierTypeResponse[]>("/Event/tier-types", {
+      method: "GET",
+      requiresAuth: true,
+    }),
 
   getById: (id: number): Promise<EventResponse> =>
     apiRequest<EventResponse>(`/Event/${id}`, {

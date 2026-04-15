@@ -27,7 +27,7 @@ import {
 } from "../../components/ui/card";
 import { UsersTable } from "../../components/organisms/UsersTable";
 import { toast } from "react-hot-toast";
-import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { PaginationWrapper } from "@/components/PaginationWrapper";
 
 export function UsersManagement() {
   const [users, setUsers] = useState<UserResponse[]>([]);

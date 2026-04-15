@@ -59,22 +59,22 @@ function App() {
             {/* Post-login role redirect */}
             <Route path="/redirect" element={<RoleRedirect />} />
 
-            {/* Protected Admin/Staff Dashboard Routes */}
-            <Route element={<ProtectedRoute allowedRoles={["Admin", "Staff"]} />}>
-              <Route element={<AdminLayout />}>
-                <Route path="/redemption" element={<TicketRedemptionPage />} />
-
-                <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
-                  <Route path="/admin">
-                    <Route index element={<DashboardOverview />} />
-                    <Route path="events" element={<EventsManagement />} />
-                    <Route path="users" element={<UsersManagement />} />
-                    <Route path="settings" element={<MyAccount />} />
-                    <Route path="tickets" element={<TicketManagement />} />
-                  </Route>
+          {/* Protected Admin/Staff Dashboard Routes */}
+          <Route element={<ProtectedRoute allowedRoles={["Admin", "Staff"]} />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/redemption" element={<TicketRedemptionPage />} />
+              
+              <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+                <Route path="/admin">
+                  <Route index element={<DashboardOverview />} />
+                  <Route path="events" element={<EventsManagement />} />
+                  <Route path="users" element={<UsersManagement />} />
+                  <Route path="settings" element={<MyAccount />} />
+                  <Route path="tickets" element={<TicketManagement />} />
                 </Route>
               </Route>
             </Route>
+          </Route>
 
             {/* Protected User Routes */}
             <Route

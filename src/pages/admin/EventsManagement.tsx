@@ -18,15 +18,14 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
 } from "../../interface/Event.interface";
-import { useServerPagination } from "@/components/hooks/useServerPagination";
-import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { PaginationWrapper } from "@/components/PaginationWrapper";
+import { useClientPagination } from "@/components/hooks/useClientPagination";
 
 export function EventsManagement() {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Dialog States
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -35,41 +34,11 @@ export function EventsManagement() {
     null,
   );
 
-  // Server-side pagination
-  const {
-    pageNumber,
-    pageSize,
-    totalPages,
-    totalCount,
-    goToPage,
-    changePageSize,
-    updatePaginationInfo,
-  } = useServerPagination({
-    initialPageSize: 10,
-    onPageChange: (page, size) => {
-      loadEvents(page, size, debouncedSearch);
-    },
-  });
-
-  // Debounce search to avoid too many API calls
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      goToPage(1); // Reset to first page when search changes
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery, goToPage]);
-
-  async function loadEvents(page: number = pageNumber, size: number = pageSize, search: string = debouncedSearch) {
+  async function loadEvents() {
     setIsLoading(true);
     try {
-      const response = await eventsService.getAllPaginated({
-        pageNumber: page,
-        pageSize: size,
-        searchTerm: search || undefined,
-      });
-      setEvents(response.items);
-      updatePaginationInfo(response);
+      const data = await eventsService.getAll();
+      setEvents(data);
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
@@ -78,10 +47,32 @@ export function EventsManagement() {
     }
   }
 
-  // Load events when page, pageSize, or debouncedSearch changes
   useEffect(() => {
-    loadEvents(pageNumber, pageSize, debouncedSearch);
-  }, [pageNumber, pageSize, debouncedSearch]);
+    loadEvents();
+  }, []);
+
+  // Filter events based on search query
+  const filteredEvents = events.filter((event) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      // event.venue.toLowerCase().includes(query) ||
+      event.title.toLowerCase().includes(query)
+    );
+  });
+
+  // Client-side pagination
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedData,
+    goToPage,
+    changePageSize,
+  } = useClientPagination({
+    data: filteredEvents,
+    initialPageSize: 10,
+  });
 
   const handleCreate = () => {
     setSelectedEvent(null);
@@ -102,18 +93,26 @@ export function EventsManagement() {
     setIsSaving(true);
     try {
       if (selectedEvent && selectedEvent.eventID) {
-        await eventsService.update(selectedEvent.eventID, data as EventUpdateDTO);
+        await eventsService.update(
+          selectedEvent.eventID,
+          data as EventUpdateDTO,
+        );
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
         toast.success("Event created successfully!");
       }
       setIsEventDialogOpen(false);
-      // Reload current page after save
-      loadEvents(pageNumber, pageSize, debouncedSearch);
+      loadEvents();
     } catch (error) {
       console.error("Failed to save event", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save event.");
+      const message =
+        error instanceof Error
+          ? error.message
+          : selectedEvent
+            ? "Failed to update event."
+            : "Failed to create event.";
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -126,11 +125,14 @@ export function EventsManagement() {
       await eventsService.delete(selectedEvent.eventID);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
-      // Reload current page after delete
-      loadEvents(pageNumber, pageSize, debouncedSearch);
+      loadEvents();
     } catch (error) {
       console.error("Failed to delete event", error);
-      toast.error("Failed to delete the event. It might have linked data.");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete the event. It might have linked data.";
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -141,7 +143,9 @@ export function EventsManagement() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Manage Events</h1>
-          <p className="text-muted-foreground">Review, edit, and organize your upcoming event list.</p>
+          <p className="text-muted-foreground">
+            Review, edit, and organize your upcoming event list.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2">
@@ -160,7 +164,7 @@ export function EventsManagement() {
           <div className="space-y-1">
             <CardTitle>Events List</CardTitle>
             <CardDescription>
-              Total of {totalCount} events in the database.
+              You have {events.length} events scheduled in the database. Showing {paginatedData.length} of {filteredEvents.length} filtered events.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -187,15 +191,15 @@ export function EventsManagement() {
           ) : (
             <>
               <EventsTable
-                events={events}
+                events={paginatedData}
                 onEdit={handleEdit}
                 onDelete={handleDeleteClick}
               />
               <PaginationWrapper
-                currentPage={pageNumber}
+                currentPage={currentPage}
                 totalPages={totalPages}
                 pageSize={pageSize}
-                totalItems={totalCount}
+                totalItems={totalItems}
                 onPageChange={goToPage}
                 onPageSizeChange={changePageSize}
               />

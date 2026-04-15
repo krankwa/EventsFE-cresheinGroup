@@ -43,28 +43,25 @@ export function MyAccountSection() {
         onOpenChange={profile.setShowConfirm}
         onConfirm={profile.confirmUpdate}
         title="Confirm Profile Changes"
-        description={
-          <div className="space-y-2">
-            <p>Are you sure you want to update your profile information?</p>
-            <div className="bg-muted p-3 rounded-md space-y-1 mt-2">
-              <p className="text-sm">
-                <span className="font-medium">Name:</span>{" "}
-                <span className="text-muted-foreground line-through">{user.name}</span>
-                {" → "}
-                <span className="text-green-600 dark:text-green-400">{profile.pendingData?.name}</span>
-              </p>
-              <p className="text-sm">
-                <span className="font-medium">Email:</span>{" "}
-                <span className="text-muted-foreground line-through">{user.email}</span>
-                {" → "}
-                <span className="text-green-600 dark:text-green-400">{profile.pendingData?.email}</span>
-              </p>
-            </div>
+        description={<div className="space-y-2">
+          <p>Are you sure you want to update your profile information?</p>
+          <div className="bg-muted p-3 rounded-md space-y-1 mt-2">
+            <p className="text-sm">
+              <span className="font-medium">Name:</span>{" "}
+              <span className="text-muted-foreground line-through">{user.name}</span>
+              {" → "}
+              <span className="text-green-600 dark:text-green-400">{profile.pendingData?.name}</span>
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Email:</span>{" "}
+              <span className="text-muted-foreground line-through">{user.email}</span>
+              {" → "}
+              <span className="text-green-600 dark:text-green-400">{profile.pendingData?.email}</span>
+            </p>
           </div>
-        }
+        </div>}
         confirmText="Save Changes"
-        isLoading={profile.isSaving}
-      />
+        isLoading={profile.isSaving} cancelText={""} variant={"default"}      />
 
       {/* Password Change Confirmation */}
       <PasswordChangeAlert

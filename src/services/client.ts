@@ -3,9 +3,16 @@ import { getToken } from "./authStore";
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 console.log("API_BASE_URL in client.ts:", API_BASE_URL);
 
+interface ApiRequestOptions {
+  method: string;
+  body?: string;
+  requiresAuth?: boolean;
+  params?: Record<string, any>; // Add this
+}
+
 export async function apiRequest<T>(
   endpoint: string,
-  options: { method: string; body?: string; requiresAuth?: boolean },
+  options: ApiRequestOptions,
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

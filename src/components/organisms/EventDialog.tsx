@@ -1,4 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
+
 import {
   Dialog,
   DialogContent,
@@ -26,10 +29,12 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
   TicketTierCreateDTO,
+  TierTypeResponse,
 } from "../../interface/Event.interface";
 import { format } from "date-fns";
 import { uploadEventImage } from "../../services/uploadService";
 import { toast } from "react-hot-toast";
+import { ticketTiersService } from "../../services/ticketTiersService";
 
 // Leaflet
 import {
@@ -144,6 +149,9 @@ export function EventDialog({
   event,
   isLoading,
 }: EventDialogProps) {
+  // ── Tier Types State ───────────────────────────────────────────────────
+  const [tierTypes, setTierTypes] = useState<TierTypeResponse[]>([]);
+
   // ── Form state ─────────────────────────────────────────────────────────
   const [formData, setFormData] = useState<EventCreateDTO>(
     event
@@ -152,23 +160,36 @@ export function EventDialog({
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
-          venue: event.venue,
+          venue: event.venue || "",
+          venueAddress: event.venueAddress || "",
           capacity: event.capacity,
+          maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
           coverImageUrl: event.coverImageUrl || "",
           tiers:
             event.tiers && event.tiers.length > 0
               ? event.tiers.map((t) => ({
+                  id: t.id,
                   name: t.name,
                   price: t.price,
                   capacity: t.capacity,
+                  ticketsSold: t.ticketsSold,
                 }))
-              : [{ name: "Regular", price: 0, capacity: event.capacity }],
+              : [
+                  {
+                    name: "Regular",
+                    price: 0,
+                    capacity: event.capacity,
+                    ticketsSold: 0,
+                  },
+                ],
         }
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
           venue: "",
+          venueAddress: "",
           capacity: 100,
+          maxTicketsPerPerson: 5,
           coverImageUrl: "",
           tiers: [{ name: "Regular", price: 0, capacity: 100 }],
         },
@@ -194,6 +215,16 @@ export function EventDialog({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch Tier Types
+  useEffect(() => {
+    if (isOpen) {
+      ticketTiersService
+        .getTiersByEventId(event?.Id || 0)
+        .then(setTierTypes)
+        .catch((err) => console.error("Failed to load ticket tiers", err));
+    }
+  }, [isOpen, event?.Id]);
 
   // ── Tier Management ────────────────────────────────────────────────────
   const addTier = () => {
@@ -221,7 +252,10 @@ export function EventDialog({
 
   // ── Venue input change ──────────────────────────────────────────────────
   const handleVenueChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, venue: value }));
+    setFormData((prev) => ({
+      ...prev,
+      venue: value,
+    }));
     setShowDropdown(true);
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -262,7 +296,21 @@ export function EventDialog({
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
     };
-    setFormData((prev) => ({ ...prev, venue: result.display_name }));
+
+    // Extract establishment name if possible, otherwise use display name part
+    const establishment = result.address?.house_number
+      ? `${result.address.house_number} ${result.address.road}`
+      : result.address?.amenity ||
+        result.address?.tourism ||
+        result.address?.shop ||
+        result.address?.office ||
+        result.display_name.split(",")[0];
+
+    setFormData((prev) => ({
+      ...prev,
+      venue: establishment || "",
+      venueAddress: result.display_name,
+    }));
     setMarkerPos(pos);
     setFlyTarget(pos);
     setSuggestions([]);
@@ -274,7 +322,12 @@ export function EventDialog({
     setFlyTarget(latlng);
     setIsGeocoding(true);
     const address = await reverseGeocode(latlng.lat, latlng.lng);
-    setFormData((prev) => ({ ...prev, venue: address }));
+
+    setFormData((prev) => ({
+      ...prev,
+      venue: address.split(",")[0] || "",
+      venueAddress: address,
+    }));
     setSuggestions([]);
     setShowDropdown(false);
     setIsGeocoding(false);
@@ -313,6 +366,7 @@ export function EventDialog({
   // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || isUploading || isSearching || isGeocoding) return;
 
     const totalTierCapacity = formData.tiers.reduce(
       (acc, t) => acc + t.capacity,
@@ -347,8 +401,8 @@ export function EventDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        key={isOpen ? `open-${event?.eventID ?? "new"}` : "closed"}
-        className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto bg-background/95 backdrop-blur-md border-2"
+        key={isOpen ? `open-${event?.Id ?? "new"}` : "closed"}
+        className={cn("sm:max-w-[800px] max-h-[95vh] overflow-y-auto", MODAL_STYLES)}
       >
         <DialogHeader>
           <DialogTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -426,6 +480,31 @@ export function EventDialog({
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label
+                  htmlFor="maxTicketsPerPerson"
+                  className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  Booking Limit (Per Person)
+                </Label>
+                <Input
+                  id="maxTicketsPerPerson"
+                  type="number"
+                  className="h-11 border-2"
+                  min={1}
+                  max={100}
+                  value={formData.maxTicketsPerPerson || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      maxTicketsPerPerson: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  required
+                />
+              </div>
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
@@ -452,12 +531,13 @@ export function EventDialog({
                     >
                       <div className="flex-1 space-y-2">
                         <Input
-                          placeholder="Tier Name (e.g. Early Bird)"
+                          placeholder="Tier Name (e.g. General, VIP)"
                           className="h-8 border-none bg-transparent font-bold p-0 focus-visible:ring-0"
                           value={tier.name}
                           onChange={(e) =>
                             updateTier(idx, { name: e.target.value })
                           }
+                          list="tier-types-list"
                           required
                         />
                         <div className="grid grid-cols-2 gap-2">
@@ -521,7 +601,7 @@ export function EventDialog({
                     <Input
                       className="pl-9 border-2 h-11"
                       placeholder="Locate venue..."
-                      value={formData.venue}
+                      value={formData.venueAddress}
                       onChange={(e) => handleVenueChange(e.target.value)}
                       onFocus={() => setShowDropdown(suggestions.length > 0)}
                     />
@@ -531,7 +611,7 @@ export function EventDialog({
                   </div>
 
                   {showDropdown && suggestions.length > 0 && (
-                    <ul className="absolute z-50 left-0 right-0 mt-[-8px] bg-popover border-2 rounded-xl shadow-xl divide-y max-h-48 overflow-y-auto">
+                    <ul className="absolute z-[1000] left-0 right-0 mt-[-8px] bg-popover border-2 rounded-xl shadow-xl divide-y max-h-48 overflow-y-auto">
                       {suggestions.map((s) => (
                         <li
                           key={s.place_id}
@@ -645,6 +725,11 @@ export function EventDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      <datalist id="tier-types-list">
+        {tierTypes.map((t) => (
+          <option key={t.id} value={t.name} />
+        ))}
+      </datalist>
     </Dialog>
   );
 }

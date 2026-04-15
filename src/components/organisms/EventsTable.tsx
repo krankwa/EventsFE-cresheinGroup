@@ -68,8 +68,15 @@ export const EventsTable = memo(function EventsTable({
                 </span>
               </div>
             </TableCell>
-            <TableCell className="text-muted-foreground">
-              {event.venue}
+            <TableCell>
+              <div className="flex flex-col">
+                <span className="font-medium text-foreground">
+                  {event.venue?.name || "TBA"}
+                </span>
+                <span className="text-xs text-muted-foreground line-clamp-1">
+                  {event.venue?.address || "No address provided"}
+                </span>
+              </div>
             </TableCell>
             <TableCell>{event.capacity}</TableCell>
             <TableCell>

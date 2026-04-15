@@ -18,6 +18,8 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
 } from "../../interface/Event.interface";
+import { PaginationWrapper } from "@/components/PaginationWrapper";
+import { useClientPagination } from "@/components/hooks/useClientPagination";
 
 export function EventsManagement() {
   const [events, setEvents] = useState<EventResponse[]>([]);
@@ -49,12 +51,27 @@ export function EventsManagement() {
     loadEvents();
   }, []);
 
+  // Filter events based on search query
   const filteredEvents = events.filter((event) => {
     const query = searchQuery.toLowerCase();
     return (
-      event.venue.toLowerCase().includes(query) ||
+      // event.venue.toLowerCase().includes(query) ||
       event.title.toLowerCase().includes(query)
     );
+  });
+
+  // Client-side pagination
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedData,
+    goToPage,
+    changePageSize,
+  } = useClientPagination({
+    data: filteredEvents,
+    initialPageSize: 10,
   });
 
   const handleCreate = () => {
@@ -147,7 +164,7 @@ export function EventsManagement() {
           <div className="space-y-1">
             <CardTitle>Events List</CardTitle>
             <CardDescription>
-              You have {events.length} events scheduled in the database.
+              You have {events.length} events scheduled in the database. Showing {paginatedData.length} of {filteredEvents.length} filtered events.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -172,11 +189,21 @@ export function EventsManagement() {
               Loading your events...
             </div>
           ) : (
-            <EventsTable
-              events={filteredEvents}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-            />
+            <>
+              <EventsTable
+                events={paginatedData}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
+              <PaginationWrapper
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={changePageSize}
+              />
+            </>
           )}
         </CardContent>
       </Card>

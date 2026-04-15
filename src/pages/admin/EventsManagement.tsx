@@ -14,7 +14,10 @@ import { EventsTable } from "../../components/organisms/EventsTable";
 import { EventDialog } from "../../components/organisms/EventDialog";
 import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
 import { toast } from "react-hot-toast";
-import type { EventCreateDTO, EventUpdateDTO } from "../../interface/Event.interface";
+import type {
+  EventCreateDTO,
+  EventUpdateDTO,
+} from "../../interface/Event.interface";
 import { useServerPagination } from "@/components/hooks/useServerPagination";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
@@ -28,7 +31,9 @@ export function EventsManagement() {
   // Dialog States
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
+    null,
+  );
 
   // Server-side pagination
   const {
@@ -46,14 +51,14 @@ export function EventsManagement() {
     },
   });
 
-  // Debounce search
+  // Debounce search to avoid too many API calls
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
       goToPage(1); // Reset to first page when search changes
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, goToPage]);
 
   async function loadEvents(page: number = pageNumber, size: number = pageSize, search: string = debouncedSearch) {
     setIsLoading(true);
@@ -61,8 +66,8 @@ export function EventsManagement() {
       const response = await eventsService.getAllPaginated({
         pageNumber: page,
         pageSize: size,
-        ...(search && { searchTerm: search }),
-      });``
+        searchTerm: search || undefined,
+      });
       setEvents(response.items);
       updatePaginationInfo(response);
     } catch (error) {
@@ -73,9 +78,10 @@ export function EventsManagement() {
     }
   }
 
+  // Load events when page, pageSize, or debouncedSearch changes
   useEffect(() => {
-    loadEvents(1, pageSize, debouncedSearch);
-  }, [debouncedSearch]);
+    loadEvents(pageNumber, pageSize, debouncedSearch);
+  }, [pageNumber, pageSize, debouncedSearch]);
 
   const handleCreate = () => {
     setSelectedEvent(null);
@@ -103,6 +109,7 @@ export function EventsManagement() {
         toast.success("Event created successfully!");
       }
       setIsEventDialogOpen(false);
+      // Reload current page after save
       loadEvents(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       console.error("Failed to save event", error);
@@ -119,6 +126,7 @@ export function EventsManagement() {
       await eventsService.delete(selectedEvent.eventID);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
+      // Reload current page after delete
       loadEvents(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       console.error("Failed to delete event", error);
@@ -151,7 +159,9 @@ export function EventsManagement() {
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 pb-6">
           <div className="space-y-1">
             <CardTitle>Events List</CardTitle>
-            <CardDescription>Total of {totalCount} events in the database.</CardDescription>
+            <CardDescription>
+              Total of {totalCount} events in the database.
+            </CardDescription>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative w-full md:w-64">
@@ -176,7 +186,11 @@ export function EventsManagement() {
             </div>
           ) : (
             <>
-              <EventsTable events={events} onEdit={handleEdit} onDelete={handleDeleteClick} />
+              <EventsTable
+                events={events}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
               <PaginationWrapper
                 currentPage={pageNumber}
                 totalPages={totalPages}

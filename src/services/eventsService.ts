@@ -1,6 +1,6 @@
 import type {
-  PaginationParams,
   PaginatedResponse,
+  PaginationParams,
 } from "@/interface/pagination";
 import type {
   EventResponse,

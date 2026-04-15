@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Search,
   RefreshCcw,
@@ -27,41 +27,108 @@ import {
 } from "../../components/ui/card";
 import { UsersTable } from "../../components/organisms/UsersTable";
 import { toast } from "react-hot-toast";
+import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function UsersManagement() {
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedUserForRole, setSelectedUserForRole] =
-    useState<UserResponse | null>(null);
+  const [selectedUserForRole, setSelectedUserForRole] = useState<UserResponse | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const loadUsers = async (showRefresh = false) => {
-    if (showRefresh) setIsRefreshing(true);
+  // Pagination state
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const isInitialMount = useRef(true);
+  const isLoadingRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery !== debouncedSearch) {
+        setDebouncedSearch(searchQuery);
+        setPageNumber(1); // Reset to first page on search
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Load users function - accepts parameters directly
+  const loadUsers = useCallback(async (
+    page: number,
+    size: number,
+    search: string
+  ) => {
+    // Prevent duplicate calls
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+
+    setIsLoading(true);
     try {
-      const data = await userService.getAll();
-      setUsers(data);
+      const response = await userService.getAllPaginated({
+        pageNumber: page,
+        pageSize: size,
+        ...(search && { searchTerm: search }),
+      });
+
+      setUsers(response.items);
+      setTotalPages(response.totalPages);
+      setTotalCount(response.totalCount);
+      // Don't set pageNumber here to avoid state mismatch
+      console.log("Loading users with:", { page, size, search });
+      console.log("Response:", response);
+
     } catch (error) {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
-  };
-
-  useEffect(() => {
-    loadUsers();
   }, []);
 
-  const filteredUsers = users.filter((user) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
-    );
-  });
+  // Initial load only
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      loadUsers(1, pageSize, "");
+    }
+  }, []);
+
+  // Handle page change - use the current state values directly
+  const handlePageChange = useCallback((page: number) => {
+    if (page !== pageNumber && !isLoadingRef.current) {
+      setPageNumber(page);
+      loadUsers(page, pageSize, debouncedSearch);
+    }
+  }, [pageNumber, pageSize, debouncedSearch, loadUsers]);
+
+  // Handle page size change
+  const handlePageSizeChange = useCallback((newSize: number) => {
+    if (newSize !== pageSize && !isLoadingRef.current) {
+      setPageSize(newSize);
+      setPageNumber(1);
+      loadUsers(1, newSize, debouncedSearch);
+    }
+  }, [pageSize, debouncedSearch, loadUsers]);
+
+  // Handle search changes
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      loadUsers(1, pageSize, debouncedSearch);
+    }
+  }, [debouncedSearch]); // Only when debounced search changes
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    loadUsers(pageNumber, pageSize, debouncedSearch);
+  };
 
   const handleEdit = async (
     user: UserResponse,
@@ -73,10 +140,10 @@ export function UsersManagement() {
         email: data.email,
       });
       toast.success(`${data.name}'s details have been updated.`);
-      loadUsers();
+      loadUsers(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       toast.error("Failed to update user details.");
-      throw error; // keeps the edit row open so the admin can retry
+      throw error;
     }
   };
 
@@ -88,7 +155,7 @@ export function UsersManagement() {
       await userService.update(selectedUserForRole.userId, { role });
       toast.success(`${selectedUserForRole.name} is now a ${role}.`);
       setSelectedUserForRole(null);
-      loadUsers(); // Refresh list
+      loadUsers(pageNumber, pageSize, debouncedSearch);
     } catch (error) {
       console.error("Failed to update user role", error);
       toast.error("Failed to update user role.");
@@ -109,7 +176,7 @@ export function UsersManagement() {
         <Button
           variant="outline"
           className="gap-2 focus-visible:ring-offset-2"
-          onClick={() => loadUsers(true)}
+          onClick={handleRefresh}
           disabled={isRefreshing}
         >
           <RefreshCcw
@@ -124,7 +191,7 @@ export function UsersManagement() {
           <div className="space-y-1">
             <CardTitle>User Directory</CardTitle>
             <CardDescription>
-              Total of {users.length} registered accounts.
+              Total of {totalCount} registered accounts.
             </CardDescription>
           </div>
           <div className="relative w-full md:w-64">
@@ -139,12 +206,28 @@ export function UsersManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          <UsersTable
-            users={filteredUsers || []}
-            onPromote={setSelectedUserForRole}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-          />
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20 text-muted-foreground animate-pulse">
+              Loading users...
+            </div>
+          ) : (
+            <>
+              <UsersTable
+                users={users}
+                onPromote={setSelectedUserForRole}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+              />
+              <PaginationWrapper
+                currentPage={pageNumber}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalCount}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -163,6 +246,7 @@ export function UsersManagement() {
         </div>
       </div>
 
+      {/* Role Change Dialog */}
       <Dialog
         open={!!selectedUserForRole}
         onOpenChange={(open) => !open && setSelectedUserForRole(null)}

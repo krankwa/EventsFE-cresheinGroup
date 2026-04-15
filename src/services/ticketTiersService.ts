@@ -1,6 +1,6 @@
 import { apiRequest } from "./client";
 import type {
-  TicketTierCreateDTO,
+  TicketTierCreateRequest,
   TicketTierResponse,
 } from "../interface/Event.interface";
 
@@ -17,7 +17,7 @@ export const ticketTiersService = {
       requiresAuth: true,
     }),
 
-  createTier: (tier: TicketTierCreateDTO): Promise<TicketTierResponse> =>
+  createTier: (tier: TicketTierCreateRequest): Promise<TicketTierResponse> =>
     apiRequest<TicketTierResponse>("/TicketTier", {
       method: "POST",
       body: JSON.stringify(tier),
@@ -26,7 +26,7 @@ export const ticketTiersService = {
 
   updateTier: (
     id: number,
-    tier: TicketTierCreateDTO,
+    tier: TicketTierCreateRequest,
   ): Promise<TicketTierResponse> =>
     apiRequest<TicketTierResponse>(`/TicketTier/${id}`, {
       method: "PUT",

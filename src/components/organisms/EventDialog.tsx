@@ -28,7 +28,8 @@ import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
-  TicketTierCreateDTO,
+  TicketTierCreateRequest,
+  TicketTierUpdateRequest,
   TierTypeResponse,
 } from "../../interface/Event.interface";
 import { format } from "date-fns";
@@ -163,6 +164,7 @@ export function EventDialog({
           venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
+          ticketsSold: event.ticketsSold,
           maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
           coverImageUrl: event.coverImageUrl || "",
           tiers:
@@ -214,6 +216,9 @@ export function EventDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Track which tier name is currently being edited
+  const [editingTierIndex, setEditingTierIndex] = useState<number | null>(null);
+
   // ── Synchronize form when event prop changes or dialog opens ──────────
   useEffect(() => {
     if (isOpen) {
@@ -226,6 +231,7 @@ export function EventDialog({
           venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
+          ticketsSold: event.ticketsSold,
           maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
           coverImageUrl: event.coverImageUrl,
           tiers:
@@ -297,9 +303,9 @@ export function EventDialog({
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
-  const updateTier = (index: number, updates: Partial<TicketTierCreateDTO>) => {
+  const updateTier = (index: number, updates: Partial<TicketTierUpdateRequest>) => {
     const newTiers = [...formData.tiers];
-    newTiers[index] = { ...newTiers[index], ...updates } as TicketTierCreateDTO;
+    newTiers[index] = { ...newTiers[index], ...updates } as any;
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
@@ -447,18 +453,33 @@ export function EventDialog({
     }
 
     // Final sanitization: We map the tiers to ensure only required fields are sent
-    const sanitizedTiers = formData.tiers.map((t) => ({
-      id: t.id,
-      name: t.name,
-      price: t.price,
-      capacity: t.capacity,
-    }));
+    const sanitizedTiers = formData.tiers.map((t: any) => {
+      if (event) {
+        // For Update
+        const tier: TicketTierUpdateRequest = {
+          id: t.id || 0,
+          name: t.name,
+          price: t.price,
+          capacity: t.capacity,
+          ticketsSold: t.ticketsSold,
+        };
+        return tier;
+      } else {
+        // For Create
+        const tier: TicketTierCreateRequest = {
+          name: t.name,
+          price: t.price,
+          capacity: t.capacity,
+        };
+        return tier;
+      }
+    });
 
     onSave({
       ...formData,
       coverImageUrl: finalImageUrl || null,
       tiers: sanitizedTiers,
-    });
+    } as any);
   };
 
   const isBusy = isLoading || isUploading;
@@ -600,16 +621,39 @@ export function EventDialog({
                       className="p-3 rounded-xl bg-muted/40 border-2 border-transparent hover:border-primary/10 transition-all flex items-center gap-3 animate-in fade-in slide-in-from-top-1"
                     >
                       <div className="flex-1 space-y-2">
-                        <Input
-                          placeholder="Tier Name (e.g. Regular, VIP)"
-                          className="h-10 border-2 bg-background font-bold px-3 focus-visible:ring-primary shadow-sm rounded-lg"
-                          value={tier.name}
-                          onChange={(e) =>
-                            updateTier(idx, { name: e.target.value })
-                          }
-                          list="tier-types-list"
-                          required
-                        />
+                        {editingTierIndex === idx ? (
+                          <Input
+                            autoFocus
+                            placeholder="Tier Name (e.g. Regular, VIP)"
+                            className="h-10 border-2 bg-background font-bold px-3 focus-visible:ring-primary shadow-sm rounded-lg"
+                            value={tier.name}
+                            onChange={(e) =>
+                              updateTier(idx, { name: e.target.value })
+                            }
+                            onBlur={() => setEditingTierIndex(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                setEditingTierIndex(null);
+                              }
+                            }}
+                            list="tier-types-list"
+                            required
+                          />
+                        ) : (
+                          <div
+                            className="flex items-center justify-between group cursor-pointer"
+                            onClick={() => setEditingTierIndex(idx)}
+                          >
+                            <span className="text-sm font-bold truncate">
+                              {tier.name || (
+                                <span className="text-muted-foreground italic font-normal">
+                                  Unnamed Tier (Click to edit)
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border shadow-sm">
                             <span className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -837,12 +881,13 @@ export function EventDialog({
             </Button>
           </DialogFooter>
         </form>
+
+        <datalist id="tier-types-list">
+          {tierTypes.map((t) => (
+            <option key={t.id} value={t.name} />
+          ))}
+        </datalist>
       </DialogContent>
-      <datalist id="tier-types-list">
-        {tierTypes.map((t) => (
-          <option key={t.id} value={t.name} />
-        ))}
-      </datalist>
     </Dialog>
   );
 }

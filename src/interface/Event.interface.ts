@@ -17,15 +17,18 @@ export type EventAvailability =
   | { readonly status: "sold-out" }
   | { readonly status: "upcoming" };
 
-export interface TicketTierCreateDTO {
-  id?: number;
+export interface TicketTierCreateRequest {
   name: string;
   price: number;
   capacity: number;
 }
  
-export interface TicketTierUpdateDTO extends TicketTierCreateDTO {
+export interface TicketTierUpdateRequest {
   id: number;
+  name: string;
+  price: number;
+  capacity: number;
+  ticketsSold?: number;
 }
 
 export interface EventResponse {
@@ -48,9 +51,10 @@ export interface EventCreateDTO {
   venue: string;
   venueAddress: string;
   capacity: number;
+  ticketsSold?: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string | null;
-  tiers: TicketTierCreateDTO[];
+  tiers: TicketTierCreateRequest[];
 }
 
 export interface EventUpdateDTO {
@@ -59,7 +63,8 @@ export interface EventUpdateDTO {
   venue: string;
   venueAddress: string;
   capacity: number;
+  ticketsSold?: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string;
-  tiers: TicketTierCreateDTO[];
+  tiers: TicketTierUpdateRequest[];
 }

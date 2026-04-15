@@ -7,6 +7,7 @@ import {
   Pencil,
   X,
   Check,
+  UserCog,
 } from "lucide-react";
 import {
   Table,
@@ -86,13 +87,7 @@ export function UsersTable({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground animate-pulse">
-        Fetching user accounts...
-      </div>
-    );
-  }
+
 
   return (
     <Table>
@@ -203,28 +198,21 @@ export function UsersTable({
                   </div>
                 ) : (
                   <div className="flex items-center justify-end gap-2">
-                    {/* Edit button — available for all users */}
-                    {/* Promote or options button */}
-                    {user.role !== "Admin" ? (
+                    {/* Role Change button — available for users other than current admin */}
+                    {user.userId !== currentUser?.userId && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="gap-2"
-                        onClick={() => handleEditClick(user)}
-                        title="Edit user details"
+                        onClick={() => onPromote(user)}
+                        title="Manage user permissions"
                       >
-                        <Pencil className="w-4 h-4" />
-                        Edit
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={user.userId === currentUser?.userId}
-                      >
-                        {/* <MoreVertical className="w-4 h-4 text-muted-foreground" /> */}
+                        <UserCog className="w-4 h-4" />
+                        Role
                       </Button>
                     )}
+
+                    {/* Single Edit button — available for all users */}
                     <Button
                       variant="outline"
                       size="sm"

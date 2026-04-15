@@ -36,4 +36,15 @@ export const ticketsService = {
       method: "GET",
       requiresAuth: true,
     }),
+
+  validatePayment: (data: {
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+  }): Promise<{ isValid: boolean; message: string }> =>
+    apiRequest<{ isValid: boolean; message: string }>("/Payment/validate", {
+      method: "POST",
+      body: JSON.stringify(data),
+      requiresAuth: true,
+    }),
 };

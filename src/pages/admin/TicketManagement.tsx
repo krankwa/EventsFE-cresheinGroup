@@ -97,7 +97,7 @@ export function TicketManagement() {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "upcoming" | "redeemed" | "past"
   >("all");
-  
+
   // Client-side pagination hook
   const {
     page,
@@ -110,11 +110,11 @@ export function TicketManagement() {
     searchQuery: debouncedSearch,
     handleSearch,
   } = usePagination({ initialPageSize: 10 });
-  
+
   // Refs to prevent infinite loops
-  const isInitialMount = useRef(true);
-  const isFilterChange = useRef(false);
-  const isSearchChange = useRef(false);
+  // const isInitialMount = useRef(true);
+  // const isFilterChange = useRef(false);
+  // const isSearchChange = useRef(false);
 
   // Debounce search
   useEffect(() => {
@@ -140,14 +140,14 @@ export function TicketManagement() {
   const filteredTickets = useMemo(() => {
     const searchLower = debouncedSearch.toLowerCase();
     return tickets.filter((t) => {
-      const matchesSearch = 
+      const matchesSearch =
         t.eventTitle?.toLowerCase().includes(searchLower) ||
         t.tierName?.toLowerCase().includes(searchLower) ||
         t.ticketId.toString().includes(searchLower);
-      
+
       const status = getStatus(t);
       const matchesStatus = filterStatus === "all" || status === filterStatus;
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [tickets, debouncedSearch, filterStatus]);
@@ -176,7 +176,8 @@ export function TicketManagement() {
       toast.success(`Ticket #${id} redeemed successfully.`);
       loadTickets();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to redeem ticket.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to redeem ticket.";
       toast.error(msg);
     } finally {
       setScanningId(null);
@@ -206,7 +207,9 @@ export function TicketManagement() {
           onClick={handleRefresh}
           disabled={isLoading}
         >
-          <RefreshCcw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+          <RefreshCcw
+            className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -244,9 +247,7 @@ export function TicketManagement() {
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4">
           <div>
             <CardTitle>All Tickets</CardTitle>
-            <CardDescription>
-              {totalItems} total tickets found
-            </CardDescription>
+            <CardDescription>{totalItems} total tickets found</CardDescription>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -312,7 +313,11 @@ export function TicketManagement() {
                 <TableBody>
                   {paginatedTickets.map((ticket) => {
                     const status = getStatus(ticket);
-                    const { label, icon: Icon, class: cls } = statusConfig[status];
+                    const {
+                      label,
+                      icon: Icon,
+                      class: cls,
+                    } = statusConfig[status];
                     const isScanning = scanningId === ticket.ticketId;
 
                     return (

@@ -157,7 +157,7 @@ export function EventDialog({
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
-          venueName: event.venue || "",
+          venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
           maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
@@ -183,7 +183,7 @@ export function EventDialog({
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
-          venueName: "",
+          venue: "",
           venueAddress: "",
           capacity: 100,
           maxTicketsPerPerson: 5,
@@ -217,11 +217,11 @@ export function EventDialog({
   useEffect(() => {
     if (isOpen) {
       ticketTiersService
-        .getTiersByEventId(event?.Id || 0)
+        .getTiersByEventId(event?.id || 0)
         .then(setTierTypes)
         .catch((err) => console.error("Failed to load ticket tiers", err));
     }
-  }, [isOpen, event?.Id]);
+  }, [isOpen, event?.id]);
 
   // ── Tier Management ────────────────────────────────────────────────────
   const addTier = () => {
@@ -251,7 +251,7 @@ export function EventDialog({
   const handleVenueChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      venueName: value,
+      venue: value,
       venueLatitude: 0,
       venueLongitude: 0,
     }));
@@ -308,7 +308,7 @@ export function EventDialog({
     setFormData((prev) => ({
       ...prev,
       venueId: undefined,
-      venueName: establishment || "",
+      venue: establishment || "",
       venueAddress: result.display_name,
       venueLatitude: pos.lat,
       venueLongitude: pos.lng,
@@ -330,7 +330,7 @@ export function EventDialog({
     setFormData((prev) => ({
       ...prev,
       venueId: undefined,
-      venueName: address.split(",")[0] || "",
+      venue: address.split(",")[0] || "",
       venueAddress: address,
       venueLatitude: latlng.lat,
       venueLongitude: latlng.lng,
@@ -408,7 +408,7 @@ export function EventDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        key={isOpen ? `open-${event?.Id ?? "new"}` : "closed"}
+        key={isOpen ? `open-${event?.id ?? "new"}` : "closed"}
         className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto bg-background/95 backdrop-blur-md border-2"
       >
         <DialogHeader>

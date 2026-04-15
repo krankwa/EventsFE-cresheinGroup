@@ -3,13 +3,14 @@ import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
+  EventsFeedResponse,
 } from "../interface/Event.interface";
 
 export const eventsService = {
-  getAll: (): Promise<EventResponse[]> =>
-    apiRequest<EventResponse[]>("/Event", {
+  getAll: (): Promise<EventsFeedResponse> =>
+    apiRequest<EventsFeedResponse>("/Event", {
       method: "GET",
-      requiresAuth: false,
+      //requiresAuth: false,
     }),
 
   getById: (id: number): Promise<EventResponse> =>

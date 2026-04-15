@@ -13,10 +13,21 @@ export interface DashboardStats {
 
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
-    const [events, users] = await Promise.all([
+    const [eventsResponse, users] = await Promise.all([
       eventsService.getAll(),
       userService.getAll(),
     ]);
+    let events: EventResponse[] = [];
+    if (Array.isArray(eventsResponse)) {
+      events = eventsResponse;
+    } else if (eventsResponse) {
+      // It's the authenticated object -> merge them all
+      events = [
+        ...(eventsResponse.recommended || []),
+        ...(eventsResponse.popular || []),
+        ...(eventsResponse.allOthers || []),
+      ];
+    }
 
     const totalTicketsSold = events.reduce((sum, e) => sum + e.ticketsSold, 0);
 
@@ -25,9 +36,13 @@ export const dashboardService = {
 
     // Sort by conversion rate
     const topEvents = [...events]
-      .sort((a, b) => b.ticketsSold / b.capacity - a.ticketsSold / a.capacity)
+      .sort(
+        (a, b) =>
+          (b.capacity ? b.ticketsSold / b.capacity : 0) -
+          (a.capacity ? a.ticketsSold / a.capacity : 0),
+      )
       .slice(0, 4);
- 
+
     return {
       totalUsers: users.length,
       totalEvents: events.length,

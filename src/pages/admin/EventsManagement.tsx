@@ -83,8 +83,22 @@ export function EventsManagement() {
     setIsLoading(true);
     try {
       const data = await eventsService.getAll();
-      // The backend returns a direct array, so no extraction needed anymore
-      setEvents(data || []);
+      //the backend returns a direct array
+      let flatEvents: EventResponse[] = [];
+      if (Array.isArray(data)) {
+        flatEvents = data;
+      } else if (data) {
+        //since Admins are authenticated, they usually receive the object format from popularity remmended and other events
+        flatEvents = [
+          ...(data.recommended || []),
+          ...(data.popular || []),
+          ...(data.allOthers || []),
+        ];
+      }
+      const uniqueEvents = Array.from(
+        new Map(flatEvents.map((e) => [e.id, e])).values(),
+      );
+      setEvents(uniqueEvents);
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
@@ -118,8 +132,8 @@ export function EventsManagement() {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
-      if (selectedEvent && selectedEvent.Id) {
-        await eventsService.update(selectedEvent.Id, data as EventUpdateDTO);
+      if (selectedEvent && selectedEvent.id) {
+        await eventsService.update(selectedEvent.id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
@@ -137,14 +151,14 @@ export function EventsManagement() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedEvent || !selectedEvent.Id) return;
+    if (!selectedEvent || !selectedEvent.id) return;
     setIsSaving(true);
     try {
-      await eventsService.delete(selectedEvent.Id);
+      await eventsService.delete(selectedEvent.id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
       loadEvents();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
@@ -233,7 +247,7 @@ export function EventsManagement() {
       </Card>
 
       <EventDialog
-        key={selectedEvent?.Id || "new"}
+        key={selectedEvent?.id || "new"}
         isOpen={isEventDialogOpen}
         onClose={() => setIsEventDialogOpen(false)}
         onSave={handleSave}

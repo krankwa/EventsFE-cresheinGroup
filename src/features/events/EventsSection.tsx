@@ -7,11 +7,15 @@ import { SectionHeader } from "../../components/molecules/SectionHeader";
 import { Badge } from "../../components/ui/badge";
 import { ErrorState } from "../../components/ui/error";
 
-import type { EventResponse } from "../../interface/Event.interface";
+import type {
+  //EventResponse,
+  EventsFeedResponse,
+  EventRecommendResponse,
+} from "../../interface/Event.interface";
 
 // --- Context ---
 interface EventsSectionContextType {
-  events: EventResponse[];
+  data: EventsFeedResponse | undefined;
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
@@ -49,12 +53,12 @@ export function EventsSection({ children, id, className }: EventsSectionProps) {
   const { data, isLoading, isError, error, refetch } = useEvents();
 
   // FIX: Force to an array. If API returns null, this prevents the white screen.
-  const safeEvents = Array.isArray(data) ? data : [];
+  //const safeEvents = Array.isArray(data) ? data : [];
 
   return (
     <EventsSectionContext.Provider
       value={{
-        events: safeEvents,
+        data,
         isLoading,
         isError,
         error: error ?? null,
@@ -74,10 +78,18 @@ EventsSection.Header = function EventsSectionHeader({
 }: {
   className?: string;
 }) {
-  const { events } = useEventsSectionContext("EventsSection.Header");
+  const { data } = useEventsSectionContext("EventsSection.Header");
 
-  // Safe length check
-  const eventCount = events?.length || 0;
+  // Calculate safe length based on the payload type
+  let eventCount = 0;
+  if (Array.isArray(data)) {
+    eventCount = data.length;
+  } else if (data) {
+    eventCount =
+      (data.recommended?.length || 0) +
+      (data.popular?.length || 0) +
+      (data.allOthers?.length || 0);
+  }
 
   return (
     <SectionHeader className={className ?? ""}>
@@ -100,7 +112,7 @@ EventsSection.Header = function EventsSectionHeader({
 };
 
 EventsSection.Grid = function EventsSectionGrid() {
-  const { events, isLoading, isError, error, refetch } =
+  const { data, isLoading, isError, error, refetch } =
     useEventsSectionContext("EventsSection.Grid");
 
   if (isError) {
@@ -111,6 +123,43 @@ EventsSection.Grid = function EventsSectionGrid() {
       />
     );
   }
+  //unauthenticated scenario
+  // standard array
+  if (Array.isArray(data)) {
+    return <EventGrid events={data} isLoading={isLoading} />;
+  }
 
-  return <EventGrid events={events} isLoading={isLoading} />;
+  //authenticated scenario
+  //an object with Recommended, Popular, AllOthers
+  if (data && !Array.isArray(data)) {
+    const { recommended, popular, allOthers } = data as EventRecommendResponse;
+    const topRecommended = recommended?.slice(0, 6) || [];
+    const topPopular = popular?.slice(0, 6) || [];
+    const hasRecommendations = topRecommended.length > 0;
+    const hasPopular = topPopular.length > 0;
+
+    return (
+      <div className="flex flex-col gap-12">
+        {hasRecommendations && (
+          <div id="recommended-section">
+            <h3 className="text-2xl font-bold mb-4">Recommended For You</h3>
+            <EventGrid events={topRecommended} isLoading={isLoading} />
+          </div>
+        )}
+
+        {hasPopular && (
+          <div id="popular-section">
+            <h3 className="text-2xl font-bold mb-4">Popular Right Now</h3>
+            <EventGrid events={topPopular} isLoading={isLoading} />
+          </div>
+        )}
+
+        <div id="all-events-section">
+          <h3 className="text-2xl font-bold mb-4">More Events</h3>
+          <EventGrid events={allOthers} isLoading={isLoading} />
+        </div>
+      </div>
+    );
+  }
+  return <EventGrid events={[]} isLoading={isLoading} />;
 };

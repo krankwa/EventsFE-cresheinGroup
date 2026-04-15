@@ -11,6 +11,7 @@ export async function registerTicket(
   return apiRequest<TicketResponse>("/tickets", {
     method: "POST",
     body: JSON.stringify(data),
+    requiresAuth: true,
   });
 }
 

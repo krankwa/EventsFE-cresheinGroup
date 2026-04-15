@@ -1,29 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { eventsService } from "../../services/eventsService";
-import type { EventResponse } from "../../interface/Event.interface";
+import type { EventsFeedResponse } from "../../interface/Event.interface";
 
 export function useEvents() {
-  return useQuery<EventResponse[], Error>({
+  return useQuery<EventsFeedResponse, Error>({
     queryKey: ["events"],
-    queryFn: async (): Promise<EventResponse[]> => {
+    queryFn: async (): Promise<EventsFeedResponse> => {
+      // 1. Fetch data from backend
       const response = await eventsService.getAll();
 
+      // 2. Unauthenticated Scenario: The API responds with a raw array
       if (Array.isArray(response)) {
-        return response as EventResponse[];
+        return response;
       }
 
-      if (response && typeof response === "object") {
-        const safeResponse = response as Record<string, unknown>;
-        if (Array.isArray(safeResponse.events))
-          return safeResponse.events as EventResponse[];
-        if (Array.isArray(safeResponse.data))
-          return safeResponse.data as EventResponse[];
-        if (Array.isArray(safeResponse.items))
-          return safeResponse.items as EventResponse[];
+      // 3. Authenticated Scenario: The API responds with categorized object
+      if (
+        response &&
+        typeof response === "object" &&
+        "recommended" in response &&
+        "popular" in response &&
+        "allOthers" in response
+      ) {
+        return response; // Return the new categorized data seamlessly
       }
 
-      // If we reach this line, the server sent us junk data.
-      // Throwing this error triggers your UI <ErrorState /> component!
+      // Fallback: This correctly catches 500s or unexpected model changes
       throw new Error("Invalid data format received from the server.");
     },
     // Optional: Prevent React Query from aggressively retrying broken formatting 3 times

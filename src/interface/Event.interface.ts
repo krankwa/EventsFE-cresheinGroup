@@ -26,7 +26,7 @@ export interface TicketTierCreateDTO {
 }
 
 export interface EventResponse {
-  Id: number;
+  id: number;
   title: string;
   date: string;
   capacity: number;
@@ -42,7 +42,7 @@ export interface EventResponse {
 export interface EventCreateDTO {
   title: string;
   date: string;
-  venueName?: string;
+  venue: string;
   venueAddress?: string;
   capacity: number;
   maxTicketsPerPerson: number;
@@ -60,3 +60,10 @@ export interface EventUpdateDTO {
   coverImageUrl?: string;
   tiers: TicketTierCreateDTO[];
 }
+
+export interface EventRecommendResponse {
+  recommended: EventResponse[];
+  popular: EventResponse[];
+  allOthers: EventResponse[];
+}
+export type EventsFeedResponse = EventResponse[] | EventRecommendResponse;

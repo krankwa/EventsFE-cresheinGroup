@@ -40,7 +40,7 @@ export function DashboardOverview() {
           </p>
         </div>
         <Link to="/admin/events">
-          <Button className="gap-2 shadow-lg shadow-primary/20">
+          <Button className="gap-2 shadow-lg bg-blue-900 shadow-primary/20">
             <Plus className="w-4 h-4" />
             New Event
           </Button>
@@ -50,7 +50,7 @@ export function DashboardOverview() {
       <StatsGrid stats={stats} isLoading={isLoading} />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 border-none shadow-sm bg-gradient-to-br from-background to-muted/20">
+        <Card className="col-span-4 border-none shadow-sm from-background to-muted/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>

@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import type { EventResponse } from "../../interface/Event.interface";
 
 import { TableEmptyState } from "./TableEmptyState";
+import { cn } from "@/lib/utils";
 
 interface EventsTableProps {
   events: EventResponse[];
@@ -36,17 +37,19 @@ export const EventsTable = memo(function EventsTable({
         icon={CalendarDays}
         title="No Masterwork Events Found"
         description="Your stage is currently empty. Start by creating a new event to begin managing your masterwork."
-        actionLabel={onCreateNew ? "Create New Event" : undefined}
-        onAction={onCreateNew}
+        {...(onCreateNew && {
+          actionLabel: "Create New Event",
+          onAction: onCreateNew,
+        })}
       />
     );
   }
 
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="bg-gray-100 rounded-t-lg">
         <TableRow>
-          <TableHead className="w-[80px]">Cover</TableHead>
+          <TableHead className="w-[80px] ">Cover</TableHead>
           <TableHead>Event Info</TableHead>
           <TableHead>Location</TableHead>
           <TableHead>Capacity</TableHead>
@@ -121,56 +124,61 @@ export const EventsTable = memo(function EventsTable({
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={sold >= capacity ? "destructive" : "secondary"}
-                  className="font-medium"
+                  className={cn(
+                    "font-medium",
+                    sold >= capacity
+                      ? "bg-red-100 text-red-700 hover:bg-red-100 border-red-200"
+                      : "bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
+                  )}
                 >
                   {sold >= capacity ? "Sold Out" : "Active"}
                 </Badge>
+
               </TableCell>
-            <TableCell className="text-right">
-              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <TableCell className="text-right">
+                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onView(event);
+                    }}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(event);
+                    }}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(event);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onView(event);
-                  }}
+                  className="group-hover:hidden h-8 w-8"
                 >
-                  <Eye className="w-4 h-4" />
+                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(event);
-                  }}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(event);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="group-hover:hidden h-8 w-8"
-              >
-                <MoreVertical className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </TableCell>
+              </TableCell>
             </TableRow>
           );
         })}

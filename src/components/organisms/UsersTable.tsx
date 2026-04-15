@@ -6,7 +6,8 @@ import {
   Pencil,
   X,
   Check,
-  UserCog,
+  Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Table,
@@ -25,7 +26,7 @@ import { TableEmptyState } from "./TableEmptyState";
 
 interface UsersTableProps {
   users: UserResponse[];
-  onPromote: (user: UserResponse) => void;
+  onPromote: (user: UserResponse) => Promise<void>; // Changed to Promise
   onEdit: (
     user: UserResponse,
     data: { name: string; email: string },
@@ -39,6 +40,11 @@ interface EditState {
   email: string;
 }
 
+interface LoadingState {
+  promoting: number | null;
+  editing: number | null;
+}
+
 export function UsersTable({
   users,
   onPromote,
@@ -47,7 +53,10 @@ export function UsersTable({
 }: UsersTableProps) {
   const { user: currentUser } = useUser();
   const [editState, setEditState] = useState<EditState | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    promoting: null,
+    editing: null,
+  });
 
   if (isLoading) {
     return (
@@ -77,18 +86,31 @@ export function UsersTable({
 
   const handleSave = async (user: UserResponse) => {
     if (!editState) return;
-    setIsSaving(true);
+
+    setLoadingState(prev => ({ ...prev, editing: user.userId }));
     try {
       await onEdit(user, { name: editState.name, email: editState.email });
       setEditState(null);
     } finally {
-      setIsSaving(false);
+      setLoadingState(prev => ({ ...prev, editing: null }));
     }
   };
 
+  const handlePromote = async (user: UserResponse) => {
+    setLoadingState(prev => ({ ...prev, promoting: user.userId }));
+    try {
+      await onPromote(user);
+    } finally {
+      setLoadingState(prev => ({ ...prev, promoting: null }));
+    }
+  };
+
+  const isPromoting = (userId: number) => loadingState.promoting === userId;
+  const isEditing = (userId: number) => loadingState.editing === userId;
+
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="bg-gray-100 rounded-t-lg">
         <TableRow>
           <TableHead>User</TableHead>
           <TableHead>Email</TableHead>
@@ -98,13 +120,21 @@ export function UsersTable({
       </TableHeader>
       <TableBody>
         {users.map((user) => {
-          const isEditing = editState?.userId === user.userId;
+          const isEditingMode = editState?.userId === user.userId;
+          const isAdmin = user.role === "Admin";
+          // const isStaff = user.role === "Staff";
+          const isCurrentUser = user.userId === currentUser?.userId;
+          const isPromotingUser = isPromoting(user.userId);
+          const isEditingUser = isEditing(user.userId);
 
           return (
-            <TableRow key={user.userId}>
+            <TableRow
+              key={user.userId}
+              className={isPromotingUser ? "opacity-50 pointer-events-none" : ""}
+            >
               {/* Name cell — inline edit */}
               <TableCell>
-                {isEditing ? (
+                {isEditingMode ? (
                   <input
                     autoFocus
                     value={editState.name}
@@ -114,6 +144,7 @@ export function UsersTable({
                       )
                     }
                     className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    disabled={isEditingUser}
                   />
                 ) : (
                   <div className="flex items-center gap-3">
@@ -121,7 +152,7 @@ export function UsersTable({
                       <User className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <span className="font-medium">{user.name}</span>
-                    {user.userId === currentUser?.userId && (
+                    {isCurrentUser && (
                       <Badge variant="outline" className="text-[10px] py-0">
                         You
                       </Badge>
@@ -132,7 +163,7 @@ export function UsersTable({
 
               {/* Email cell — inline edit */}
               <TableCell>
-                {isEditing ? (
+                {isEditingMode ? (
                   <input
                     type="email"
                     value={editState.email}
@@ -142,6 +173,7 @@ export function UsersTable({
                       )
                     }
                     className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    disabled={isEditingUser}
                   />
                 ) : (
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -151,70 +183,95 @@ export function UsersTable({
                 )}
               </TableCell>
 
-              {/* Role */}
+              {/* Role - Differentiated colors */}
               <TableCell>
-                <Badge
-                  variant={user.role === "Admin" ? "default" : "secondary"}
-                  className="gap-1"
-                >
-                  {user.role === "Admin" ? (
+                {user.role === "Admin" ? (
+                  <Badge className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white border-0">
+                    <ShieldAlert className="w-3 h-3" />
+                    Admin
+                  </Badge>
+                ) : user.role === "Staff" ? (
+                  <Badge className="gap-1.5 bg-blue-400 hover:bg-blue-500 text-white border-0">
                     <ShieldCheck className="w-3 h-3" />
-                  ) : (
+                    Staff
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200">
                     <User className="w-3 h-3" />
-                  )}
-                  {user.role}
-                </Badge>
+                    User
+                  </Badge>
+                )}
               </TableCell>
 
               {/* Actions */}
               <TableCell className="text-right">
-                {isEditing ? (
+                {isEditingMode ? (
                   <div className="flex items-center justify-end gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleCancel}
-                      disabled={isSaving}
+                      disabled={isEditingUser}
                       title="Cancel"
                     >
                       <X className="w-4 h-4 text-muted-foreground" />
                     </Button>
                     <Button
                       size="sm"
-                      className="gap-1"
+                      className="gap-1 bg-green-600"
                       onClick={() => handleSave(user)}
                       disabled={
-                        isSaving ||
+                        isEditingUser ||
                         !editState.name.trim() ||
                         !editState.email.trim()
                       }
                     >
-                      <Check className="w-4 h-4" />
-                      {isSaving ? "Saving..." : "Save"}
+                      {isEditingUser ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Save
+                        </>
+                      )}
                     </Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-end gap-2">
-                    {/* Role Change button — available for users other than current admin */}
-                    {user.userId !== currentUser?.userId && (
+                    {/* Promote button - only for non-admin users */}
+                    {!isAdmin && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="gap-2"
-                        onClick={() => onPromote(user)}
-                        title="Manage user permissions"
+                        onClick={() => handlePromote(user)}
+                        disabled={isPromotingUser}
+                        title="Promote to Admin"
                       >
-                        <UserCog className="w-4 h-4" />
-                        Role
+                        {isPromotingUser ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Promoting...
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-4 h-4" />
+                            Promote
+                          </>
+                        )}
                       </Button>
                     )}
 
-                    {/* Single Edit button — available for all users */}
+                    {/* Edit button */}
                     <Button
                       variant="outline"
                       size="sm"
                       className="gap-2"
                       onClick={() => handleEditClick(user)}
+                      disabled={isPromotingUser}
                       title="Edit user details"
                     >
                       <Pencil className="w-4 h-4" />

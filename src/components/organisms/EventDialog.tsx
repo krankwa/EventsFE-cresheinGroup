@@ -156,43 +156,43 @@ export function EventDialog({
   const [formData, setFormData] = useState<EventCreateDTO>(
     event
       ? {
-          title: event.title,
-          date: event.date
-            ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
-            : format(new Date(), "yyyy-MM-dd"),
-          venue: event.venue || "",
-          venueAddress: event.venueAddress || "",
-          capacity: event.capacity,
-          maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
-          coverImageUrl: event.coverImageUrl || "",
-          tiers:
-            event.tiers && event.tiers.length > 0
-              ? event.tiers.map((t) => ({
-                  id: t.id,
-                  name: t.name,
-                  price: t.price,
-                  capacity: t.capacity,
-                  ticketsSold: t.ticketsSold,
-                }))
-              : [
-                  {
-                    name: "Regular",
-                    price: 0,
-                    capacity: event.capacity,
-                    ticketsSold: 0,
-                  },
-                ],
-        }
+        title: event.title,
+        date: event.date
+          ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+        venue: event.venue || "",
+        venueAddress: event.venueAddress || "",
+        capacity: event.capacity,
+        maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
+        coverImageUrl: event.coverImageUrl || "",
+        tiers:
+          event.tiers && event.tiers.length > 0
+            ? event.tiers.map((t) => ({
+              id: t.id,
+              name: t.name,
+              price: t.price,
+              capacity: t.capacity,
+              ticketsSold: t.ticketsSold,
+            }))
+            : [
+              {
+                name: "Regular",
+                price: 0,
+                capacity: event.capacity,
+                ticketsSold: 0,
+              },
+            ],
+      }
       : {
-          title: "",
-          date: format(new Date(), "yyyy-MM-dd"),
-          venue: "",
-          venueAddress: "",
-          capacity: 100,
-          maxTicketsPerPerson: 5,
-          coverImageUrl: "",
-          tiers: [{ name: "Regular", price: 0, capacity: 100 }],
-        },
+        title: "",
+        date: format(new Date(), "yyyy-MM-dd"),
+        venue: "",
+        venueAddress: "",
+        capacity: 100,
+        maxTicketsPerPerson: 5,
+        coverImageUrl: "",
+        tiers: [{ name: "Regular", price: 0, capacity: 100 }],
+      },
   );
 
   // ── Map / geocoding state ───────────────────────────────────────────────
@@ -800,24 +800,24 @@ export function EventDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-6 gap-3">
+          <DialogFooter className="pt-4 gap-3">
             <Button
               type="button"
               variant="ghost"
               className="h-12 px-8 font-bold"
               onClick={onClose}
             >
-              Discard
+              Cancel
             </Button>
             <Button
               type="submit"
-              className="h-12 px-12 font-bold min-w-[180px] shadow-lg shadow-primary/20"
+              className="h-12 px-12 font-bold bg-blue-950 min-w-[180px] shadow-lg shadow-primary/20"
               disabled={isBusy}
             >
               {isBusy ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : event ? (
-                "Finalize Updates"
+                "Update"
               ) : (
                 "Broadcast Event"
               )}

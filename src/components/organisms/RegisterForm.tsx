@@ -153,7 +153,7 @@ export function RegisterForm() {
 			</div>
 
 			<Button
-				className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.01] mt-2"
+				className="w-full h-11 text-base bg-blue-950 font-semibold transition-all hover:scale-[1.01] mt-2"
 				type="submit"
 				disabled={isPending || !passwordsMatch || !passwordStrong}
 			>

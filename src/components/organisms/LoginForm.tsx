@@ -17,7 +17,7 @@ export function LoginForm() {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-6">
+		<form onSubmit={handleSubmit} className=" space-y-6">
 			<div className="space-y-2">
 				<Label htmlFor="email">Email</Label>
 				<div className="relative">
@@ -55,17 +55,17 @@ export function LoginForm() {
 				</div>
 			</div>
 			<Button
-				className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.01]"
+				className="w-full h-11 text-base font-semibold bg-blue-950 transition-all hover:scale-[1.01]"
 				type="submit"
 				disabled={isPending}
 			>
 				{isPending ? (
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 bg-blue-950">
 						<div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-white rounded-full animate-spin" />
 						Logging in...
 					</div>
 				) : (
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 ">
 						Sign In
 						<ArrowRight className="w-4 h-4" />
 					</div>

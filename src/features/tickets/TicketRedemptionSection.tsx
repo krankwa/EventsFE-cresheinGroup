@@ -122,7 +122,7 @@ export function TicketRedemptionSection() {
     processLock.current = true;
     // KILL scanner immediately to prevent runaway scans
     stopScanner();
-    
+
     handleRedeem(ticketId);
   }
 
@@ -182,7 +182,7 @@ export function TicketRedemptionSection() {
                 )}
                 <Button
                   onClick={startScanner}
-                  className="w-full rounded-full h-12 font-bold shadow-lg shadow-primary/20"
+                  className="w-full rounded-full h-12 bg-blue-950 font-bold shadow-lg shadow-primary/20"
                 >
                   Enable Camera
                 </Button>

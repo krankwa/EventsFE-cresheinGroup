@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Search,
   RefreshCcw,
@@ -27,41 +27,79 @@ import {
 } from "../../components/ui/card";
 import { UsersTable } from "../../components/organisms/UsersTable";
 import { toast } from "react-hot-toast";
+import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { usePagination } from "@/utils/pagination/usePagination";
 
 export function UsersManagement() {
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedUserForRole, setSelectedUserForRole] =
     useState<UserResponse | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadUsers = async (showRefresh = false) => {
-    if (showRefresh) setIsRefreshing(true);
+  // Client-side pagination hook
+  const {
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    setTotalItems,
+    goToPage,
+    setPageSize,
+    searchQuery: debouncedSearch,
+    handleSearch,
+  } = usePagination({ initialPageSize: 10 });
+
+  const isInitialMount = useRef(true);
+  const isLoadingRef = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
+
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
     try {
       const data = await userService.getAll();
-      setUsers(data);
+      setUsers(data || []);
     } catch (error) {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
-  };
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase();
+    return users.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(searchLower) ||
+        u.email?.toLowerCase().includes(searchLower),
+    );
+  }, [users, debouncedSearch]);
+
+  useEffect(() => {
+    setTotalItems(filteredUsers.length);
+  }, [filteredUsers, setTotalItems]);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, page, pageSize]);
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
-  const filteredUsers = users.filter((user) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
-    );
-  });
+  const handleRefresh = () => {
+    loadUsers();
+  };
 
   const handleEdit = async (
     user: UserResponse,
@@ -76,7 +114,7 @@ export function UsersManagement() {
       loadUsers();
     } catch (error) {
       toast.error("Failed to update user details.");
-      throw error; // keeps the edit row open so the admin can retry
+      throw error;
     }
   };
 
@@ -88,7 +126,7 @@ export function UsersManagement() {
       await userService.update(selectedUserForRole.userId, { role });
       toast.success(`${selectedUserForRole.name} is now a ${role}.`);
       setSelectedUserForRole(null);
-      loadUsers(); // Refresh list
+      loadUsers();
     } catch (error) {
       console.error("Failed to update user role", error);
       toast.error("Failed to update user role.");
@@ -109,11 +147,11 @@ export function UsersManagement() {
         <Button
           variant="outline"
           className="gap-2 focus-visible:ring-offset-2"
-          onClick={() => loadUsers(true)}
-          disabled={isRefreshing}
+          onClick={handleRefresh}
+          disabled={isLoading}
         >
           <RefreshCcw
-            className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+            className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>
@@ -124,7 +162,7 @@ export function UsersManagement() {
           <div className="space-y-1">
             <CardTitle>User Directory</CardTitle>
             <CardDescription>
-              Total of {users.length} registered accounts.
+              Total of {totalItems} registered accounts found.
             </CardDescription>
           </div>
           <div className="relative w-full md:w-64">
@@ -139,12 +177,28 @@ export function UsersManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          <UsersTable
-            users={filteredUsers || []}
-            onPromote={setSelectedUserForRole}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-          />
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20 text-muted-foreground animate-pulse">
+              Loading users...
+            </div>
+          ) : (
+            <>
+              <UsersTable
+                users={paginatedUsers}
+                onPromote={setSelectedUserForRole}
+                isLoading={isLoading}
+                onEdit={handleEdit}
+              />
+              <PaginationWrapper
+                currentPage={page}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
+              />
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -163,6 +217,7 @@ export function UsersManagement() {
         </div>
       </div>
 
+      {/* Role Change Dialog */}
       <Dialog
         open={!!selectedUserForRole}
         onOpenChange={(open) => !open && setSelectedUserForRole(null)}

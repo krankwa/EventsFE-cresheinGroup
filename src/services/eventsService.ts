@@ -1,19 +1,16 @@
+import { apiRequest } from "./client";
 import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
-
-
-
+  EventsFeedResponse,
 } from "../interface/Event.interface";
 
-import { apiRequest } from "./client";
-
 export const eventsService = {
-  getAll: (): Promise<EventResponse[]> =>
-    apiRequest<EventResponse[]>("/Event", {
+  getAll: (): Promise<EventsFeedResponse> =>
+    apiRequest<EventsFeedResponse>("/Event", {
       method: "GET",
-      requiresAuth: false,
+      //requiresAuth: false,
     }),
 
   getById: (id: number): Promise<EventResponse> =>
@@ -29,15 +26,15 @@ export const eventsService = {
       requiresAuth: true,
     }),
 
-  update: (eventID: number, data: EventUpdateDTO): Promise<EventResponse> =>
-    apiRequest<EventResponse>(`/Event/${eventID}`, {
+  update: (id: number, data: EventUpdateDTO): Promise<EventResponse> =>
+    apiRequest<EventResponse>(`/Event/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
       requiresAuth: true,
     }),
 
-  delete: (eventID: number): Promise<void> =>
-    apiRequest<void>(`/Event/${eventID}`, {
+  delete: (id: number): Promise<void> =>
+    apiRequest<void>(`/Event/${id}`, {
       method: "DELETE",
       requiresAuth: true,
     }),

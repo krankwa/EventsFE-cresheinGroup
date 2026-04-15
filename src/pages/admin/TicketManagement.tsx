@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { format, isPast } from "date-fns";
 import {
   Ticket,
@@ -32,8 +32,10 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { toast } from "react-hot-toast";
+import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
+import { usePagination } from "@/utils/pagination/usePagination";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
   if (t.isRedeemed) return "redeemed";
   if (isPast(new Date(t.eventDate))) return "past";
@@ -58,7 +60,7 @@ const statusConfig = {
   },
 };
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
+// Stat Card Component
 function StatCard({
   label,
   value,
@@ -87,40 +89,92 @@ function StatCard({
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export function TicketManagement() {
   const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [scannningId, setScanningId] = useState<number | null>(null);
-  const [search, setSearch] = useState("");
+  const [scanningId, setScanningId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<
     "all" | "upcoming" | "redeemed" | "past"
   >("all");
 
-  const load = async (silent = false) => {
-    if (!silent) setIsLoading(true);
+  // Client-side pagination hook
+  const {
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    setTotalItems,
+    goToPage,
+    setPageSize,
+    searchQuery: debouncedSearch,
+    handleSearch,
+  } = usePagination({ initialPageSize: 10 });
+
+  // Refs to prevent infinite loops
+  // const isInitialMount = useRef(true);
+  // const isFilterChange = useRef(false);
+  // const isSearchChange = useRef(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
+
+  const loadTickets = useCallback(async () => {
+    setIsLoading(true);
     try {
       const data = await ticketsService.getAll();
-      setTickets(data);
-    } catch {
+      setTickets(data || []);
+    } catch (error) {
+      console.error("Failed to load tickets", error);
       toast.error("Failed to load tickets.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const filteredTickets = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase();
+    return tickets.filter((t) => {
+      const matchesSearch =
+        t.eventTitle?.toLowerCase().includes(searchLower) ||
+        t.tierName?.toLowerCase().includes(searchLower) ||
+        t.ticketId.toString().includes(searchLower);
+
+      const status = getStatus(t);
+      const matchesStatus = filterStatus === "all" || status === filterStatus;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [tickets, debouncedSearch, filterStatus]);
 
   useEffect(() => {
-    load();
-  }, []);
+    setTotalItems(filteredTickets.length);
+  }, [filteredTickets, setTotalItems]);
+
+  const paginatedTickets = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredTickets.slice(start, start + pageSize);
+  }, [filteredTickets, page, pageSize]);
+
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
+
+  const handleRefresh = () => {
+    loadTickets();
+  };
 
   const handleScan = async (id: number) => {
     setScanningId(id);
     try {
       await ticketsService.scan(id);
       toast.success(`Ticket #${id} redeemed successfully.`);
-      setTickets((prev) =>
-        prev.map((t) => (t.ticketId === id ? { ...t, isRedeemed: true } : t)),
-      );
+      loadTickets();
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to redeem ticket.";
@@ -130,32 +184,12 @@ export function TicketManagement() {
     }
   };
 
-  // ── Stats ──
-  const stats = useMemo(
-    () => ({
-      total: tickets.length,
-      upcoming: tickets.filter((t) => getStatus(t) === "upcoming").length,
-      redeemed: tickets.filter((t) => getStatus(t) === "redeemed").length,
-      past: tickets.filter((t) => getStatus(t) === "past").length,
-    }),
-    [tickets],
-  );
-
-  // ── Filtered list ──
-  const filtered = useMemo(
-    () =>
-      tickets.filter((t) => {
-        const q = search.toLowerCase();
-        const matchSearch =
-          t.eventTitle?.toLowerCase().includes(q) ||
-          t.ticketId.toString().includes(q) ||
-          t.tierName?.toLowerCase().includes(q);
-        const matchStatus =
-          filterStatus === "all" || getStatus(t) === filterStatus;
-        return matchSearch && matchStatus;
-      }),
-    [tickets, search, filterStatus],
-  );
+  const stats = {
+    total: tickets.length,
+    upcoming: tickets.filter((t) => getStatus(t) === "upcoming").length,
+    redeemed: tickets.filter((t) => getStatus(t) === "redeemed").length,
+    past: tickets.filter((t) => getStatus(t) === "past").length,
+  };
 
   return (
     <div className="space-y-6">
@@ -170,7 +204,7 @@ export function TicketManagement() {
         <Button
           variant="outline"
           className="gap-2"
-          onClick={() => load()}
+          onClick={handleRefresh}
           disabled={isLoading}
         >
           <RefreshCcw
@@ -213,9 +247,7 @@ export function TicketManagement() {
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4">
           <div>
             <CardTitle>All Tickets</CardTitle>
-            <CardDescription>
-              {filtered.length} of {tickets.length} tickets
-            </CardDescription>
+            <CardDescription>{totalItems} total tickets found</CardDescription>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -225,8 +257,8 @@ export function TicketManagement() {
               <input
                 type="search"
                 placeholder="Search event, tier, ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
@@ -235,9 +267,10 @@ export function TicketManagement() {
             {/* Status filter */}
             <select
               value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as typeof filterStatus)
-              }
+              onChange={(e) => {
+                setFilterStatus(e.target.value as typeof filterStatus);
+                goToPage(1);
+              }}
               className="h-10 rounded-md border border-input bg-background px-3 text-sm
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -256,90 +289,100 @@ export function TicketManagement() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : filteredTickets.length === 0 ? (
             <div className="py-16 text-center text-muted-foreground border-2 border-dashed rounded-xl">
               <Ticket className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="font-medium">No tickets found</p>
               <p className="text-sm">Try adjusting your search or filter.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Event Date</TableHead>
-                  <TableHead>Booked</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((ticket) => {
-                  const status = getStatus(ticket);
-                  const {
-                    label,
-                    icon: Icon,
-                    class: cls,
-                  } = statusConfig[status];
-                  const isScanning = scannningId === ticket.ticketId;
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Tier</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Event Date</TableHead>
+                    <TableHead>Booked</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedTickets.map((ticket) => {
+                    const status = getStatus(ticket);
+                    const {
+                      label,
+                      icon: Icon,
+                      class: cls,
+                    } = statusConfig[status];
+                    const isScanning = scanningId === ticket.ticketId;
 
-                  return (
-                    <TableRow key={ticket.ticketId}>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        #{ticket.ticketId}
-                      </TableCell>
-                      <TableCell className="font-medium max-w-[160px] truncate">
-                        {ticket.eventTitle}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {ticket.tierName ?? "General"}
-                      </TableCell>
-                      <TableCell className="text-sm font-semibold text-primary">
-                        ₱{ticket.price.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(ticket.eventDate), "PP")}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(ticket.registrationDate), "PP")}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`gap-1 text-[11px] border ${cls}`}>
-                          <Icon className="w-3 h-3" />
-                          {label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {status === "upcoming" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1.5 hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 transition-colors"
-                            disabled={isScanning}
-                            onClick={() => handleScan(ticket.ticketId)}
-                          >
-                            {isScanning ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                Scanning...
-                              </>
-                            ) : (
-                              <>
-                                <ScanLine className="w-3.5 h-3.5" />
-                                Redeem
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                    return (
+                      <TableRow key={ticket.ticketId}>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          #{ticket.ticketId}
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[160px] truncate">
+                          {ticket.eventTitle}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {ticket.tierName ?? "General"}
+                        </TableCell>
+                        <TableCell className="text-sm font-semibold text-primary">
+                          ₱{ticket.price.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {format(new Date(ticket.eventDate), "PP")}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {format(new Date(ticket.registrationDate), "PP")}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`gap-1 text-[11px] border ${cls}`}>
+                            <Icon className="w-3 h-3" />
+                            {label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {status === "upcoming" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1.5 hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 transition-colors"
+                              disabled={isScanning}
+                              onClick={() => handleScan(ticket.ticketId)}
+                            >
+                              {isScanning ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  Scanning...
+                                </>
+                              ) : (
+                                <>
+                                  <ScanLine className="w-3.5 h-3.5" />
+                                  Redeem
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              <PaginationWrapper
+                currentPage={page}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
+              />
+            </>
           )}
         </CardContent>
       </Card>

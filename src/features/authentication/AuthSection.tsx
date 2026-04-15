@@ -201,33 +201,33 @@ AuthSection.Content = function AuthSectionContent({
   );
 };
 
-AuthSection.Footer = function AuthSectionFooter() {
-  const { activeTab, setActiveTab } = useAuthContext();
-  return (
-    <div className="flex flex-col space-y-2 text-center px-6 pb-6 pt-0">
-      {activeTab === "login" ? (
-        <p className="text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <button
-            type="button"
-            className="text-primary font-medium hover:underline"
-            onClick={() => setActiveTab("register")}
-          >
-            Sign up for free
-          </button>
-        </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <button
-            type="button"
-            className="text-primary font-medium hover:underline"
-            onClick={() => setActiveTab("login")}
-          >
-            Sign in
-          </button>
-        </p>
-      )}
-    </div>
-  );
-};
+// AuthSection.Footer = function AuthSectionFooter() {
+//   const { activeTab, setActiveTab } = useAuthContext();
+//   return (
+//     <div className="flex flex-col space-y-2 text-center px-6 pb-6 pt-0">
+//       {activeTab === "login" ? (
+//         <p className="text-sm text-muted-foreground">
+//           Don't have an account?{" "}
+//           <button
+//             type="button"
+//             className="text-primary font-medium hover:underline"
+//             onClick={() => setActiveTab("register")}
+//           >
+//             Sign up for free
+//           </button>
+//         </p>
+//       ) : (
+//         <p className="text-sm text-muted-foreground">
+//           Already have an account?{" "}
+//           <button
+//             type="button"
+//             className="text-primary font-medium hover:underline"
+//             onClick={() => setActiveTab("login")}
+//           >
+//             Sign in
+//           </button>
+//         </p>
+//       )}
+//     </div>
+//   );
+// };

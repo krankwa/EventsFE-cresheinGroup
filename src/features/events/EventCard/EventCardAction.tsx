@@ -59,7 +59,7 @@ export function EventCardAction({ isSoldOut, isBooking, onBook }: EventCardActio
           "Notify Me"
         ) : (
           <>
-            Book Tickets
+            View & Book
             <ArrowRight className="arrow" />
           </>
         )}

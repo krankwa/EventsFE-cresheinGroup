@@ -1,15 +1,71 @@
-import { NavLink, Link } from "react-router-dom";
-import { CalendarDays, Ticket, Search, User, LogOut, Bell } from "lucide-react";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import {
+  CalendarDays,
+  Ticket,
+  Search,
+  User,
+  LogOut,
+  Bell,
+  Star,
+  Flame,
+  List,
+} from "lucide-react";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
+import { useEvents } from "../../features/events/useEvents";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
+import { useConfirm } from "../ui/confirm-context";
 
 export function UserNavbar() {
   const { user } = useUser();
   const { logout } = useLogout();
+  const { confirm } = useConfirm();
+  const location = useLocation();
+
+  // Only fetch events feed if we are on the events page/home page where it matters
+  const isEventsPage =
+    location.pathname === "/events" || location.pathname === "/";
+  const { data: eventsData } = useEvents();
+
+  let hasRecommendations = false;
+  let hasPopular = false;
+  let hasAllEvents = false;
+
+  if (isEventsPage && eventsData && !Array.isArray(eventsData)) {
+    hasRecommendations = (eventsData.recommended?.length ?? 0) > 0;
+    hasPopular = (eventsData.popular?.length ?? 0) > 0;
+    hasAllEvents = (eventsData.allOthers?.length ?? 0) > 0;
+  }
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleLogout = () => {
+    confirm({
+      title: "Sign Out",
+      description: (
+        <div className="space-y-2">
+          <p>Are you sure you want to sign out?</p>
+          <p className="text-sm text-muted-foreground">
+            You will need to log in again to access your account.
+          </p>
+        </div>
+      ),
+      confirmText: "Sign Out",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        await logout();
+      },
+    });
+  };
 
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
@@ -50,6 +106,45 @@ export function UserNavbar() {
             <CalendarDays className="w-4 h-4" />
             <span className="hidden sm:inline">Events</span>
           </NavLink>
+
+          {/* Quick Scroll Links (only visible on pages with these sections) */}
+          {isEventsPage && (
+            <div className="hidden lg:flex items-center gap-1 border-l pl-4 ml-2">
+              {hasRecommendations && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => scrollToSection("recommended-section")}
+                  className="text-muted-foreground gap-2"
+                >
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  Recommended
+                </Button>
+              )}
+              {hasPopular && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => scrollToSection("popular-section")}
+                  className="text-muted-foreground gap-2"
+                >
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  Popular
+                </Button>
+              )}
+              {hasAllEvents && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => scrollToSection("all-events-section")}
+                  className="text-muted-foreground gap-2"
+                >
+                  <List className="w-4 h-4 text-primary" />
+                  All Events
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -97,7 +192,7 @@ export function UserNavbar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="text-muted-foreground hover:text-destructive transition-colors"
               title="Sign Out"
             >

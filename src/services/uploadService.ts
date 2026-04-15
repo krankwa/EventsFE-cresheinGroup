@@ -65,3 +65,4 @@ export async function uploadEventImage(file: File): Promise<string> {
 
   return data.publicUrl;
 }
+ 

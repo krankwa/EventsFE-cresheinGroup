@@ -23,26 +23,20 @@ import { eventsService } from "../../services/eventsService";
 import { useUser } from "../../features/authentication/useUser";
 import type { EventResponse } from "../../interface/Event.interface";
 import { toast } from "react-hot-toast";
+import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
 
 // ─── Compact Event Card for Landing Page ────────────────────────────────────
-function LandingEventCard({ event }: { event: EventResponse }) {
-  const { user, isAdmin } = useUser();
-  const navigate = useNavigate();
-  const isSoldOut = event.ticketsSold >= event.capacity;
-  const fillPct = Math.min((event.ticketsSold / event.capacity) * 100, 100);
-
-  const handleBook = async () => {
-    if (!user) {
-      toast("Please sign in to book tickets.", { icon: "🎟️" });
-      navigate("/login");
-      return;
-    }
-    if (isAdmin) {
-      toast.error("Admins cannot book tickets.");
-      return;
-    }
-    navigate(`/events/${event.eventID}`);
-  };
+function LandingEventCard({
+  event,
+  onBook,
+}: {
+  event: EventResponse;
+  onBook: (event: EventResponse) => void;
+}) {
+  const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+  const sold = event.ticketsSold || 0;
+  const isSoldOut = sold >= capacity;
+  const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
     <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-muted/40 bg-card/60 backdrop-blur-sm">
@@ -94,9 +88,16 @@ function LandingEventCard({ event }: { event: EventResponse }) {
             {format(new Date(event.date), "PPP")}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span className="truncate">{event.venue}</span>
+        <div className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px]">
+          <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground leading-tight">
+              {event.venue || "TBA"}
+            </span>
+            <span className="text-[11px] line-clamp-1">
+              {event.venueAddress}
+            </span>
+          </div>
         </div>
 
         {/* Capacity bar */}
@@ -104,7 +105,7 @@ function LandingEventCard({ event }: { event: EventResponse }) {
           <div className="flex items-center gap-1.5">
             <Users className="w-3 h-3" />
             <span>
-              {event.ticketsSold} / {event.capacity}
+              {sold} / {capacity}
             </span>
           </div>
           <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -121,11 +122,11 @@ function LandingEventCard({ event }: { event: EventResponse }) {
           className="w-full gap-2 font-semibold group/btn"
           variant={isSoldOut ? "outline" : "default"}
           disabled={isSoldOut}
-          onClick={handleBook}
+          onClick={() => onBook(event)}
         >
           {isSoldOut ? (
             "Sold Out"
-          ) : !user ? (
+          ) : !Users ? (
             <>
               Sign In to Book
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
@@ -146,13 +147,43 @@ function LandingEventCard({ event }: { event: EventResponse }) {
 export function LandingSection() {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
+    null,
+  );
   const navigate = useNavigate();
+  const { user, isAdmin } = useUser();
+
+  const handleBook = (event: EventResponse) => {
+    if (!user) {
+      toast("Please sign in to book tickets.", { icon: "🎟️" });
+      navigate("/login");
+      return;
+    }
+    if (isAdmin) {
+      toast.error("Admins cannot book tickets.");
+      return;
+    }
+    setSelectedEvent(event);
+  };
 
   useEffect(() => {
     eventsService
       .getAll()
-      .then((data) => setEvents(data))
-      .catch((err) => console.error("Failed to load events:", err))
+      .then((response) => {
+        // Safe extraction for paginated or direct array responses
+        if (Array.isArray(response)) {
+          setEvents(response);
+        } else if (response && typeof response === "object") {
+          const res = response as any;
+          setEvents(res.events || res.data || res.items || []);
+        } else {
+          setEvents([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load events:", err);
+        setEvents([]);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -250,7 +281,11 @@ export function LandingSection() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <LandingEventCard key={event.eventID} event={event} />
+              <LandingEventCard
+                key={event.Id}
+                event={event}
+                onBook={handleBook}
+              />
             ))}
           </div>
         )}
@@ -264,6 +299,12 @@ export function LandingSection() {
           </p>
         </div>
       </footer>
+      <TicketBookingDialog
+        isOpen={selectedEvent !== null}
+        onClose={() => setSelectedEvent(null)}
+        event={selectedEvent}
+        onSuccess={() => navigate("/tickets")}
+      />
     </>
   );
 }

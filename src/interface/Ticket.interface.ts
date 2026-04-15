@@ -1,6 +1,6 @@
 export interface TicketResponse {
   ticketId: number;
-  eventId: number;
+  userId: number;
   eventTitle: string;
   eventDate: string;
   registrationDate: string;
@@ -8,9 +8,13 @@ export interface TicketResponse {
   tierName?: string | null;
   price: number;
   isRedeemed: boolean;
+
+  venue?: string | null;
+  attendeeName?: string;
+  attendeeEmail: string;
 }
 
 export interface TicketCreateRequest {
-  eventId: number;
-  tierId: number;
+  Id: number;
+  TierId: number;
 }

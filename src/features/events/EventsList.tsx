@@ -16,7 +16,7 @@ export function EventsList() {
 
   return (
     <div className="space-y-6">
-      <EventGrid events={events || []} isLoading={isLoading} />
+      <EventGrid events={events ?? []} isLoading={isLoading} />
     </div>
   );
 }

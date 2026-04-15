@@ -38,70 +38,76 @@ export const EventsTable = memo(function EventsTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {events.map((event, index) => (
-          <TableRow
-            key={event.eventID || `event-${index}`}
-            className="group cursor-pointer"
-          >
-            <TableCell>
-              {event.coverImageUrl ? (
-                <div className="w-12 h-12 rounded overflow-hidden border">
-                  <img
-                    src={event.coverImageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                  />
-                </div>
-              ) : (
-                <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
-                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-            </TableCell>
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {event.title}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(event.date), "PPP")}
-                </span>
-              </div>
-            </TableCell>
-            <TableCell className="text-muted-foreground">
-              {event.venue}
-            </TableCell>
-            <TableCell>{event.capacity}</TableCell>
-            <TableCell>
-              <div className="flex flex-col gap-1 w-24">
-                <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold">
-                  <span>Sold</span>
-                  <span>
-                    {((event.ticketsSold / event.capacity) * 100).toFixed(0)}%
+        {events.map((event, index) => {
+          const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+          const sold = event.ticketsSold || 0;
+          const percentage = ((sold / capacity) * 100).toFixed(0);
+
+          return (
+            <TableRow
+              key={event.Id || `event-${index}`}
+              className="group cursor-pointer"
+            >
+              <TableCell>
+                {event.coverImageUrl ? (
+                  <div className="w-12 h-12 rounded overflow-hidden border">
+                    <img
+                      src={event.coverImageUrl}
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
+                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {event.title}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(event.date), "PPP")}
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-500"
-                    style={{
-                      width: `${(event.ticketsSold / event.capacity) * 100}%`,
-                    }}
-                  />
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium text-foreground">
+                    {event.venue || "TBA"}
+                  </span>
+                  <span className="text-xs text-muted-foreground line-clamp-1">
+                    {event.venueAddress || "No address provided"}
+                  </span>
                 </div>
-              </div>
-            </TableCell>
-            <TableCell>
-              <Badge
-                variant={
-                  event.ticketsSold >= event.capacity
-                    ? "destructive"
-                    : "secondary"
-                }
-                className="font-medium"
-              >
-                {event.ticketsSold >= event.capacity ? "Sold Out" : "Active"}
-              </Badge>
-            </TableCell>
+              </TableCell>
+              <TableCell>{event.capacity}</TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1 w-24">
+                  <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold">
+                    <span>Sold</span>
+                    <span>{percentage}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-500"
+                      style={{
+                        width: `${percentage}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={sold >= capacity ? "destructive" : "secondary"}
+                  className="font-medium"
+                >
+                  {sold >= capacity ? "Sold Out" : "Active"}
+                </Badge>
+              </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
@@ -142,8 +148,9 @@ export const EventsTable = memo(function EventsTable({
                 <MoreVertical className="w-4 h-4 text-muted-foreground" />
               </Button>
             </TableCell>
-          </TableRow>
-        ))}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

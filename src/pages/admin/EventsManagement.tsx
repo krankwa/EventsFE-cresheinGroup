@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Search, Plus, Filter, Download } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Search, Plus, Filter, Download, RefreshCcw } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
 import type { EventResponse } from "../../interface/Event.interface";
 import { Button } from "../../components/ui/button";
@@ -18,6 +18,8 @@ import type {
   EventCreateDTO,
   EventUpdateDTO,
 } from "../../interface/Event.interface";
+import { usePagination } from "@/utils/pagination/usePagination";
+import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function EventsManagement() {
   const [events, setEvents] = useState<EventResponse[]>([]);
@@ -32,31 +34,86 @@ export function EventsManagement() {
     null,
   );
 
+  // Client-side pagination hook
+  const {
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    setTotalItems,
+    goToPage,
+    setPageSize,
+    searchQuery: debouncedSearch,
+    handleSearch,
+  } = usePagination({ initialPageSize: 10 });
+
+  // Debounce search to update the pagination hook
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
+
+  // Derived data for display
+  const filteredEvents = useMemo(() => {
+    const filtered = events.filter((event) => {
+      const searchLower = debouncedSearch.toLowerCase();
+      return (
+        event.title?.toLowerCase().includes(searchLower) ||
+        event.venue?.toLowerCase().includes(searchLower) ||
+        event.venueAddress?.toLowerCase().includes(searchLower)
+      );
+    });
+    return filtered;
+  }, [events, debouncedSearch]);
+
+  // Update total items when filtered data changes
+  useEffect(() => {
+    setTotalItems(filteredEvents.length);
+  }, [filteredEvents, setTotalItems]);
+
+  const paginatedEvents = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredEvents.slice(start, start + pageSize);
+  }, [filteredEvents, page, pageSize]);
+
+  // Fetch all events
   async function loadEvents() {
     setIsLoading(true);
     try {
       const data = await eventsService.getAll();
-      setEvents(data);
+      //the backend returns a direct array
+      let flatEvents: EventResponse[] = [];
+      if (Array.isArray(data)) {
+        flatEvents = data;
+      } else if (data) {
+        //since Admins are authenticated, they usually receive the object format from popularity remmended and other events
+        flatEvents = [
+          ...(data.recommended || []),
+          ...(data.popular || []),
+          ...(data.allOthers || []),
+        ];
+      }
+      const uniqueEvents = Array.from(
+        new Map(flatEvents.map((e) => [e.id, e])).values(),
+      );
+      setEvents(uniqueEvents);
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
+      setEvents([]);
     } finally {
       setIsLoading(false);
     }
   }
 
+  // Initial load
   useEffect(() => {
     loadEvents();
   }, []);
 
-  const filteredEvents = events.filter((event) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      event.venue.toLowerCase().includes(query) ||
-      event.title.toLowerCase().includes(query)
-    );
-  });
-
+  // --- Handlers ---
   const handleCreate = () => {
     setSelectedEvent(null);
     setIsEventDialogOpen(true);
@@ -75,11 +132,8 @@ export function EventsManagement() {
   const handleSave = async (data: EventCreateDTO | EventUpdateDTO) => {
     setIsSaving(true);
     try {
-      if (selectedEvent && selectedEvent.eventID) {
-        await eventsService.update(
-          selectedEvent.eventID,
-          data as EventUpdateDTO,
-        );
+      if (selectedEvent && selectedEvent.id) {
+        await eventsService.update(selectedEvent.id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
@@ -88,34 +142,24 @@ export function EventsManagement() {
       setIsEventDialogOpen(false);
       loadEvents();
     } catch (error) {
-      console.error("Failed to save event", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : selectedEvent
-            ? "Failed to update event."
-            : "Failed to create event.";
-      toast.error(message);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save event.",
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedEvent || !selectedEvent.eventID) return;
+    if (!selectedEvent || !selectedEvent.id) return;
     setIsSaving(true);
     try {
-      await eventsService.delete(selectedEvent.eventID);
+      await eventsService.delete(selectedEvent.id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
       loadEvents();
-    } catch (error) {
-      console.error("Failed to delete event", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to delete the event. It might have linked data.";
-      toast.error(message);
+    } catch {
+      toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
     }
@@ -131,6 +175,17 @@ export function EventsManagement() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={loadEvents}
+            disabled={isLoading}
+          >
+            <RefreshCcw
+              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
           <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
             Export
@@ -147,7 +202,7 @@ export function EventsManagement() {
           <div className="space-y-1">
             <CardTitle>Events List</CardTitle>
             <CardDescription>
-              You have {events.length} events scheduled in the database.
+              Total of {totalItems} events found.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -172,17 +227,27 @@ export function EventsManagement() {
               Loading your events...
             </div>
           ) : (
-            <EventsTable
-              events={filteredEvents}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-            />
+            <>
+              <EventsTable
+                events={paginatedEvents}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
+              <PaginationWrapper
+                currentPage={page}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
+              />
+            </>
           )}
         </CardContent>
       </Card>
 
       <EventDialog
-        key={selectedEvent?.eventID || "new"}
+        key={selectedEvent?.id || "new"}
         isOpen={isEventDialogOpen}
         onClose={() => setIsEventDialogOpen(false)}
         onSave={handleSave}

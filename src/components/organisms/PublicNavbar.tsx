@@ -1,13 +1,23 @@
 import { Link, useNavigate } from "react-router-dom";
 import { CalendarDays, Ticket, LogOut, User } from "lucide-react";
 import { useUser } from "../../features/authentication/useUser";
-import { useLogout } from "../../features/authentication/useLogout";
 import { Button } from "../ui/button";
+import { useLogoutWithConfirm } from "../hooks/useLogoutwithConfirm";
 
 export function PublicNavbar() {
-  const { user, isAdmin } = useUser();
-  const { logout } = useLogout();
+  const { logoutWithConfirm } = useLogoutWithConfirm();
+  const { user, isAdmin, isStaff } = useUser();
   const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    if (isAdmin) {
+      navigate("/admin");
+    } else if (isStaff) {
+      navigate("/redemption");
+    } else {
+      navigate("/events");
+    }
+  };
 
   return (
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
@@ -42,7 +52,7 @@ export function PublicNavbar() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => navigate("/myaccount")}
+              onClick={handleProfileClick}
             >
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">
@@ -53,7 +63,7 @@ export function PublicNavbar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => logout()}
+              onClick={logoutWithConfirm}
               title="Sign Out"
               className="text-muted-foreground hover:text-destructive"
             >
@@ -62,9 +72,6 @@ export function PublicNavbar() {
           </>
         ) : (
           <>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
             <Button size="sm" asChild>
               <Link to="/login">Get Tickets</Link>
             </Button>

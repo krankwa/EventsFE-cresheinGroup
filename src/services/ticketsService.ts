@@ -3,6 +3,7 @@ import type {
   TicketResponse,
   TicketCreateRequest,
 } from "../interface/Ticket.interface";
+// import type { PaginationParams, PaginatedResponse } from "@/interface/pagination";
 
 export const ticketsService = {
   getMine: (): Promise<TicketResponse[]> =>
@@ -33,6 +34,17 @@ export const ticketsService = {
   getAll: (): Promise<TicketResponse[]> =>
     apiRequest<TicketResponse[]>("/tickets", {
       method: "GET",
+      requiresAuth: true,
+    }),
+
+  validatePayment: (data: {
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+  }): Promise<{ isValid: boolean; message: string }> =>
+    apiRequest<{ isValid: boolean; message: string }>("/Payment/validate", {
+      method: "POST",
+      body: JSON.stringify(data),
       requiresAuth: true,
     }),
 };

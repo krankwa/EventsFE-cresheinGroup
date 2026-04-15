@@ -7,7 +7,13 @@ import { Card, CardContent } from "../../components/ui/card";
 import { Link } from "react-router-dom";
 import { useMyTickets } from "./useMyTickets";
 import { TicketCard } from "../../components/organisms/TicketCard";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../../components/ui/dialog";
 import { QRCodeCanvas } from "qrcode.react";
 
 const spin = keyframes`
@@ -107,7 +113,9 @@ interface MyTicketsContextType {
   isCancelling: number | null;
   handleCancel: (id: number) => void;
   selectedTicket: ReturnType<typeof useMyTickets>["tickets"][0] | null;
-  setSelectedTicket: (ticket: ReturnType<typeof useMyTickets>["tickets"][0] | null) => void;
+  setSelectedTicket: (
+    ticket: ReturnType<typeof useMyTickets>["tickets"][0] | null,
+  ) => void;
 }
 
 const MyTicketsContext = createContext<MyTicketsContextType | undefined>(
@@ -121,7 +129,14 @@ const useMyTicketsContext = () => {
 };
 
 export function MyTicketsSection({ children }: { children: ReactNode }) {
-  const { tickets, isLoading, isCancelling, selectedTicket, setSelectedTicket, handleCancel } = useMyTickets();
+  const {
+    tickets,
+    isLoading,
+    isCancelling,
+    selectedTicket,
+    setSelectedTicket,
+    handleCancel,
+  } = useMyTickets();
 
   if (isLoading) {
     return (
@@ -143,7 +158,14 @@ export function MyTicketsSection({ children }: { children: ReactNode }) {
 
   return (
     <MyTicketsContext.Provider
-      value={{ tickets, isLoading, isCancelling, handleCancel, selectedTicket, setSelectedTicket }}
+      value={{
+        tickets,
+        isLoading,
+        isCancelling,
+        handleCancel,
+        selectedTicket,
+        setSelectedTicket,
+      }}
     >
       <Container>{children}</Container>
     </MyTicketsContext.Provider>
@@ -166,7 +188,13 @@ MyTicketsSection.Header = function MyTicketsSectionHeader() {
 };
 
 MyTicketsSection.Content = function MyTicketsSectionContent() {
-  const { tickets, isCancelling, handleCancel, selectedTicket, setSelectedTicket } = useMyTicketsContext();
+  const {
+    tickets,
+    isCancelling,
+    handleCancel,
+    selectedTicket,
+    setSelectedTicket,
+  } = useMyTicketsContext();
 
   if (tickets.length === 0) {
     return (
@@ -208,7 +236,7 @@ MyTicketsSection.Content = function MyTicketsSectionContent() {
           />
         ))}
       </Grid>
-      
+
       <Dialog
         open={!!selectedTicket}
         onOpenChange={(open) => !open && setSelectedTicket(null)}
@@ -231,15 +259,14 @@ MyTicketsSection.Content = function MyTicketsSectionContent() {
                 <QRCodeCanvas
                   value={JSON.stringify({
                     ticketId: selectedTicket.ticketId,
-                    eventId: selectedTicket.eventId,
+                    Id: selectedTicket.Id,
                   })}
                   size={220}
                   level="H"
                   includeMargin={true}
                   imageSettings={{
                     src: "/favicon.ico",
-                    
-                    
+
                     height: 40,
                     width: 40,
                     excavate: true,

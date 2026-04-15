@@ -86,7 +86,9 @@ export interface EventCardDetailsProps {
   event: EventResponse;
 }
 
-export function EventCardDetails({ event }: EventCardDetailsProps): JSX.Element {
+export function EventCardDetails({
+  event,
+}: EventCardDetailsProps): JSX.Element {
   return (
     <>
       <CardHeader className="p-5 pb-2">
@@ -104,7 +106,7 @@ export function EventCardDetails({ event }: EventCardDetailsProps): JSX.Element 
           </InfoRow>
           <InfoRow>
             <MapPin />
-            <span>{event.venue}</span>
+            <span>{event.venue || "TBA"}</span>
           </InfoRow>
         </div>
 

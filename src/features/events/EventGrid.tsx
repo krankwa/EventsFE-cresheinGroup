@@ -1,39 +1,42 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import type { EventResponse } from "../../interface/Event.interface";
 import { EventCard } from "./EventCard/EventCard";
-import { Loading, LoadingGridContainer } from "../../components/molecules/Loading";
+import {
+  Loading,
+  LoadingGridContainer,
+} from "../../components/molecules/Loading";
 import { NotFound } from "../../components/molecules/NotFound";
-import { useBookTicket } from "../tickets/useBookTicket";
+import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
+import { useUser } from "../authentication/useUser";
 
-import { BookingModal } from "../tickets/BookingModal";
-
-function EventGridItem({ event }: { event: EventResponse }) {
-  const { isBooking, isOpen, openModal, closeModal, handleBook } = useBookTicket(event);
-  const isSoldOut = event.ticketsSold >= event.capacity;
+function EventGridItem({
+  event,
+  onBook,
+}: {
+  event: EventResponse;
+  onBook: (event: EventResponse) => void;
+}) {
+  // Safely calculate capacity to prevent NaN math errors
+  const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
+  const sold = event.ticketsSold || 0;
+  const isSoldOut = sold >= capacity;
 
   return (
-    <>
-      <EventCard className="group">
-        <EventCard.Image
-          imageUrl={event.coverImageUrl}
-          title={event.title}
-          isSoldOut={isSoldOut}
-        />
-        <EventCard.Details event={event} />
-        <EventCard.Action
-          isSoldOut={isSoldOut}
-          isBooking={isBooking}
-          onBook={openModal}
-        />
-      </EventCard>
-
-      <BookingModal
-        event={event}
-        isOpen={isOpen}
-        onClose={closeModal}
-        onConfirm={handleBook}
-        isBooking={isBooking}
+    <EventCard className="group">
+      <EventCard.Image
+        imageUrl={event.coverImageUrl}
+        title={event.title || "Untitled Event"}
+        isSoldOut={isSoldOut}
       />
-    </>
+      <EventCard.Details event={event} />
+      <EventCard.Action
+        isSoldOut={isSoldOut}
+        isBooking={false}
+        onBook={() => onBook(event)}
+      />
+    </EventCard>
   );
 }
 
@@ -43,11 +46,33 @@ interface EventGridProps {
 }
 
 export function EventGrid({ events, isLoading }: EventGridProps) {
+  const { user, isAdmin } = useUser();
+  const navigate = useNavigate();
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
+    null,
+  );
+
+  const handleBook = (event: EventResponse) => {
+    if (!user) {
+      toast("Please sign in to book tickets.", { icon: "🎟️" });
+      navigate("/login");
+      return;
+    }
+    if (isAdmin) {
+      toast.error("Admins cannot book tickets.");
+      return;
+    }
+    setSelectedEvent(event);
+  };
+
   if (isLoading) {
     return <Loading count={6} />;
   }
 
-  if (events.length === 0) {
+  // Force to array to prevent .map crashes
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  if (safeEvents.length === 0) {
     return (
       <NotFound>
         <p className="text-xl font-medium">No events found</p>
@@ -57,10 +82,24 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
   }
 
   return (
-    <LoadingGridContainer>
-      {events.map((event) => (
-        <EventGridItem key={event.eventID} event={event} />
-      ))}
-    </LoadingGridContainer>
+    <>
+      <LoadingGridContainer>
+        {safeEvents.map((event, index) => {
+          // FIX: Check for 'id' (C# standard), then 'Id', then fallback to index
+          const uniqueKey = event.Id || `event-${index}`;
+
+          return (
+            <EventGridItem key={uniqueKey} event={event} onBook={handleBook} />
+          );
+        })}
+      </LoadingGridContainer>
+
+      <TicketBookingDialog
+        isOpen={selectedEvent !== null}
+        onClose={() => setSelectedEvent(null)}
+        event={selectedEvent}
+        onSuccess={() => navigate("/tickets")}
+      />
+    </>
   );
 }

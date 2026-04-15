@@ -189,11 +189,12 @@ export function UsersTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                        onClick={() => onPromote(user)}
+                        className="gap-2"
+                        onClick={() => handleEditClick(user)}
+                        title="Edit user details"
                       >
-                        <ShieldAlert className="w-4 h-4" />
-                        Appoint Admin
+                        <Pencil className="w-4 h-4" />
+                        Edit
                       </Button>
                     ) : (
                       <Button

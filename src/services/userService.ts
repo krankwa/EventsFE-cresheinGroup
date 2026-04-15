@@ -3,7 +3,6 @@ import type {
   UserResponse,
   UpdateUserRequest,
 } from "../interface/Auth.interface";
-
 export const userService = {
   getAll: (): Promise<UserResponse[]> =>
     apiRequest<UserResponse[]>("/Users", {
@@ -18,3 +17,4 @@ export const userService = {
       requiresAuth: true,
     }),
 };
+ 

@@ -12,3 +12,4 @@ export function setToken(token: string): void {
 export function clearToken(): void {
   sessionStorage.removeItem("token");
 }
+ 

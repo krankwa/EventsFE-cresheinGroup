@@ -1,14 +1,24 @@
-import { getToken } from "./authStore";
+import { getToken, clearToken } from "./authStore";
+import type { ApiError } from "../interface/api.interface";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
+interface ApiRequestOptions {
+  method: string;
+  body?: string;
+  requiresAuth?: boolean;
+  params?: Record<string, unknown>; // Add this
+  headers?: Record<string, string>; // Add headers property
+}
+
 export async function apiRequest<T>(
   endpoint: string,
-  options: { method: string; body?: string; requiresAuth?: boolean },
+  options: ApiRequestOptions,
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "X-Tunnel-Skip-AntiPhishing": "true", // Bypass MS Dev Tunnel landing page
+    ...(options.headers || {}),
   };
 
   if (options.requiresAuth !== false) {
@@ -19,34 +29,24 @@ export async function apiRequest<T>(
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: options.method,
+    method: options.method || "GET",
     headers,
     ...(options.body ? { body: options.body } : {}),
   });
 
-  if (!response.ok) {
-    let errorMessage = `Error ${response.status}: ${response.statusText}`;
-    try {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const problem = await response.json();
-        // Check for common error property names in different cases
-        errorMessage =
-          problem.message ||
-          problem.Message ||
-          problem.title ||
-          problem.Title ||
-          errorMessage;
-      }
-    } catch {
-      // Fallback to status text if JSON parse fails
-    }
-    throw new Error(errorMessage);
+  if (response.status === 401) {
+    clearToken();
+    throw new Error("Session expired. Please log in again.");
   }
 
-  const contentType = response.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    return response.json() as Promise<T>;
+  if (response.status === 204) return null as T;
+
+  if (!response.ok) {
+    const error: ApiError = await response.json().catch(() => ({}));
+    throw new Error(
+      error.message ?? error.title ?? `Request failed (${response.status})`,
+    );
   }
-  return {} as T;
+
+  return response.json();
 }

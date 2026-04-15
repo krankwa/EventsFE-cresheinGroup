@@ -97,8 +97,8 @@ export function TicketBookingDialog({
       }
 
       await ticketsService.register({
-        Id: event.id,
-        TierId: selectedTierId || 0, // If no tiers, send 0 or default
+        eventId: event.id,
+        tierId: selectedTierId || 0, // If no tiers, send 0 or default
       });
       toast.success(`Successfully booked ticket for ${event.title}!`);
       onSuccess();

@@ -15,6 +15,6 @@ export interface TicketResponse {
 }
 
 export interface TicketCreateRequest {
-  Id: number;
-  TierId: number;
+  eventId: number;
+  tierId: number;
 }

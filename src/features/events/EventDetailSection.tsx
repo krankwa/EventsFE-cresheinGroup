@@ -141,7 +141,7 @@ export function EventDetailSection() {
     }
     setBookingTierId(tierId);
     try {
-      await ticketsService.register({ Id: event!.id, TierId: tierId });
+      await ticketsService.register({ eventId: event!.id, tierId: tierId });
       toast.success(`Ticket booked for ${event!.title}!`);
       navigate("/tickets");
     } catch (err) {

@@ -61,7 +61,7 @@ export async function apiRequest<T>(
   }
 
   // Handle 401 Unauthorized
-  if (response.status === 401) {
+  if (response  .status === 401) {
     // Only treat as "Session Expired" if NOT on the login page or profile check.
     // On the login page, 401 means "Invalid Credentials".
     // On /users/me, 401 simply means "Guest User".

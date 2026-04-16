@@ -4,7 +4,10 @@ import {
   Users,
   CalendarDays,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { useRef } from "react";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
@@ -29,6 +32,17 @@ export function LandingSection() {
   );
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const scrollAmount = 400;
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const handleBook = (event: EventResponse) => {
     if (user && isAdmin) {
@@ -66,7 +80,7 @@ export function LandingSection() {
   return (
     <div className="bg-[#fcfcfd] min-h-screen">
       {/* ── Hero Section with Mesh Gradient ── */}
-      <section className="relative overflow-hidden pt-20 md:pt-32 pb-20 md:pb-40 px-4 mesh-gradient">
+      <section className="relative overflow-hidden pt-20 md:pt-32 pb-36 md:pb-48 px-4 mesh-gradient">
         <div className="container mx-auto relative z-10">
           <div className="max-w-5xl mx-auto text-center">
             <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full shadow-2xl shadow-blue-950/5 mb-10 border border-white/50 animate-reveal">
@@ -111,7 +125,7 @@ export function LandingSection() {
       </section>
 
       {/* ── Spotlight Component ── */}
-      <section className="relative -mt-24 md:-mt-32 px-4 z-20">
+      <section className="relative -mt-28 md:-mt-36 px-4 z-20">
         <div className="container mx-auto">
            {billboardEvent && (
              <EventBillboard 
@@ -150,17 +164,45 @@ export function LandingSection() {
                 <p className="text-2xl font-black text-gray-400 tracking-tight uppercase">Your curated feed is being prepared.</p>
             </div>
           ) : (
-            <div className="flex gap-8 md:gap-12 overflow-x-auto pb-16 px-4 -mx-4 scrollbar-hide snap-x">
-              {recItems.map((event: EventResponse) => (
-                <div key={event.id} className="snap-start shrink-0">
-                  <LandingEventCard
-                    event={event}
-                    onBook={handleBook}
-                    isLoggedIn={!!user}
-                    isRecommended={true}
-                  />
-                </div>
-              ))}
+            <div className="relative group/gallery">
+              {/* Navigation Arrows (Desktop Only) */}
+              <button
+                onClick={() => scroll("left")}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-30 
+                           hidden md:flex items-center justify-center w-12 h-12 
+                           rounded-full bg-white/10 backdrop-blur-xl border border-white/20 
+                           text-blue-950 shadow-2xl transition-all opacity-0 group-hover/gallery:opacity-100
+                           hover:bg-white hover:scale-110 active:scale-95"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              <button
+                onClick={() => scroll("right")}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-30 
+                           hidden md:flex items-center justify-center w-12 h-12 
+                           rounded-full bg-white/10 backdrop-blur-xl border border-white/20 
+                           text-blue-950 shadow-2xl transition-all opacity-0 group-hover/gallery:opacity-100
+                           hover:bg-white hover:scale-110 active:scale-95"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+
+              <div 
+                ref={scrollRef}
+                className="flex gap-8 md:gap-12 overflow-x-auto pb-16 px-4 -mx-4 scrollbar-hide snap-x"
+              >
+                {recItems.map((event: EventResponse) => (
+                  <div key={event.id} className="snap-start shrink-0">
+                    <LandingEventCard
+                      event={event}
+                      onBook={handleBook}
+                      isLoggedIn={!!user}
+                      isRecommended={true}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

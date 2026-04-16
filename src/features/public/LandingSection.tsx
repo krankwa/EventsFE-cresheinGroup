@@ -46,7 +46,7 @@ function LandingEventCard({
   const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
-    <Card className={`overflow-hidden group hover:shadow-2xl transition-all duration-500 border-none bg-white/40 backdrop-blur-md ring-1 ring-blue-950/5 ${isRecommended ? 'min-w-[280px] md:min-w-[340px]' : ''}`}>
+    <Card className={`overflow-hidden group hover:shadow-2xl transition-all duration-500 border-none bg-white/40 backdrop-blur-md ring-1 ring-blue-950/5 ${isRecommended ? 'min-w-[260px] xs:min-w-[280px] md:min-w-[340px]' : ''}`}>
       {/* Cover Image */}
       <div className="relative h-48 overflow-hidden">
         {event.coverImageUrl ? (
@@ -87,10 +87,10 @@ function LandingEventCard({
 
       <CardHeader className="px-6 pt-6 pb-2">
         <div className="flex justify-between items-start gap-4">
-          <h3 className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
+          <h3 className="text-lg md:text-xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
             {event.title}
           </h3>
-          <span className="text-blue-900 font-black text-base whitespace-nowrap">
+          <span className="text-blue-900 font-black text-sm md:text-base whitespace-nowrap">
             ₱999+
           </span>
         </div>
@@ -126,15 +126,15 @@ function LandingEventCard({
         </a>
 
         {/* Capacity bar */}
-        <div className="pt-4 border-t border-gray-100 flex flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-400">
+        <div className="pt-3 md:pt-4 border-t border-gray-100 flex flex-col gap-2">
+          <div className="flex items-center justify-between text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-gray-400">
             <span className="flex items-center gap-1.5">
               <Users className="w-3 h-3" />
               {sold} / {capacity} ATTENDEES
             </span>
             <span>{Math.round(fillPct)}%</span>
           </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-1000 rounded-full ${fillPct > 90 ? 'bg-red-500' : 'bg-blue-600'}`}
               style={{ width: `${fillPct}%` }}
@@ -206,7 +206,7 @@ export function LandingSection() {
   return (
     <div className="bg-[#fcfcfd] min-h-screen">
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden pt-24 pb-20 px-4 bg-white border-b border-gray-100">
+      <section className="relative overflow-hidden pt-20 md:pt-24 pb-12 md:pb-20 px-4 bg-white border-b border-gray-100">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-50/50 rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-50/30 rounded-full blur-[100px] -ml-48 -mb-48 pointer-events-none" />
 
@@ -216,13 +216,13 @@ export function LandingSection() {
               ✨ Discover Your Next Experience
             </Badge>
 
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8 text-gray-900 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100">
+            <h1 className="text-4xl xs:text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8 text-gray-900 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100">
               THE WORLD'S<br />
               <span className="text-blue-600">LIVE EVENTS</span><br />
               HUB.
             </h1>
 
-            <p className="text-xl text-gray-500 mb-12 leading-relaxed max-w-2xl mx-auto font-medium animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+            <p className="text-lg md:text-xl text-gray-500 mb-8 md:mb-12 leading-relaxed max-w-2xl mx-auto font-medium animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
               Experience the best concerts, workshops, and gatherings around the world. Secure your spot in just a few clicks.
             </p>
 
@@ -245,21 +245,21 @@ export function LandingSection() {
       </section>
 
       {/* ── Recommended Section (Always visible) ── */}
-      <section className="py-20 overflow-hidden">
+      <section className="py-12 md:py-20 overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col mb-12">
-            <h2 className="text-4xl font-black tracking-tight text-gray-900">
+          <div className="flex flex-col mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900">
               {recTitle}
             </h2>
-            <p className="text-gray-500 font-medium text-lg mt-2">
+            <p className="text-gray-500 font-medium text-base md:text-lg mt-2">
               {recDescription}
             </p>
           </div>
 
           {isLoading ? (
-             <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide">
+             <div className="flex gap-4 md:gap-6 overflow-x-auto pb-8 scrollbar-hide">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="min-w-[340px] space-y-4 bg-white/50 p-6 rounded-3xl border border-gray-100">
+                <div key={i} className="min-w-[280px] md:min-w-[340px] space-y-4 bg-white/50 p-5 md:p-6 rounded-3xl border border-gray-100">
                   <Skeleton className="h-48 w-full rounded-2xl" />
                   <Skeleton className="h-6 w-3/4 rounded-md" />
                   <Skeleton className="h-4 w-1/2 rounded-md" />
@@ -273,7 +273,7 @@ export function LandingSection() {
                 <p className="text-xl font-bold text-gray-400">Loading your highlights...</p>
             </div>
           ) : (
-            <div className="flex gap-8 overflow-x-auto pb-12 px-2 -mx-2 scrollbar-hide snap-x">
+            <div className="flex gap-6 md:gap-8 overflow-x-auto pb-12 px-2 -mx-2 scrollbar-hide snap-x">
               {recommended.map((event: EventResponse) => (
                 <div key={event.id} className="snap-start shrink-0">
                   <LandingEventCard
@@ -292,14 +292,14 @@ export function LandingSection() {
       {/* ── All Events Grid ── */}
       <section
         id="explore-section"
-        className="container mx-auto px-4 pb-32"
+        className="container mx-auto px-4 pb-20 md:pb-32"
       >
-        <div className="flex items-center justify-between mb-16 px-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-16 gap-6 px-4">
           <div>
-            <h2 className="text-4xl font-black tracking-tight text-gray-900">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900">
               Explore All Events
             </h2>
-            <p className="text-gray-500 font-medium mt-2">
+            <p className="text-base md:text-gray-500 font-medium mt-2">
               Browse the catalog and secure your future memories
             </p>
           </div>
@@ -331,7 +331,7 @@ export function LandingSection() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {regularEvents.map((event: EventResponse) => (
               <LandingEventCard
                 key={event.id}

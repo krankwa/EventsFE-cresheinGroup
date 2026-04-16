@@ -154,7 +154,7 @@ export function TicketBookingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className={cn("sm:max-w-[500px]", MODAL_STYLES)}>
+      <DialogContent className={cn("w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto", MODAL_STYLES)}>
         <DialogHeader>
           <DialogTitle className="text-2xl font-extrabold tracking-tight">
             {!isLoggedIn 
@@ -197,7 +197,7 @@ export function TicketBookingDialog({
                     key={tier.id}
                     onClick={() => isLoggedIn && !isSoldOut && setSelectedTierId(tier.id)}
                     className={`
-                      relative p-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between
+                      relative p-3 md:p-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between
                       ${
                         !isLoggedIn
                           ? "border-muted-foreground/10 bg-muted/5 opacity-80 cursor-default"

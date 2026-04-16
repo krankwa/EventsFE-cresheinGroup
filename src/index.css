@@ -136,5 +136,17 @@
     @apply bg-background text-foreground antialiased;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

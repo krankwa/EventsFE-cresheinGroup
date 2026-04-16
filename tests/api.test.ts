@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 
 const API_BASE_URL = "https://localhost:7080/api";
 
+
 describe("API Endpoints Connectivity Tests", () => {
   it("should be able to reach the authentication health endpoint or similar publicly accessible endpoint", async () => {
     // Assuming /events or /health is public.

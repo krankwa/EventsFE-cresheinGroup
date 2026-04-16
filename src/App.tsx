@@ -62,6 +62,12 @@ const TicketRedemptionPage = lazy(() =>
     default: m.TicketRedemptionPage,
   })),
 );
+const UserDashboard = lazy(() =>
+  import("./pages/UserDashboard").then((m) => ({
+    default: m.UserDashboard,
+  })),
+);
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,7 +91,7 @@ function RoleRedirect() {
   if (role === "staff") {
     return <Navigate to="/redemption" replace />;
   }
-  return <Navigate to="/events" replace />;
+  return <Navigate to="/dashboard" replace />;
 }
 
 function App() {
@@ -107,6 +113,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               {/* Post-login role redirect */}
               <Route path="/redirect" element={<RoleRedirect />} />
 
@@ -137,6 +144,7 @@ function App() {
                 element={<ProtectedRoute allowedRoles={["Admin", "User"]} />}
               >
                 <Route element={<UserLayout />}>
+                  <Route path="/dashboard" element={<UserDashboard />} />
                   <Route path="/events" element={<EventsPage />} />
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/myaccount" element={<MyAccount />} />

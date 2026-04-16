@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 
-const BASE_URL = "https://localhost:7080/api";
+const BASE_URL = process.env.API_BASE_URL || "https://localhost:7080/api";
+
 
 const endpoints = [
   // apiAuth.ts
@@ -27,12 +28,8 @@ const endpoints = [
   { method: "PUT", path: "/Event/9999", hasId: true },
   { method: "DELETE", path: "/Event/9999", hasId: true },
 
-  // ticketTiersService.ts
-  { method: "GET", path: "/TicketTier", hasId: false },
-  { method: "GET", path: "/TicketTier/event/9999", hasId: true },
-  { method: "POST", path: "/TicketTier", hasId: false },
-  { method: "PUT", path: "/TicketTier/9999", hasId: true },
-  { method: "DELETE", path: "/TicketTier/9999", hasId: true },
+  // ticketTiersService.ts (Managed via EventController)
+  { method: "GET", path: "/Event/9999/TicketTiers", hasId: true },
 ];
 
 describe("API Connectivity Tests", () => {

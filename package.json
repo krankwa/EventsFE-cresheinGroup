@@ -9,8 +9,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:ui": "vitest --ui"
+    "test": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run",
+    "test:prod": "cross-env API_BASE_URL=https://eventtix-gce5hteabkezb8fu.eastasia-01.azurewebsites.net/api NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run tests/production.test.ts",
+    "test:ui": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 vitest --ui"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
@@ -58,6 +59,7 @@
     "@types/styled-components": "^5.1.36",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/ui": "^4.1.4",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",

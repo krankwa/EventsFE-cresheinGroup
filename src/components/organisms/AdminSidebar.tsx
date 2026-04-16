@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import {
   LogOut,
   X
@@ -36,14 +36,14 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     )}>
       {/* Brand Header */}
       <div className="px-6 py-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <Link to="/redirect" className="flex items-center gap-3 active:scale-95 transition-transform group">
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-6 transition-transform">
             <img src={logo} alt="Logo" />
           </div>
           <span className="font-bold text-xl tracking-tight text-white">
             EventTix
           </span>
-        </div>
+        </Link>
         {onClose && (
           <Button
             variant="ghost"

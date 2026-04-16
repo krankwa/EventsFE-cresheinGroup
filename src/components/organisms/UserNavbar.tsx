@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  LayoutDashboard,
 } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { useUser } from "../../features/authentication/useUser";
@@ -77,7 +78,7 @@ export function UserNavbar() {
           </Button>
 
           {/* Left: Website Name/Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to={user ? "/redirect" : "/"} className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
               <img src={logo} alt="Logo" />
             </div>
@@ -88,7 +89,18 @@ export function UserNavbar() {
         </div>
 
         {/* Center: Desktop Navigation Links */}
-        <div className="hidden md:flex items-center gap-6 md:gap-8 flex-1 justify-start ml-12">
+        <div className="hidden md:flex items-center gap-4 md:gap-6 flex-1 justify-start ml-12">
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
+                isActive ? "text-primary" : "text-muted-foreground",
+              )
+            }
+          >
+            Dashboard
+          </NavLink>
           <div className="flex items-center gap-4">
             <NavLink
               to="/tickets"
@@ -175,7 +187,7 @@ export function UserNavbar() {
       >
         {/* Drawer Header */}
         <div className="p-6 border-b flex items-center justify-between bg-primary/5">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to={user ? "/redirect" : "/"} className="flex items-center gap-2">
             <img src={logo} alt="Logo" className="w-6 h-6" />
             <span className="font-bold text-lg">EventTix</span>
           </Link>
@@ -210,6 +222,23 @@ export function UserNavbar() {
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-2 mb-3">
               Experience
             </p>
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center justify-between p-3 rounded-xl transition-all",
+                  isActive
+                    ? "bg-primary text-white shadow-lg shadow-primary/20"
+                    : "hover:bg-primary/5 text-foreground",
+                )
+              }
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-5 h-5" />
+                <span className="font-medium">Dashboard</span>
+              </div>
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            </NavLink>
             <NavLink
               to="/tickets"
               className={({ isActive }) =>

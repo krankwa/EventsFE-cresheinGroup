@@ -26,6 +26,12 @@ export const eventsService = {
     if (params.searchTerm) {
       queryParams.append("searchTerm", params.searchTerm);
     }
+    if (params.sortBy) {
+      queryParams.append("sortBy", params.sortBy);
+    }
+    if (params.isDescending !== undefined) {
+      queryParams.append("isDescending", params.isDescending.toString());
+    }
     return apiRequest<PaginatedResponse<EventResponse>>(`/event/paginated?${queryParams.toString()}`, {
       method: "GET",
     });

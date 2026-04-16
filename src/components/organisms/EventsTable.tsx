@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { MoreVertical, Edit, Trash2, Eye, CalendarDays } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Eye, CalendarDays, ChevronUp, ChevronDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -22,7 +22,53 @@ interface EventsTableProps {
   onDelete: (event: EventResponse) => void;
   onView: (event: EventResponse) => void;
   onCreateNew?: () => void;
+  sortBy?: string | undefined;
+  isDescending?: boolean | undefined;
+  onSort?: (field: string) => void;
 }
+
+const SortIcon = ({ 
+  field, 
+  sortBy, 
+  isDescending 
+}: { 
+  field: string, 
+  sortBy?: string | undefined, 
+  isDescending?: boolean | undefined 
+}) => {
+  if (sortBy !== field) return null;
+  return isDescending ? (
+    <ChevronDown className="ml-1 w-4 h-4 inline-block" />
+  ) : (
+    <ChevronUp className="ml-1 w-4 h-4 inline-block" />
+  );
+};
+
+const HeaderCell = ({ 
+  label, 
+  field, 
+  className,
+  sortBy,
+  isDescending,
+  onSort
+}: { 
+  label: string, 
+  field?: string, 
+  className?: string | undefined,
+  sortBy?: string | undefined,
+  isDescending?: boolean | undefined,
+  onSort?: ((field: string) => void) | undefined
+}) => (
+  <TableHead 
+    className={cn(field ? "cursor-pointer hover:text-primary transition-colors select-none" : "", className)}
+    onClick={() => field && onSort?.(field)}
+  >
+    <div className="flex items-center">
+      {label}
+      {field && <SortIcon field={field} sortBy={sortBy} isDescending={isDescending} />}
+    </div>
+  </TableHead>
+);
 
 export const EventsTable = memo(function EventsTable({
   events,
@@ -30,6 +76,9 @@ export const EventsTable = memo(function EventsTable({
   onDelete,
   onView,
   onCreateNew,
+  sortBy,
+  isDescending,
+  onSort,
 }: EventsTableProps) {
   if (events.length === 0) {
     return (
@@ -49,10 +98,10 @@ export const EventsTable = memo(function EventsTable({
     <Table>
       <TableHeader className="bg-gray-100 rounded-t-lg">
         <TableRow>
-          <TableHead className="w-[80px] ">Cover</TableHead>
-          <TableHead>Event Info</TableHead>
-          <TableHead>Location</TableHead>
-          <TableHead>Capacity</TableHead>
+          <TableHead className="w-[80px]">Cover</TableHead>
+          <HeaderCell label="Event Info" field="title" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
+          <HeaderCell label="Location" field="venue" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
+          <HeaderCell label="Capacity" field="capacity" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
           <TableHead>Tickets</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actions</TableHead>

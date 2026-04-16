@@ -2,6 +2,8 @@ export interface PaginationParams {
   pageNumber: number;
   pageSize: number;
   searchTerm?: string;
+  sortBy?: string | undefined;
+  isDescending?: boolean | undefined;
   [key: string]: unknown;
 }
 

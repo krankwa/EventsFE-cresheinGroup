@@ -1,15 +1,23 @@
-// Session-surviving token store using sessionStorage.
-// Persists across page refreshes within the same tab, clears when tab closes.
+// Authentication state management.
+// Tokens are now stored in HttpOnly cookies and managed by the browser.
 
 export function getToken(): string | null {
-  return sessionStorage.getItem("token");
+  // We no longer retrieve the token from JS for security reasons.
+  // The browser automatically attaches the 'AuthToken' cookie to requests.
+  return null;
 }
 
-export function setToken(token: string): void {
-  sessionStorage.setItem("token", token);
+export function setToken(_token: string): void {
+  // No-op: Token is set via Set-Cookie header from the server.
+  // We can store a flag to indicate we are logged in for UI purposes.
+  localStorage.setItem("isLoggedIn", "true");
 }
 
 export function clearToken(): void {
-  sessionStorage.removeItem("token");
+  // No-op: Token is removed via Delete-Cookie header during logout.
+  localStorage.removeItem("isLoggedIn");
 }
- 
+
+export function isAuthenticated(): boolean {
+  return localStorage.getItem("isLoggedIn") === "true";
+}

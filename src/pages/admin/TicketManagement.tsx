@@ -10,6 +10,8 @@ import {
   ScanLine,
   Loader2,
   Users,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { ticketsService } from "../../services/ticketsService";
 import type { TicketResponse } from "../../interface/Ticket.interface";
@@ -36,6 +38,8 @@ import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 import { usePagination } from "@/utils/pagination/usePagination";
 import { TableEmptyState } from "@/components/organisms/TableEmptyState";
 
+import { cn } from "@/lib/utils";
+
 // Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
   if (t.isRedeemed) return "redeemed";
@@ -60,6 +64,54 @@ const statusConfig = {
     class: "bg-muted text-muted-foreground border-muted",
   },
 };
+
+const SortIconHelper = ({ 
+  field, 
+  sortBy, 
+  isDescending 
+}: { 
+  field: string;
+  sortBy?: string | undefined;
+  isDescending?: boolean | undefined;
+}) => {
+  if (sortBy !== field) return null;
+  return isDescending ? (
+    <ChevronDown className="ml-1 w-4 h-4 inline-block" />
+  ) : (
+    <ChevronUp className="ml-1 w-4 h-4 inline-block" />
+  );
+};
+
+const HeaderCellHelper = ({
+  label,
+  field,
+  className,
+  sortBy,
+  isDescending,
+  onSort,
+}: {
+  label: string;
+  field?: string;
+  className?: string | undefined;
+  sortBy?: string | undefined;
+  isDescending?: boolean | undefined;
+  onSort?: ((field: string) => void) | undefined;
+}) => (
+  <TableHead
+    className={cn(
+      field
+        ? "cursor-pointer hover:text-primary transition-colors select-none"
+        : "",
+      className,
+    )}
+    onClick={() => field && onSort?.(field)}
+  >
+    <div className="flex items-center">
+      {label}
+      {field && <SortIconHelper field={field} sortBy={sortBy} isDescending={isDescending} />}
+    </div>
+  </TableHead>
+);
 
 // Stat Card Component
 function StatCard({
@@ -110,6 +162,9 @@ export function TicketManagement() {
     setPageSize,
     searchQuery: debouncedSearch,
     handleSearch,
+    sortBy,
+    isDescending,
+    handleSort,
   } = usePagination({ initialPageSize: 10 });
 
   // Debounce search
@@ -128,6 +183,8 @@ export function TicketManagement() {
         pageSize: pageSize,
         searchTerm: debouncedSearch,
         status: filterStatus === "all" ? undefined : filterStatus,
+        sortBy: sortBy,
+        isDescending: isDescending,
       });
       setTickets(result.items);
       setTotalItems(result.totalCount);
@@ -137,7 +194,7 @@ export function TicketManagement() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, debouncedSearch, filterStatus, setTotalItems]);
+  }, [page, pageSize, debouncedSearch, filterStatus, sortBy, isDescending, setTotalItems]);
 
   useEffect(() => {
     loadTickets();
@@ -280,12 +337,12 @@ export function TicketManagement() {
               <Table>
                 <TableHeader className="bg-gray-100">
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Event</TableHead>
+                    <HeaderCellHelper label="ID" field="id" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
+                    <HeaderCellHelper label="Event" field="event" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
                     <TableHead>Tier</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Event Date</TableHead>
-                    <TableHead>Booked</TableHead>
+                    <HeaderCellHelper label="Price" field="price" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
+                    <HeaderCellHelper label="Event Date" field="eventdate" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
+                    <HeaderCellHelper label="Booked" field="booked" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>

@@ -28,6 +28,62 @@ sequenceDiagram
 
 ---
 
+## 🔄 Developer Iteration Workflow (Agile)
+
+This diagram outlines the typical Agile developer lifecycle when implementing new features or fixes across the full stack.
+
+```mermaid
+graph TD
+    subgraph "Agile Planning"
+        backlog[Sprint Backlog / User Stories]
+        daily[Daily Standup / Tasks]
+    end
+
+    backlog --> daily
+
+    subgraph "Dev Cycle"
+        db_mod[1. DB: Migrations / SQL Schema]
+        be_mod[2. BE: API Controllers / Core Logic]
+        fe_mod[3. FE: React Components / Services]
+    end
+
+    daily --> db_mod
+    db_mod --> be_mod
+    be_mod --> fe_mod
+    fe_mod --> review{Sprint Review / Iterate?}
+    
+    subgraph "Git Sync & Conflict Resolution"
+        review -- "Done" --> git_commit[4. Git: Stage & Commit]
+        git_commit --> git_pull[5. Git: Pull & Sync Remote]
+        git_pull --> conflict_check{Conflicts?}
+        conflict_check -- "Yes" --> resolve[Manual Merge / Resolve]
+        resolve --> git_commit
+        conflict_check -- "No" --> git_push[6. Git Push: Trigger CI/CD]
+    end
+
+    review -- "Feedback" --> daily
+    git_push --> pipeline([Vercel & Azure Pipelines])
+
+    %% Styling
+    style resolve fill:#f66,stroke:#333
+    style git_push fill:#3ecf8e,color:#fff,stroke:#333
+    style backlog fill:#ff9,stroke:#333
+    style daily fill:#ff9,stroke:#333
+    style db_mod fill:#0078d4,color:#fff,stroke:#333
+    style be_mod fill:#0078d4,color:#fff,stroke:#333
+    style fe_mod fill:#0078d4,color:#fff,stroke:#333
+```
+
+### Workflow Steps:
+1.  **Agile Planning**: Tasks are pulled from the **Sprint Backlog**. Progress is tracked via daily standups.
+2.  **Database**: First, define or update the schema using EF Core migrations or raw SQL scripts (found in the backend repository).
+3.  **Backend (BE)**: Implement the business logic and expose it via API Controllers.
+4.  **Frontend (FE)**: Update the TanStack Query services and React components to consume the new API endpoints.
+5.  **Review**: Sprint Review or Peer Review ensures the feature meets requirements. Feedback may trigger further iterations.
+6.  **Git Sync**: Always pull before pushing to handle potential **Merge Conflicts** early. If a conflict occurs, resolve it manually, re-test locally, and then proceed with the final push to trigger the deployment.
+
+---
+
 ## 🛠️ Tech Stack
 - **Framework**: [React 19](https://react.dev/)
 - **Build Tool**: [Vite 8](https://vitejs.dev/)

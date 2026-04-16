@@ -7,6 +7,8 @@ import {
   X,
   Check,
   Loader2,
+  ChevronUp,
+  ChevronDown,
   ShieldAlert,
 } from "lucide-react";
 import {
@@ -23,15 +25,19 @@ import type { UserResponse } from "../../interface/Auth.interface";
 import { useUser } from "../../features/authentication/useUser";
 
 import { TableEmptyState } from "./TableEmptyState";
+import { cn } from "@/lib/utils";
 
 interface UsersTableProps {
   users: UserResponse[];
-  onPromote: (user: UserResponse) => Promise<void>; // Changed to Promise
+  onPromote: (user: UserResponse) => Promise<void>;
   onEdit: (
     user: UserResponse,
     data: { name: string; email: string; role?: string },
   ) => Promise<void>;
   isLoading?: boolean;
+  sortBy?: string | undefined;
+  isDescending?: boolean | undefined;
+  onSort?: (field: string) => void;
 }
 
 interface EditState {
@@ -45,11 +51,57 @@ interface LoadingState {
   editing: number | null;
 }
 
+const SortIcon = ({ 
+  field, 
+  sortBy, 
+  isDescending 
+}: { 
+  field: string, 
+  sortBy?: string | undefined, 
+  isDescending?: boolean | undefined 
+}) => {
+  if (sortBy !== field) return null;
+  return isDescending ? (
+    <ChevronDown className="ml-1 w-4 h-4 inline-block" />
+  ) : (
+    <ChevronUp className="ml-1 w-4 h-4 inline-block" />
+  );
+};
+
+const HeaderCell = ({ 
+  label, 
+  field, 
+  className,
+  sortBy,
+  isDescending,
+  onSort
+}: { 
+  label: string, 
+  field?: string, 
+  className?: string | undefined,
+  sortBy?: string | undefined,
+  isDescending?: boolean | undefined,
+  onSort?: ((field: string) => void) | undefined
+}) => (
+  <TableHead 
+    className={cn(field ? "cursor-pointer hover:text-primary transition-colors select-none" : "", className)}
+    onClick={() => field && onSort?.(field)}
+  >
+    <div className="flex items-center">
+      {label}
+      {field && <SortIcon field={field} sortBy={sortBy} isDescending={isDescending} />}
+    </div>
+  </TableHead>
+);
+
 export function UsersTable({
   users,
   onPromote,
   onEdit,
   isLoading,
+  sortBy,
+  isDescending,
+  onSort,
 }: UsersTableProps) {
   const { user: currentUser } = useUser();
   const [editState, setEditState] = useState<EditState | null>(null);
@@ -112,9 +164,9 @@ export function UsersTable({
     <Table>
       <TableHeader className="bg-gray-100 rounded-t-lg">
         <TableRow>
-          <TableHead>User</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
+          <HeaderCell label="User" field="name" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
+          <HeaderCell label="Email" field="email" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
+          <HeaderCell label="Role" field="role" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>

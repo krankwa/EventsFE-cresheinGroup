@@ -138,7 +138,7 @@ function LandingEventCard({
             "Sold Out"
           ) : !isLoggedIn ? (
             <>
-              Sign In to Book
+              View Details
               <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
             </>
           ) : (
@@ -163,12 +163,7 @@ export function LandingSection() {
   const { user, isAdmin } = useUser();
 
   const handleBook = (event: EventResponse) => {
-    if (!user) {
-      toast("Please sign in to book tickets.", { icon: "🎟️" });
-      navigate("/login");
-      return;
-    }
-    if (isAdmin) {
+    if (user && isAdmin) {
       toast.error("Admins cannot book tickets.");
       return;
     }
@@ -219,24 +214,16 @@ export function LandingSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="text-base font-semibold gap-2 shadow-lg shadow-blue-950/20 hover:scale-105 transition-transform bg-blue-950 hover:bg-blue-900 text-white"
+              className="text-lg px-10 py-7 font-bold gap-3 shadow-xl shadow-blue-950/20 hover:scale-105 transition-all bg-blue-950 hover:bg-blue-900 text-white rounded-full group"
               onClick={() => {
                 document
                   .getElementById("events-section")
                   ?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              <Ticket className="w-5 h-5" />
-              Browse Events
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-base font-semibold gap-2 hover:scale-105 transition-transform border-blue-950 text-blue-950 hover:bg-blue-950 hover:text-white"
-              onClick={() => navigate("/login")}
-            >
-              Sign In
-              <ArrowRight className="w-4 h-4" />
+              <Ticket className="w-6 h-6" />
+              Get Tickets
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
         </div>
@@ -311,6 +298,7 @@ export function LandingSection() {
         isOpen={selectedEvent !== null}
         onClose={() => setSelectedEvent(null)}
         event={selectedEvent}
+        isLoggedIn={!!user}
         onSuccess={() => navigate("/tickets")}
       />
     </>

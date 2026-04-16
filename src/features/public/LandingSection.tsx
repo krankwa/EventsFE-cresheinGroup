@@ -190,10 +190,10 @@ export function LandingSection() {
 
               <div 
                 ref={scrollRef}
-                className="flex gap-6 md:gap-10 overflow-x-auto pb-16 px-4 -mx-4 scrollbar-hide snap-x"
+                className="flex gap-8 md:gap-12 overflow-x-auto pb-16 px-4 -mx-4 scrollbar-hide snap-x"
               >
                 {recItems.map((event: EventResponse) => (
-                  <div key={event.id} className="snap-start">
+                  <div key={event.id} className="snap-start shrink-0">
                     <LandingEventCard
                       event={event}
                       onBook={handleBook}

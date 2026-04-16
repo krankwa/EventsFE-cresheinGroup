@@ -32,7 +32,7 @@ export function UserNavbar() {
     if (isDrawerOpen) {
       setIsDrawerOpen(false);
     }
-  }, [location.pathname]); // Only trigger on path change, avoids dependency loop with isDrawerOpen
+  }, [location.pathname, isDrawerOpen]); 
 
   // Prevent scrolling when drawer is open
   useEffect(() => {

@@ -15,7 +15,7 @@ export interface UserNotification {
   title: string;
   message: string;
   type: string;
-  payload?: EventUpdatePayload | any;
+  payload?: EventUpdatePayload | Record<string, unknown>;
   isRead: boolean;
   createdAt: string;
 }

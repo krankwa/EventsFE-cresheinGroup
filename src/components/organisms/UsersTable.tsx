@@ -47,7 +47,7 @@ interface LoadingState {
 
 export function UsersTable({
   users,
-  //onPromote,
+  onPromote,
   onEdit,
   isLoading,
 }: UsersTableProps) {

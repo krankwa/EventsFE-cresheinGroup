@@ -1,4 +1,7 @@
 import { useProfileForm } from "@/components/hooks/useProfileForm";
+import { usePasswordForm } from "@/components/hooks/usePasswordForm";
+import { ConfirmDialog } from "@/components/dialog/confirm-dialog";
+import { PasswordChangeAlert } from "@/components/dialog/password-change";
 import { AccountHeader } from "@/components/ui/acc-header";
 import { ProfileForm } from "@/components/ui/profile-form";
 import { useUser } from "../authentication/useUser";
@@ -6,7 +9,8 @@ import { useUser } from "../authentication/useUser";
 export function MyAccountSection() {
   const { user, isAdmin } = useUser();
 
-  const profile = useProfileForm(user);
+  const profile = useProfileForm(user ?? null);
+  const password = usePasswordForm(user ?? null);
 
   if (!user) return null;
 

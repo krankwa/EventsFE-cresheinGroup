@@ -147,17 +147,17 @@ function EventsSectionGrid() {
 
     // 1. Process Recommended
     const categorized = !Array.isArray(data) ? (data as EventRecommendResponse) : null;
-    const recommended = categorized?.recommended ?? (categorized as any)?.recommended ?? (categorized as any)?.Recommended ?? [];
+    const recommended = (categorized?.recommended ?? categorized?.Recommended ?? []) as EventResponse[];
     const topRecommended = recommended.slice(0, 6);
     
     // Store IDs as strings for reliable comparison
-    topRecommended.forEach((e: any) => {
+    topRecommended.forEach((e: EventResponse) => {
       if (e && e.id) renderedIds.add(String(e.id));
     });
 
     // 2. Process More Events (strictly deduplicate against Recommended)
     const filteredPaginated = (paginatedData?.items || []).filter(
-      (e: any) => !renderedIds.has(String(e.id)),
+      (e: EventResponse) => !renderedIds.has(String(e.id)),
     );
 
     const hasRecommendations = topRecommended.length > 0;
@@ -213,7 +213,7 @@ export const EventsSection: EventsSectionComponent = ({
   return (
     <EventsSectionContext.Provider
       value={{
-        data,
+        data: data ?? null,
         isLoading,
         isError,
         error: error ?? null,

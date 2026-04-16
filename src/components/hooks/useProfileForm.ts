@@ -5,8 +5,9 @@ import type {
   ProfileFormData,
   ProfileErrors,
 } from "@/features/account/types/account.type";
+import type { UserResponse } from "@/interface/Auth.interface";
 
-export function useProfileForm(user: any, onSuccess?: () => void) {
+export function useProfileForm(user: UserResponse | null, onSuccess?: () => void) {
   const [form, setForm] = useState<ProfileFormData>({
     name: user?.name ?? "",
     email: user?.email ?? "",
@@ -16,6 +17,8 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
   });
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingData, setPendingData] = useState<ProfileFormData | null>(null);
 
   const validate = (): boolean => {
     const newErrors: ProfileErrors = {};
@@ -48,6 +51,7 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
   };
 
   const hasChanges = (): boolean => {
+    if (!user) return false;
     return (
       form.name.trim() !== user.name ||
       form.email.trim() !== user.email ||
@@ -61,10 +65,12 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
       toast.error("No changes to save.");
       return;
     }
-    confirmUpdate();
+    setPendingData(form);
+    setShowConfirm(true);
   };
 
   const confirmUpdate = async () => {
+    if (!user) return;
     setIsSaving(true);
     try {
       await userService.update(user.userId, {
@@ -74,6 +80,8 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
         newPassword: form.newPassword || undefined,
       });
       toast.success("Profile updated successfully!");
+      setShowConfirm(false);
+      setPendingData(null);
       setForm((prev) => ({
         ...prev,
         currentPassword: "",
@@ -82,8 +90,9 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
       }));
       setErrors({});
       onSuccess?.();
-    } catch (err: any) {
-      const message = err?.response?.data?.Message || "Failed to update profile. Please try again.";
+    } catch (err: unknown) {
+      const errorData = (err as { response?: { data?: { Message?: string } } })?.response?.data;
+      const message = errorData?.Message || "Failed to update profile. Please try again.";
       toast.error(message);
     } finally {
       setIsSaving(false);
@@ -97,5 +106,8 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
     isSaving,
     handleSave,
     confirmUpdate,
+    showConfirm,
+    setShowConfirm,
+    pendingData,
   };
 }

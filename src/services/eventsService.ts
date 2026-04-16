@@ -9,8 +9,8 @@ import type { PaginationParams, PaginatedResponse } from "../interface/paginatio
 
 
 export const eventsService = {
-  getAll: (): Promise<EventResponse[]> =>
-    apiRequest<EventResponse[]>("/Event", {
+  getAll: (): Promise<EventsFeedResponse> =>
+    apiRequest<EventsFeedResponse>("/Event", {
       method: "GET",
       requiresAuth: false,
     }),

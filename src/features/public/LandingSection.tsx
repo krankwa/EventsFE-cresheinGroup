@@ -21,7 +21,10 @@ import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
 import { useEvents } from "../../features/events/useEvents";
 import { useUser } from "../../features/authentication/useUser";
-import type { EventResponse } from "../../interface/Event.interface";
+import type {
+  EventResponse,
+  EventRecommendResponse,
+} from "../../interface/Event.interface";
 import { toast } from "react-hot-toast";
 import { TicketBookingDialog } from "../../components/organisms/TicketBookingDialog";
 
@@ -175,7 +178,7 @@ export function LandingSection() {
   // Extract events from potentially categorized response
   // FOR LANDING PAGE: Only show 'Popular' events if categorized data exists
   const categorized = !Array.isArray(eventsResult) ? (eventsResult as EventRecommendResponse) : null;
-  const popular = categorized?.popular ?? (categorized as any)?.Popular ?? [];
+  const popular = (categorized?.popular ?? (categorized as unknown as { Popular?: EventResponse[] })?.Popular ?? []) as EventResponse[];
 
   const events = Array.isArray(eventsResult)
     ? eventsResult
@@ -282,7 +285,7 @@ export function LandingSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
+            {events.map((event: EventResponse) => (
               <LandingEventCard
                 key={event.id}
                 event={event}

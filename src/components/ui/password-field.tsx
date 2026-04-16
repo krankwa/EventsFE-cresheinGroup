@@ -19,6 +19,7 @@ interface PasswordFieldProps {
     placeholder?: string;
     disabled?: boolean;
     className?: string;
+    autoComplete?: string;
 }
 
 export function PasswordField({
@@ -30,6 +31,7 @@ export function PasswordField({
     placeholder,
     disabled,
     className,
+    autoComplete,
 }: PasswordFieldProps) {
     const [show, setShow] = useState(false);
 
@@ -44,6 +46,7 @@ export function PasswordField({
                         onChange={onChange}
                         placeholder={placeholder}
                         disabled={disabled}
+                        autoComplete={autoComplete}
                         className={cn("pr-10", className)}
                     />
                     <button

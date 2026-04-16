@@ -154,14 +154,13 @@ export function EventDialog({
   const [tierTypes, setTierTypes] = useState<TierTypeResponse[]>([]);
 
   // ── Form state ─────────────────────────────────────────────────────────
-  const [formData, setFormData] = useState<EventCreateDTO>(
+  const [formData, setFormData] = useState<Omit<EventCreateDTO, 'tiers'> & { tiers: (Partial<TicketTierUpdateRequest> & TicketTierCreateRequest)[] }>(
     event
       ? {
           title: event.title,
           date: event.date
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
-          venue: event.venue || "",
           venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
@@ -175,6 +174,7 @@ export function EventDialog({
                   name: t.name,
                   price: t.price,
                   capacity: t.capacity,
+                  ticketsSold: t.ticketsSold,
                 }))
               : [
                   {
@@ -187,7 +187,6 @@ export function EventDialog({
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
-          venue: "",
           venue: "",
           venueAddress: "",
           capacity: 100,
@@ -221,59 +220,7 @@ export function EventDialog({
   // Track which tier name is currently being edited
   const [editingTierIndex, setEditingTierIndex] = useState<number | null>(null);
 
-  // ── Synchronize form when event prop changes or dialog opens ──────────
-  useEffect(() => {
-    if (isOpen) {
-      if (event) {
-        setFormData({
-          title: event.title,
-          date: event.date
-            ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
-            : format(new Date(), "yyyy-MM-dd"),
-          venue: event.venue || "",
-          venueAddress: event.venueAddress || "",
-          capacity: event.capacity,
-          ticketsSold: event.ticketsSold,
-          maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
-          coverImageUrl: event.coverImageUrl,
-          tiers:
-            event.tiers && event.tiers.length > 0
-              ? event.tiers.map((t) => ({
-                  id: t.id,
-                  name: t.name,
-                  price: t.price,
-                  capacity: t.capacity,
-                }))
-              : [
-                  {
-                    name: "Regular",
-                    price: 0,
-                    capacity: event.capacity,
-                  },
-                ],
-        });
-        setImagePreview(event.coverImageUrl || null);
-        setMarkerPos(null); // Reset marker until geocoded or clicked
-        setFlyTarget(null);
-      } else {
-        // Reset to default for "New Event"
-        setFormData({
-          title: "",
-          date: format(new Date(), "yyyy-MM-dd"),
-          venue: "",
-          venueAddress: "",
-          capacity: 100,
-          maxTicketsPerPerson: 5,
-          coverImageUrl: "",
-          tiers: [{ name: "Regular", price: 0, capacity: 100 }],
-        });
-        setImagePreview(null);
-        setImageFile(null);
-        setMarkerPos(null);
-        setFlyTarget(null);
-      }
-    }
-  }, [isOpen, event]);
+
 
   // Fetch Tier Types
   useEffect(() => {
@@ -282,10 +229,7 @@ export function EventDialog({
         .getTiersByEventId(event.id)
         .then(setTierTypes)
         .catch((err) => console.error("Failed to load ticket tiers", err));
-    } else {
-      setTierTypes([]);
     }
-  }, [isOpen, event?.id]);
   }, [isOpen, event?.id]);
 
   // ── Tier Management ────────────────────────────────────────────────────
@@ -308,7 +252,7 @@ export function EventDialog({
 
   const updateTier = (index: number, updates: Partial<TicketTierUpdateRequest>) => {
     const newTiers = [...formData.tiers];
-    newTiers[index] = { ...newTiers[index], ...updates } as any;
+    newTiers[index] = { ...newTiers[index], ...updates } as typeof formData.tiers[number];
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
@@ -455,34 +399,41 @@ export function EventDialog({
       setIsUploading(false);
     }
 
-    // Final sanitization: We map the tiers to ensure only required fields are sent
-    const sanitizedTiers = formData.tiers.map((t: any) => {
-      if (event) {
-        // For Update
+    if (event) {
+      // For Update
+      const sanitizedTiers: TicketTierUpdateRequest[] = formData.tiers.map((t) => {
         const tier: TicketTierUpdateRequest = {
           id: t.id || 0,
           name: t.name,
           price: t.price,
           capacity: t.capacity,
-          ticketsSold: t.ticketsSold,
         };
+        const ts = (t as { ticketsSold?: number }).ticketsSold;
+        if (typeof ts === "number") {
+          tier.ticketsSold = ts;
+        }
         return tier;
-      } else {
-        // For Create
-        const tier: TicketTierCreateRequest = {
-          name: t.name,
-          price: t.price,
-          capacity: t.capacity,
-        };
-        return tier;
-      }
-    });
+      });
 
-    onSave({
-      ...formData,
-      coverImageUrl: finalImageUrl || null,
-      tiers: sanitizedTiers,
-    } as any);
+      onSave({
+        ...formData,
+        coverImageUrl: finalImageUrl || undefined,
+        tiers: sanitizedTiers,
+      } as EventUpdateDTO);
+    } else {
+      // For Create
+      const sanitizedTiers: TicketTierCreateRequest[] = formData.tiers.map((t) => ({
+        name: t.name,
+        price: t.price,
+        capacity: t.capacity,
+      }));
+
+      onSave({
+        ...formData,
+        coverImageUrl: finalImageUrl || null,
+        tiers: sanitizedTiers,
+      } as EventCreateDTO);
+    }
   };
 
   const isBusy = isLoading || isUploading;

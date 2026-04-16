@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +24,8 @@ interface TicketBookingDialogProps {
   onSuccess: () => void;
 }
 
+type BookingStep = "select-tier" | "payment";
+ 
 export function TicketBookingDialog({
   isOpen,
   onClose,
@@ -33,6 +34,12 @@ export function TicketBookingDialog({
 }: TicketBookingDialogProps) {
   const [step, setStep] = useState<BookingStep>("select-tier");
   const [selectedTierId, setSelectedTierId] = useState<number | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState({
+    cardholderName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
   const [isBooking, setIsBooking] = useState(false);
   const [userBookedCount, setUserBookedCount] = useState(0);
   const [isLoadingQuota, setIsLoadingQuota] = useState(true);
@@ -57,6 +64,8 @@ export function TicketBookingDialog({
   }, [isOpen, event]);
 
   if (!event) return null;
+
+  const hasTiers = !!event.tiers && event.tiers.length > 0;
 
   const handleNextStep = () => {
     if (hasTiers && !selectedTierId) {
@@ -91,7 +100,7 @@ export function TicketBookingDialog({
 
       await ticketsService.register({
         eventId: eventId,
-        tierId: selectedTierId,
+        tierId: selectedTierId as number,
       });
       toast.success(`Successfully booked ticket for ${event.title}!`);
       onSuccess();
@@ -324,10 +333,10 @@ export function TicketBookingDialog({
             Cancel
           </Button>
           <Button
-            onClick={handleBook}
+            onClick={step === "select-tier" && (hasTiers || displayPrice > 0) ? handleNextStep : handleBook}
             disabled={
               isBooking || 
-              !selectedTierId || 
+              (hasTiers && !selectedTierId) || 
               isLoadingQuota || 
               userBookedCount >= event.maxTicketsPerPerson
             }
@@ -340,6 +349,8 @@ export function TicketBookingDialog({
               </>
             ) : userBookedCount >= event.maxTicketsPerPerson ? (
               "Limit Reached"
+            ) : step === "select-tier" && (hasTiers || displayPrice > 0) ? (
+              "Continue"
             ) : (
               "Confirm Booking"
             )}

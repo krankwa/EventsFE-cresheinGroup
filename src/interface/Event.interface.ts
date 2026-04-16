@@ -33,7 +33,6 @@ export interface TicketTierUpdateRequest {
 
 export interface EventResponse {
   id: number;
-  id: number;
   title: string;
   date: string;
   capacity: number;
@@ -49,6 +48,8 @@ export interface EventResponse {
 export interface EventRecommendResponse {
   recommended: EventResponse[];
   popular: EventResponse[];
+  Recommended?: EventResponse[];
+  Popular?: EventResponse[];
   allOthers?: EventResponse[];
 }
 

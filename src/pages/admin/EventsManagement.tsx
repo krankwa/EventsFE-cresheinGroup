@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Search, Plus, Filter, RefreshCcw } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
 import { useEvents } from "../../features/events/useEvents";
@@ -61,7 +61,7 @@ export function EventsManagement() {
   }, [searchQuery, handleSearch]);
 
   // Load events with pagination
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       const result = await eventsService.getPaginated({
         pageNumber: page,
@@ -76,12 +76,12 @@ export function EventsManagement() {
       setEvents([]);
       setTotalItems(0);
     }
-  };
+  }, [page, pageSize, debouncedSearch, setTotalItems]);
 
   // Load events when page, pageSize, or search changes
   useEffect(() => {
     loadEvents();
-  }, [page, pageSize, debouncedSearch]);
+  }, [loadEvents]);
 
 
   // --- Handlers ---
@@ -110,8 +110,6 @@ export function EventsManagement() {
     try {
       if (selectedEvent && selectedEvent.id) {
         await eventsService.update(selectedEvent.id, data as EventUpdateDTO);
-      if (selectedEvent && selectedEvent.id) {
-        await eventsService.update(selectedEvent.id, data as EventUpdateDTO);
         toast.success("Event updated successfully!");
       } else {
         await eventsService.create(data as EventCreateDTO);
@@ -131,10 +129,8 @@ export function EventsManagement() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedEvent || !selectedEvent.id) return;
-    if (!selectedEvent || !selectedEvent.id) return;
     setIsSaving(true);
     try {
-      await eventsService.delete(selectedEvent.id);
       await eventsService.delete(selectedEvent.id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
@@ -232,7 +228,6 @@ export function EventsManagement() {
       </Card>
 
       <EventDialog
-        key={selectedEvent?.id || "new"}
         key={selectedEvent?.id || "new"}
         isOpen={isEventDialogOpen}
         onClose={() => {

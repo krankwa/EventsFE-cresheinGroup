@@ -13,7 +13,6 @@ import {
 import { NotificationCenter } from "./NotificationCenter";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
-import { useEvents } from "../../features/events/useEvents";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 import { useConfirm } from "../ui/confirm-context";
@@ -29,8 +28,10 @@ export function UserNavbar() {
 
   // Close drawer when route changes
   useEffect(() => {
-    setIsDrawerOpen(false);
-  }, [location]);
+    if (isDrawerOpen) {
+      setIsDrawerOpen(false);
+    }
+  }, [location.pathname]); // Only trigger on path change, avoids dependency loop with isDrawerOpen
 
   // Prevent scrolling when drawer is open
   useEffect(() => {

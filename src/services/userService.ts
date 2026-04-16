@@ -18,6 +18,8 @@ export const userService = {
       pageSize: params.pageSize.toString(),
     });
     if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
+    if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+    if (params.isDescending !== undefined) queryParams.append("isDescending", params.isDescending.toString());
     
     return apiRequest<PaginatedResponse<UserResponse>>(`/users/list?${queryParams.toString()}`, {
       method: "GET",

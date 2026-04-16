@@ -55,6 +55,9 @@ export function UsersManagement() {
     setPageSize,
     searchQuery: debouncedSearch,
     handleSearch,
+    sortBy,
+    isDescending,
+    handleSort,
   } = usePagination(paginationOptions);
 
   // Debounce search
@@ -76,6 +79,8 @@ export function UsersManagement() {
         pageNumber: page,
         pageSize: pageSize,
         searchTerm: debouncedSearch,
+        sortBy: sortBy,
+        isDescending: isDescending,
       });
       setUsers(result.items);
       // Only update totalItems if it has actually changed to minimize re-renders
@@ -90,7 +95,7 @@ export function UsersManagement() {
       setIsLoading(false);
       isDataLoading.current = false;
     }
-  }, [page, pageSize, debouncedSearch, setTotalItems]);
+  }, [page, pageSize, debouncedSearch, sortBy, isDescending, setTotalItems]);
 
   useEffect(() => {
     loadUsers();
@@ -191,6 +196,9 @@ export function UsersManagement() {
                 onPromote={handlePromote}
                 isLoading={isLoading}
                 onEdit={handleEdit}
+                sortBy={sortBy}
+                isDescending={isDescending}
+                onSort={handleSort}
               />
               <PaginationWrapper
                 currentPage={page}

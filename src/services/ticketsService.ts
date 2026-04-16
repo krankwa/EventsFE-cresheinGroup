@@ -19,6 +19,8 @@ export const ticketsService = {
     });
     if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
     if (params.status) queryParams.append("status", params.status as string);
+    if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+    if (params.isDescending !== undefined) queryParams.append("isDescending", params.isDescending.toString());
     
     return apiRequest<PaginatedResponse<TicketResponse>>(`/tickets/mine/list?${queryParams.toString()}`, {
       method: "GET",
@@ -58,6 +60,8 @@ export const ticketsService = {
     });
     if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
     if (params.status) queryParams.append("status", params.status as string);
+    if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+    if (params.isDescending !== undefined) queryParams.append("isDescending", params.isDescending.toString());
     
     return apiRequest<PaginatedResponse<TicketResponse>>(`/tickets/list?${queryParams.toString()}`, {
       method: "GET",

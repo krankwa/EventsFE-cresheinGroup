@@ -50,6 +50,9 @@ export function EventsManagement() {
     setPageSize,
     searchQuery: debouncedSearch,
     handleSearch,
+    sortBy,
+    isDescending,
+    handleSort,
   } = usePagination({ initialPageSize: 10 });
 
   // Debounce search to update the pagination hook
@@ -67,6 +70,8 @@ export function EventsManagement() {
         pageNumber: page,
         pageSize: pageSize,
         searchTerm: debouncedSearch,
+        sortBy: sortBy,
+        isDescending: isDescending,
       });
       setEvents(result.items);
       setTotalItems(result.totalCount);
@@ -76,7 +81,7 @@ export function EventsManagement() {
       setEvents([]);
       setTotalItems(0);
     }
-  }, [page, pageSize, debouncedSearch, setTotalItems]);
+  }, [page, pageSize, debouncedSearch, sortBy, isDescending, setTotalItems]);
 
   // Load events when page, pageSize, or search changes
   useEffect(() => {
@@ -213,6 +218,9 @@ export function EventsManagement() {
                 onView={handleView}
                 onDelete={handleDeleteClick}
                 onCreateNew={() => setIsEventDialogOpen(true)}
+                sortBy={sortBy}
+                isDescending={isDescending}
+                onSort={handleSort}
               />
               <PaginationWrapper
                 currentPage={page}

@@ -19,7 +19,7 @@
  *   -- The service_role key (used by the .NET backend) bypasses RLS by default.
  */
 
-import { isAuthenticated } from "./authStore";
+import { getToken, isAuthenticated } from "./authStore";
 import { API_BASE_URL } from "./client";
 
 

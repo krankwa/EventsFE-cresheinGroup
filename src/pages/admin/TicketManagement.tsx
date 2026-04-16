@@ -339,7 +339,7 @@ export function TicketManagement() {
                   <TableRow>
                     <HeaderCellHelper label="ID" field="id" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
                     <HeaderCellHelper label="Event" field="event" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <HeaderCellHelper label="Tier" field="tier" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
+                    <TableHead>Tier</TableHead>
                     <HeaderCellHelper label="Price" field="price" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
                     <HeaderCellHelper label="Event Date" field="eventdate" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
                     <HeaderCellHelper label="Booked" field="booked" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />

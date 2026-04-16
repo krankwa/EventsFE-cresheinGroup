@@ -22,25 +22,25 @@ export interface UserNotification {
 
 export const notificationService = {
   getAll: (): Promise<UserNotification[]> =>
-    apiRequest<UserNotification[]>("/updates", {
+    apiRequest<UserNotification[]>("/notifications", {
       method: "GET",
       requiresAuth: true,
     }),
 
   getUnreadCount: (): Promise<number> =>
-    apiRequest<number>("/updates/unread-count", {
+    apiRequest<number>("/notifications/unread-count", {
       method: "GET",
       requiresAuth: true,
     }),
 
   markAsRead: (id: number): Promise<void> =>
-    apiRequest<void>(`/updates/${id}/read`, {
+    apiRequest<void>(`/notifications/${id}/read`, {
       method: "PUT",
       requiresAuth: true,
     }),
 
   markAllAsRead: (): Promise<void> =>
-    apiRequest<void>("/updates/read-all", {
+    apiRequest<void>("/notifications/read-all", {
       method: "PUT",
       requiresAuth: true,
     }),

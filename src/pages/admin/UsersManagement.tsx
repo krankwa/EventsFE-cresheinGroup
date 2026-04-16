@@ -61,6 +61,9 @@ export function UsersManagement() {
   }, [searchQuery, handleSearch]);
 
   const loadUsers = useCallback(async () => {
+    // Avoid redundant calls if already loading
+    if (isLoading && users.length > 0) return;
+
     setIsLoading(true);
     try {
       const result = await userService.getPaginated({
@@ -74,11 +77,14 @@ export function UsersManagement() {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
       setUsers([]);
-      setTotalItems(0);
+      // Only reset total items if not already zero to avoid feedback loop
+      if (totalItems !== 0) {
+        setTotalItems(0);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, debouncedSearch, setTotalItems]);
+  }, [page, pageSize, debouncedSearch]);
 
   useEffect(() => {
     loadUsers();

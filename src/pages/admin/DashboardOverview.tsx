@@ -25,6 +25,9 @@ export function DashboardOverview() {
     dashboardService
       .getStats()
       .then(setStats)
+      .catch((err) => {
+        console.error("Dashboard failed to load stats:", err);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

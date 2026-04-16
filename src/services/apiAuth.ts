@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, API_BASE_URL } from "./client";
 import { setToken, clearToken, getToken } from "./authStore";
 import type {
   LoginRequest,
@@ -77,7 +77,6 @@ export async function verifyEmail(token: string): Promise<{ message: string }> {
   });
 }
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
 export async function makeApiRequest<T>(
   endpoint: string,

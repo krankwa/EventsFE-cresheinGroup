@@ -20,8 +20,8 @@
  */
 
 import { getToken } from "./authStore";
+import { API_BASE_URL } from "./client";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
 /**
  * Uploads an image file to Supabase Storage via the .NET /api/Upload proxy.

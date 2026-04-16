@@ -149,4 +149,38 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .glass-premium {
+    @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-2xl;
+  }
+
+  .mesh-gradient {
+    background-color: #ffffff;
+    background-image: radial-gradient(at 0% 0%, hsla(220,100%,95%,1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(240,100%,95%,1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(260,100%,95%,1) 0, transparent 50%);
+    background-size: 200% 200%;
+    animation: mesh-move 15s ease infinite;
+  }
+}
+
+@keyframes mesh-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal {
+  animation: reveal-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

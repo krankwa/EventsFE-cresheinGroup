@@ -1,22 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
-import { format, isPast } from "date-fns";
+import { isPast } from "date-fns";
 import {
   Ticket,
   Search,
   RefreshCcw,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ScanLine,
-  Loader2,
-  Users,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import { ticketsService } from "../../services/ticketsService";
 import type { TicketResponse } from "../../interface/Ticket.interface";
 import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
 import {
   Card,
@@ -25,121 +16,20 @@ import {
   CardTitle,
   CardDescription,
 } from "../../components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
 import { toast } from "react-hot-toast";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 import { usePagination } from "@/utils/pagination/usePagination";
 import { TableEmptyState } from "@/components/organisms/TableEmptyState";
 
-import { cn } from "@/lib/utils";
+// Decoupled Components
+import { TicketStats } from "./components/TicketStats";
+import { TicketTable } from "./components/TicketTable";
 
 // Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
   if (t.isRedeemed) return "redeemed";
   if (isPast(new Date(t.eventDate))) return "past";
   return "upcoming";
-}
-
-const statusConfig = {
-  upcoming: {
-    label: "Upcoming",
-    icon: Clock,
-    class: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  },
-  redeemed: {
-    label: "Redeemed",
-    icon: CheckCircle2,
-    class: "bg-green-500/10 text-green-600 border-green-500/20",
-  },
-  past: {
-    label: "Past",
-    icon: XCircle,
-    class: "bg-muted text-muted-foreground border-muted",
-  },
-};
-
-const SortIconHelper = ({ 
-  field, 
-  sortBy, 
-  isDescending 
-}: { 
-  field: string;
-  sortBy?: string | undefined;
-  isDescending?: boolean | undefined;
-}) => {
-  if (sortBy !== field) return null;
-  return isDescending ? (
-    <ChevronDown className="ml-1 w-4 h-4 inline-block" />
-  ) : (
-    <ChevronUp className="ml-1 w-4 h-4 inline-block" />
-  );
-};
-
-const HeaderCellHelper = ({
-  label,
-  field,
-  className,
-  sortBy,
-  isDescending,
-  onSort,
-}: {
-  label: string;
-  field?: string;
-  className?: string | undefined;
-  sortBy?: string | undefined;
-  isDescending?: boolean | undefined;
-  onSort?: ((field: string) => void) | undefined;
-}) => (
-  <TableHead
-    className={cn(
-      field
-        ? "cursor-pointer hover:text-primary transition-colors select-none"
-        : "",
-      className,
-    )}
-    onClick={() => field && onSort?.(field)}
-  >
-    <div className="flex items-center">
-      {label}
-      {field && <SortIconHelper field={field} sortBy={sortBy} isDescending={isDescending} />}
-    </div>
-  </TableHead>
-);
-
-// Stat Card Component
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  color: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="p-5 flex items-center gap-4">
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${color}`}
-        >
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 export function TicketManagement() {
@@ -249,33 +139,12 @@ export function TicketManagement() {
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Tickets"
-          value={stats.total}
-          icon={Ticket}
-          color="bg-primary/10 text-primary"
-        />
-        <StatCard
-          label="Upcoming"
-          value={stats.upcoming}
-          icon={Clock}
-          color="bg-blue-500/10 text-blue-500"
-        />
-        <StatCard
-          label="Redeemed"
-          value={stats.redeemed}
-          icon={CheckCircle2}
-          color="bg-green-500/10 text-green-600"
-        />
-        <StatCard
-          label="Past (Unredeemed)"
-          value={stats.past}
-          icon={Users}
-          color="bg-muted text-muted-foreground"
-        />
-      </div>
+      <TicketStats
+        total={stats.total}
+        upcoming={stats.upcoming}
+        redeemed={stats.redeemed}
+        past={stats.past}
+      />
 
       {/* Table card */}
       <Card>
@@ -334,83 +203,15 @@ export function TicketManagement() {
             />
           ) : (
             <>
-              <Table>
-                <TableHeader className="bg-gray-100">
-                  <TableRow>
-                    <HeaderCellHelper label="ID" field="id" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <HeaderCellHelper label="Event" field="event" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <HeaderCellHelper label="Tier" field="tier" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <HeaderCellHelper label="Price" field="price" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <HeaderCellHelper label="Event Date" field="eventdate" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <HeaderCellHelper label="Booked" field="booked" sortBy={sortBy} isDescending={isDescending} onSort={handleSort} />
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tickets.map((ticket) => {
-                    const status = getStatus(ticket);
-                    const {
-                      label,
-                      icon: Icon,
-                      class: cls,
-                    } = statusConfig[status];
-                    const isScanning = scanningId === ticket.ticketId;
-
-                    return (
-                      <TableRow key={ticket.ticketId}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          #{ticket.ticketId}
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[160px] truncate">
-                          {ticket.eventTitle}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {ticket.tierName ?? "General"}
-                        </TableCell>
-                        <TableCell className="text-sm font-semibold text-primary">
-                          ₱{ticket.price.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(ticket.eventDate), "PP")}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(ticket.registrationDate), "PP")}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`gap-1 text-[11px] border ${cls}`}>
-                            <Icon className="w-3 h-3" />
-                            {label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {status === "upcoming" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1.5 bg-blue-950 hover:text-white text-white transition-colors"
-                              disabled={isScanning}
-                              onClick={() => handleScan(ticket.ticketId)}
-                            >
-                              {isScanning ? (
-                                <>
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  Scanning...
-                                </>
-                              ) : (
-                                <>
-                                  <ScanLine className="w-3.5 h-3.5 " />
-                                  Redeem
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <TicketTable
+                tickets={tickets}
+                sortBy={sortBy}
+                isDescending={isDescending}
+                onSort={handleSort}
+                onScan={handleScan}
+                scanningId={scanningId}
+                getStatus={getStatus}
+              />
               <PaginationWrapper
                 currentPage={page}
                 totalPages={totalPages}

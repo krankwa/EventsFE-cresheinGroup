@@ -19,7 +19,7 @@ export const userService = {
     });
     if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
     
-    return apiRequest<PaginatedResponse<UserResponse>>(`/users/paginated?${queryParams.toString()}`, {
+    return apiRequest<PaginatedResponse<UserResponse>>(`/users/list?${queryParams.toString()}`, {
       method: "GET",
       requiresAuth: true,
     });

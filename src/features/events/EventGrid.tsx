@@ -35,6 +35,7 @@ function EventGridItem({
         isSoldOut={isSoldOut}
         isBooking={false}
         onBook={() => onBook(event)}
+        hasNoTiers={!event.tiers || event.tiers.length === 0}
       />
     </EventCard>
   );

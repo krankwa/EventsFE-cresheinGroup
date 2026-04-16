@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, Info, Calendar, MapPin } from "lucide-react";
+import type { EventUpdatePayload } from "../../services/notificationService";
 import { useNotifications } from "../../features/notifications/useNotifications";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -125,27 +126,27 @@ export function NotificationCenter() {
 
                       {notification.payload && (
                         <div className="bg-background/50 border rounded-md p-2 mt-2 text-[10px] space-y-1">
-                          {notification.payload.OldDate !==
-                            notification.payload.NewDate && (
+                          {(notification.payload as EventUpdatePayload).OldDate !==
+                            (notification.payload as EventUpdatePayload).NewDate && (
                             <div className="flex items-center gap-1.5">
                               <Calendar className="w-3 h-3 text-muted-foreground" />
                               <span className="text-muted-foreground line-through">
                                 {new Date(
-                                  notification.payload.OldDate,
+                                  (notification.payload as EventUpdatePayload).OldDate,
                                 ).toLocaleDateString()}
                               </span>
                               <span className="text-primary font-semibold">
                                 →{" "}
                                 {new Date(
-                                  notification.payload.NewDate,
+                                  (notification.payload as EventUpdatePayload).NewDate,
                                 ).toLocaleDateString()}
                               </span>
                             </div>
                           )}
-                          {notification.payload.OldVenue !==
-                            notification.payload.NewVenue && (
+                          {(notification.payload as EventUpdatePayload).OldVenue !==
+                            (notification.payload as EventUpdatePayload).NewVenue && (
                             <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${notification.payload.NewVenue} ${notification.payload.NewVenueAddress || ""}`)}`}
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${(notification.payload as EventUpdatePayload).NewVenue} ${(notification.payload as EventUpdatePayload).NewVenueAddress || ""}`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-start gap-1.5 hover:text-primary transition-colors group/notif-map"
@@ -154,10 +155,10 @@ export function NotificationCenter() {
                               <MapPin className="w-3 h-3 text-muted-foreground mt-0.5 group-hover/notif-map:animate-bounce shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <span className="text-muted-foreground line-through block text-[9px] opacity-70">
-                                  {notification.payload.OldVenue}
+                                  {(notification.payload as EventUpdatePayload).OldVenue}
                                 </span>
                                 <span className="text-primary font-bold block truncate">
-                                  {notification.payload.NewVenue}
+                                  {(notification.payload as EventUpdatePayload).NewVenue}
                                 </span>
                               </div>
                             </a>

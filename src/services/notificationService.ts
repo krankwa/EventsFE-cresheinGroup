@@ -1,5 +1,13 @@
 import { apiRequest } from "./client";
 
+export interface EventUpdatePayload {
+  OldDate: string;
+  NewDate: string;
+  OldVenue: string;
+  NewVenue: string;
+  NewVenueAddress?: string;
+}
+
 export interface UserNotification {
   id: number;
   userId: number;
@@ -7,7 +15,7 @@ export interface UserNotification {
   title: string;
   message: string;
   type: string;
-  payload?: unknown;
+  payload?: EventUpdatePayload | any;
   isRead: boolean;
   createdAt: string;
 }

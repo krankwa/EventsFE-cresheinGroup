@@ -192,6 +192,8 @@ export function EventDetailSection() {
       ? Math.min(...event.tiers.map((t) => t.price))
       : null;
 
+  const hasNoTiers = event.tiers.length === 0;
+
   return (
     <div className="container mx-auto py-8 max-w-4xl px-4 space-y-8">
       {/* Back */}
@@ -217,13 +219,13 @@ export function EventDetailSection() {
             <Calendar className="w-20 h-20 text-primary/20" />
           </div>
         )}
-        {isSoldOut && (
+        {(isSoldOut || hasNoTiers) && (
           <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
             <Badge
               variant="destructive"
               className="px-6 py-2 text-base font-bold uppercase tracking-wider"
             >
-              Sold Out
+              {isSoldOut ? "Sold Out" : "Tiers Unavailable"}
             </Badge>
           </div>
         )}
@@ -248,11 +250,11 @@ export function EventDetailSection() {
           <Button
             size="lg"
             className="gap-2 px-8 font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
-            disabled={isSoldOut}
+            disabled={isSoldOut || hasNoTiers}
             onClick={scrollToTiers}
           >
             <Ticket className="w-5 h-5" />
-            {isSoldOut ? "Sold Out" : "Get Tickets"}
+            {isSoldOut ? "Sold Out" : hasNoTiers ? "No Tiers" : "Get Tickets"}
           </Button>
         </div>
 

@@ -4,6 +4,30 @@ A premium, modern Event Booking and Management platform built with **React** and
 
 ---
 
+## 🔄 Application Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Vercel as Vercel (Frontend)
+    participant Azure as Azure (Backend API)
+    participant SB as Supabase (Storage/DB)
+
+    User->>Vercel: Accessible via Browser
+    Vercel->>Azure: API Request (JWT Auth)
+    Azure-->>Vercel: JSON Data
+    Vercel->>User: Render UI
+    
+    Note over User,Azure: Image Upload Flow
+    User->>Vercel: Select Image
+    Vercel->>Azure: Upload File (Admin Token)
+    Azure->>SB: Proxy Upload to Bucket
+    SB-->>Azure: Public URL
+    Azure-->>Vercel: Success + URL
+```
+
+---
+
 ## 🛠️ Tech Stack
 - **Framework**: [React 19](https://react.dev/)
 - **Build Tool**: [Vite 8](https://vitejs.dev/)

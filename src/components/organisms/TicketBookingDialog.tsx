@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Loader2, Ticket, Check, CreditCard } from "lucide-react";
+import { Loader2, Ticket, Check, CreditCard, ArrowRight } from "lucide-react";
 import type { EventResponse } from "../../interface/Event.interface";
 import { ticketsService } from "../../services/ticketsService";
 import { toast } from "react-hot-toast";
@@ -21,6 +22,7 @@ interface TicketBookingDialogProps {
   isOpen: boolean;
   onClose: () => void;
   event: EventResponse | null;
+  isLoggedIn: boolean;
   onSuccess: () => void;
 }
 
@@ -30,8 +32,10 @@ export function TicketBookingDialog({
   isOpen,
   onClose,
   event,
+  isLoggedIn,
   onSuccess,
 }: TicketBookingDialogProps) {
+  const navigate = useNavigate();
   const [step, setStep] = useState<BookingStep>("select-tier");
   const [selectedTierId, setSelectedTierId] = useState<number | null>(null);
   const [paymentDetails, setPaymentDetails] = useState({
@@ -46,7 +50,7 @@ export function TicketBookingDialog({
 
   // Fetch current user's tickets for this event
   useEffect(() => {
-    if (isOpen && event) {
+    if (isOpen && event && isLoggedIn) {
       const fetchHistory = async () => {
         setIsLoadingQuota(true);
         try {
@@ -153,10 +157,18 @@ export function TicketBookingDialog({
       <DialogContent className={cn("sm:max-w-[500px]", MODAL_STYLES)}>
         <DialogHeader>
           <DialogTitle className="text-2xl font-extrabold tracking-tight">
-            {step === "select-tier" ? "Select Your Ticket" : "Payment details"}
+            {!isLoggedIn 
+              ? "Event Details" 
+              : step === "select-tier" 
+                ? "Select Your Ticket" 
+                : "Payment details"}
           </DialogTitle>
           <DialogDescription>
-            {step === "select-tier" ? (
+            {!isLoggedIn ? (
+              <>
+                Sign in to select a ticket tier for <strong>{event.title}</strong>
+              </>
+            ) : step === "select-tier" ? (
               <>
                 Choose a ticket tier for <strong>{event.title}</strong>
               </>
@@ -166,7 +178,7 @@ export function TicketBookingDialog({
               </>
             )}
           </DialogDescription>
-          {!isLoadingQuota && (
+          {!isLoadingQuota && isLoggedIn && (
             <div className="mt-2 text-xs font-bold text-primary bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full inline-block">
               Registration Status: {userBookedCount} / {event.maxTicketsPerPerson} tickets booked
             </div>
@@ -183,15 +195,17 @@ export function TicketBookingDialog({
                 return (
                   <div
                     key={tier.id}
-                    onClick={() => !isSoldOut && setSelectedTierId(tier.id)}
+                    onClick={() => isLoggedIn && !isSoldOut && setSelectedTierId(tier.id)}
                     className={`
-                      relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer flex items-center justify-between
+                      relative p-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between
                       ${
-                        isSoldOut
-                          ? "opacity-60 cursor-not-allowed bg-muted/30 border-muted"
-                          : isSelected
-                            ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm"
-                            : "border-border hover:border-primary/40 hover:bg-muted/10"
+                        !isLoggedIn
+                          ? "border-muted-foreground/10 bg-muted/5 opacity-80 cursor-default"
+                          : isSoldOut
+                            ? "opacity-60 cursor-not-allowed bg-muted/30 border-muted"
+                            : isSelected
+                              ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm cursor-pointer"
+                              : "border-border hover:border-primary/40 hover:bg-muted/10 cursor-pointer"
                       }
                     `}
                   >
@@ -214,20 +228,22 @@ export function TicketBookingDialog({
                       <span className="text-xl font-extrabold tracking-tight text-primary">
                         {tier.price > 0 ? `₱${tier.price}` : "FREE"}
                       </span>
-                      <div
-                        className={`
-                          w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
-                          ${
-                            isSelected
-                              ? "bg-primary border-primary text-primary-foreground"
-                              : "border-muted-foreground/30"
-                          }
-                        `}
-                      >
-                        {isSelected && (
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
-                        )}
-                      </div>
+                      {isLoggedIn && (
+                        <div
+                          className={`
+                            w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
+                            ${
+                              isSelected
+                                ? "bg-primary border-primary text-primary-foreground"
+                                : "border-muted-foreground/30"
+                            }
+                          `}
+                        >
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -346,29 +362,39 @@ export function TicketBookingDialog({
           >
             Cancel
           </Button>
-          <Button
-            onClick={step === "select-tier" && (hasTiers || displayPrice > 0) ? handleNextStep : handleBook}
-            disabled={
-              isBooking || 
-              (hasTiers && !selectedTierId) || 
-              isLoadingQuota || 
-              userBookedCount >= event.maxTicketsPerPerson
-            }
-            className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
-          >
-            {isBooking ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Processing...
-              </>
-            ) : userBookedCount >= event.maxTicketsPerPerson ? (
-              "Limit Reached"
-            ) : step === "select-tier" && (hasTiers || displayPrice > 0) ? (
-              "Continue"
-            ) : (
-              "Confirm Booking"
-            )}
-          </Button>
+          {!isLoggedIn ? (
+            <Button
+              onClick={() => navigate("/login")}
+              className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
+            >
+              Log in to Book
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          ) : (
+            <Button
+              onClick={step === "select-tier" && (hasTiers || displayPrice > 0) ? handleNextStep : handleBook}
+              disabled={
+                isBooking || 
+                (hasTiers && !selectedTierId) || 
+                isLoadingQuota || 
+                userBookedCount >= event.maxTicketsPerPerson
+              }
+              className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
+            >
+              {isBooking ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : userBookedCount >= event.maxTicketsPerPerson ? (
+                "Limit Reached"
+              ) : step === "select-tier" && (hasTiers || displayPrice > 0) ? (
+                "Continue"
+              ) : (
+                "Confirm Booking"
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

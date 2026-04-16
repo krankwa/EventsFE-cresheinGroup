@@ -45,7 +45,7 @@ export function EventCardAction({ isSoldOut, isBooking, onBook }: EventCardActio
   return (
     <CardFooter className="p-5 pt-0">
       <StyledButton
-        type="button"
+        type="button" className="bg-blue-900"
         variant={isSoldOut ? "outline" : "default"}
         disabled={isSoldOut || isBooking}
         onClick={(e) => { e.preventDefault(); onBook(); }}

@@ -189,15 +189,15 @@ export function EventsManagement() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
                 type="search"
-                placeholder="Filter events..."
+                placeholder="Search events..."
                 className="pl-9 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon">
+            {/* <Button variant="outline" size="icon">
               <Filter className="w-4 h-4" />
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
         <CardContent>

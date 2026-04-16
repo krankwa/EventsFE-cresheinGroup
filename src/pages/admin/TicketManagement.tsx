@@ -216,7 +216,7 @@ export function TicketManagement() {
           label="Past (Unredeemed)"
           value={stats.past}
           icon={Users}
-          color="bg-muted text-muted-foreground"
+          color="bg-muted  text-muted-foreground"
         />
       </div>
 

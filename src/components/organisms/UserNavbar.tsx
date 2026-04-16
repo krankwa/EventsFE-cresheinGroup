@@ -65,7 +65,7 @@ export function UserNavbar() {
 
   return (
     <>
-      <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
+      <nav className="h-16 border-b bg-gray-100 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Mobile Menu Toggle */}
           <Button

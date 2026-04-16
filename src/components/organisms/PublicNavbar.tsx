@@ -66,14 +66,14 @@ export function PublicNavbar() {
               size="icon"
               onClick={logoutWithConfirm}
               title="Sign Out"
-              className="text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground bg-blue-950 hover:text-destructive"
             >
               <LogOut className="w-4 h-4" />
             </Button>
           </>
         ) : (
           <>
-            <Button size="sm" asChild>
+            <Button className="bg-blue-900" size="sm" asChild>
               <Link to="/login">Get Tickets</Link>
             </Button>
           </>

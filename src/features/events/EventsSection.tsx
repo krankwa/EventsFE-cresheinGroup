@@ -68,13 +68,13 @@ function EventsSectionHeader({ className }: { className?: string }) {
   }
 
   return (
-    <SectionHeader className={className ?? ""}>
-      <SectionHeader.Content>
+    <SectionHeader className="p-5">
+      <SectionHeader.Content >
         <SectionHeader.Title>Upcoming Events</SectionHeader.Title>
         <SectionHeader.Description>
           Book your spot before they sell out
         </SectionHeader.Description>
-      </SectionHeader.Content>
+      </SectionHeader.Content >
 
       <SectionHeader.Action>
         {uniqueCount > 0 && (

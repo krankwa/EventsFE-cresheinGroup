@@ -118,8 +118,8 @@ export function MyTicketsPage() {
     <>
       <div className="container mx-auto py-10 px-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight">My Tickets</h1>
+          <div className="space-y-2 ml-5">
+            <h1 className="text-4xl font-extrabold tracking-tight text-blue-950">My Tickets</h1>
             <p className="text-muted-foreground">
               Manage your event registrations and upcoming experiences.
             </p>
@@ -142,7 +142,7 @@ export function MyTicketsPage() {
         </div>
 
         {tickets.length > 0 ? (
-          <div className="space-y-8">
+          <div className="space-y-8" >
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {tickets.map((ticket) => (
                 <Card
@@ -233,7 +233,7 @@ export function MyTicketsPage() {
               <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center animate-bounce duration-3000">
                 <Ticket className="w-10 h-10 text-muted-foreground/60" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 ">
                 <h3 className="text-2xl font-bold">No tickets yet</h3>
                 <p className="text-muted-foreground max-w-sm mx-auto">
                   {debouncedSearch
@@ -245,7 +245,7 @@ export function MyTicketsPage() {
                 <Link to="/events">
                   <Button
                     size="lg"
-                    className="rounded-full px-8 font-bold gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                    className="rounded-full px-8 font-bold bg-blue-900 gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
                   >
                     <Search className="w-5 h-5" />
                     Explore Events

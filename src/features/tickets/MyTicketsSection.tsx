@@ -239,7 +239,7 @@ MyTicketsSection.Content = function MyTicketsSectionContent() {
           <Link to="/events">
             <Button
               size="lg"
-              className="rounded-full px-8 font-bold gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+              className="rounded-full bg-blue-900 px-8 font-bold gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
             >
               <Search className="w-5 h-5" />
               Explore Events

@@ -246,14 +246,15 @@ export function LandingSection() {
         className="container mx-auto px-4 pb-24 bg-white"
       >
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+          <div className="ml-10 mb-0">
+            <h2 className="text-3xl font-bold tracking-tight mt-5 text-blue-900">
               Upcoming Events
             </h2>
             <p className="text-gray-600 mt-1">
               Book your spot before they sell out
             </p>
           </div>
+        
           {events.length > 0 && (
             <Badge
               variant="secondary"
@@ -276,7 +277,7 @@ export function LandingSection() {
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="py-24 text-center text-gray-500 border-2 border-dashed rounded-3xl border-blue-950/20">
+          <div className="py-24 text-center  text-gray-500 border-2 border-dashed rounded-3xl border-blue-950/20">
             <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-30" />
             <p className="text-xl font-medium">No events yet</p>
             <p className="text-sm mt-1">
@@ -284,7 +285,7 @@ export function LandingSection() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 p-8 pt-0 lg:grid-cols-3 gap-6">
             {events.map((event: EventResponse) => (
               <LandingEventCard
                 key={event.id}

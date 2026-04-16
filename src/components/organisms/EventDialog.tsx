@@ -766,7 +766,7 @@ export function EventDialog({
                       src={imagePreview}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-blue/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Button
                         type="button"
                         variant="destructive"

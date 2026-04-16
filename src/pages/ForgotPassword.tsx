@@ -70,7 +70,7 @@ export function ForgotPassword() {
                 )}
 
                 <Button 
-                  className="w-full h-11 text-base font-semibold group"
+                  className="w-full h-11 text-base font-semibold bg-blue-950 group"
                   type="submit"
                   disabled={isPending}
                 >

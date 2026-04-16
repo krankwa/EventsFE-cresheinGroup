@@ -25,7 +25,7 @@ interface TicketBookingDialogProps {
 }
 
 type BookingStep = "select-tier" | "payment";
- 
+
 export function TicketBookingDialog({
   isOpen,
   onClose,
@@ -172,12 +172,11 @@ export function TicketBookingDialog({
                     onClick={() => !isSoldOut && setSelectedTierId(tier.id)}
                     className={`
                       relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer flex items-center justify-between
-                      ${
-                        isSoldOut
-                          ? "opacity-60 cursor-not-allowed bg-muted/30 border-muted"
-                          : isSelected
-                            ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm"
-                            : "border-border hover:border-primary/40 hover:bg-muted/10"
+                      ${isSoldOut
+                        ? "opacity-60 cursor-not-allowed bg-muted/30 border-muted"
+                        : isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm"
+                          : "border-border hover:border-primary/40 hover:bg-muted/10"
                       }
                     `}
                   >
@@ -203,15 +202,14 @@ export function TicketBookingDialog({
                       <div
                         className={`
                           w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
-                          ${
-                            isSelected
-                              ? "bg-primary border-primary text-primary-foreground"
-                              : "border-muted-foreground/30"
+                          ${isSelected
+                            ? "bg-green-600 border-primary text-primary-foreground"
+                            : "border-muted-foreground/30"
                           }
                         `}
                       >
                         {isSelected && (
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <Check className="w-3.5 h-3.5stroke-[3]" />
                         )}
                       </div>
                     </div>
@@ -333,14 +331,15 @@ export function TicketBookingDialog({
             Cancel
           </Button>
           <Button
+
             onClick={step === "select-tier" && (hasTiers || displayPrice > 0) ? handleNextStep : handleBook}
             disabled={
-              isBooking || 
-              (hasTiers && !selectedTierId) || 
-              isLoadingQuota || 
+              isBooking ||
+              (hasTiers && !selectedTierId) ||
+              isLoadingQuota ||
               userBookedCount >= event.maxTicketsPerPerson
             }
-            className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
+            className="font-bold bg-blue-900 min-w-[140px] shadow-lg shadow-primary/20 gap-2"
           >
             {isBooking ? (
               <>

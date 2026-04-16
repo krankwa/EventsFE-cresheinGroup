@@ -19,7 +19,7 @@
  *   -- The service_role key (used by the .NET backend) bypasses RLS by default.
  */
 
-import { getToken } from "./authStore";
+import { isAuthenticated } from "./authStore";
 import { API_BASE_URL } from "./client";
 
 
@@ -28,8 +28,7 @@ import { API_BASE_URL } from "./client";
  * Returns the public URL of the stored image.
  */
 export async function uploadEventImage(file: File): Promise<string> {
-  const token = getToken();
-  if (!token) {
+  if (!isAuthenticated()) {
     throw new Error("Not authenticated. Please log in as Admin.");
   }
 
@@ -39,9 +38,8 @@ export async function uploadEventImage(file: File): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/upload`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
-      // Do NOT set Content-Type here — the browser sets it with the correct
-      // multipart boundary when using FormData.
+      // "Content-Type" is not set manually for FormData
+      // "Authorization" header is handled automatically by HttpOnly cookies
     },
     body: formData,
   });

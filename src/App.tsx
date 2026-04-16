@@ -1,9 +1,11 @@
-import { lazy, Suspense } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
+import { lazy, Suspense, useEffect } from "react";
+import { 
+  BrowserRouter as Router, 
+  Routes, 
+  Route, 
+  Navigate, 
+  useLocation, 
+  useNavigate 
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
@@ -94,11 +96,29 @@ function RoleRedirect() {
   return <Navigate to="/dashboard" replace />;
 }
 
+/**
+ * Automatically redirects the browser to the lowercase version of the URL
+ * if any uppercase characters are detected in the path.
+ */
+function UrlLowercaseRedirect() {
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (pathname !== pathname.toLowerCase()) {
+      navigate(pathname.toLowerCase() + search, { replace: true });
+    }
+  }, [pathname, search, navigate]);
+
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ConfirmProvider>
         <Router>
+          <UrlLowercaseRedirect />
           <Toaster position="top-right" />
           <Suspense
             fallback={

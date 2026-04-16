@@ -3,7 +3,6 @@ import {
   QrCode,
   CheckCircle2,
   AlertCircle,
-  RefreshCcw,
   Camera,
   Loader2,
 } from "lucide-react";
@@ -14,6 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { ticketsService } from "../../services/ticketsService";
 import { toast } from "react-hot-toast";
 import { useState, useRef, useEffect } from "react";
@@ -23,7 +29,9 @@ export function TicketRedemptionSection() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastRedeemedId, setLastRedeemedId] = useState<number | null>(null);
   const [isScannerActive, setIsScannerActive] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [redemptionError, setRedemptionError] = useState<string | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const processLock = useRef(false);
 
@@ -39,13 +47,24 @@ export function TicketRedemptionSection() {
   };
 
   const startScanner = async () => {
+    const hasGrantedBefore =
+      localStorage.getItem("camera-permission-granted") === "true";
+
     setCameraError(null);
-    setIsScannerActive(true);
+    setIsInitializing(true);
+
+    // If we've granted before, show scanner UI early to avoid flicker
+    if (hasGrantedBefore) {
+      setIsScannerActive(true);
+    }
 
     // Give React a moment to render the #reader div
     setTimeout(async () => {
       const readerElement = document.getElementById("reader");
-      if (!readerElement) return;
+      if (!readerElement) {
+        setIsInitializing(false);
+        return;
+      }
 
       if (!html5QrCodeRef.current) {
         html5QrCodeRef.current = new Html5Qrcode("reader", {
@@ -64,15 +83,25 @@ export function TicketRedemptionSection() {
           onScanSuccess,
           onScanFailure,
         );
+        setIsScannerActive(true);
+        setIsInitializing(false);
+        localStorage.setItem("camera-permission-granted", "true");
       } catch (err) {
         console.error("Failed to start scanner", err);
         setCameraError(
           "Could not access camera. Ensure you have granted permission and are using HTTPS.",
         );
         setIsScannerActive(false);
+        setIsInitializing(false);
       }
     }, 100);
   };
+
+  // Auto-start on mount if possible
+  useEffect(() => {
+    startScanner();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const resetScanner = () => {
     setScanResult(null);
@@ -99,9 +128,10 @@ export function TicketRedemptionSection() {
       }, 5000);
     } catch (error: unknown) {
       console.error("Redemption failed", error);
-      setScanResult("error");
       const message = (error as Error).message || "Failed to redeem ticket.";
-      toast.error(message);
+      setRedemptionError(message);
+      // Scan Result remains null or becomes 'error' for logic, but we don't show overlay
+      setScanResult(null);
     } finally {
       setIsProcessing(false);
       processLock.current = false;
@@ -136,6 +166,11 @@ export function TicketRedemptionSection() {
     };
   }, []);
 
+  const handleCloseError = () => {
+    setRedemptionError(null);
+    startScanner(); // Restart scanner when error is cleared
+  };
+
   return (
     <div className="container mx-auto py-10 px-4 max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2 text-center">
@@ -162,8 +197,17 @@ export function TicketRedemptionSection() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="relative min-h-[300px] flex items-center justify-center bg-muted/20">
-            {!isScannerActive ? (
+          <div className="relative min-h-[400px] flex items-center justify-center bg-muted/20">
+            {isInitializing && (
+              <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                <p className="font-medium animate-pulse">
+                  Initializing camera...
+                </p>
+              </div>
+            )}
+
+            {!isScannerActive && !isInitializing ? (
               <div className="p-8 text-center space-y-6 max-w-sm">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                   <Camera className="w-8 h-8 text-primary" />
@@ -209,25 +253,6 @@ export function TicketRedemptionSection() {
                   </div>
                 )}
 
-                {/* Error Overlay */}
-                {scanResult === "error" && (
-                  <div className="absolute inset-0 z-10 bg-destructive/90 backdrop-blur-sm flex flex-col items-center justify-center text-white animate-in fade-in duration-300">
-                    <AlertCircle className="w-20 h-20 mb-4 scale-110" />
-                    <h3 className="text-2xl font-bold">Invalid Ticket</h3>
-                    <p className="opacity-90 max-w-[250px] text-center">
-                      Ticket could not be verified or has already been used.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="mt-6 border-white text-white hover:bg-white/20"
-                      onClick={resetScanner}
-                    >
-                      <RefreshCcw className="w-4 h-4 mr-2" />
-                      Try Again
-                    </Button>
-                  </div>
-                )}
-
                 <div
                   id="reader"
                   className="w-full bg-black aspect-square overflow-hidden"
@@ -264,6 +289,38 @@ export function TicketRedemptionSection() {
           </ul>
         </div>
       </div>
+
+      {/* Error Modal */}
+      <Dialog
+        open={!!redemptionError}
+        onOpenChange={(open) => !open && handleCloseError()}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-6 h-6" />
+              Redemption Failed
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center space-y-3">
+            <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <p className="font-medium text-lg text-foreground">
+              Invalid or Used Ticket
+            </p>
+            <p className="text-sm text-muted-foreground">{redemptionError}</p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={handleCloseError}
+              className="w-full bg-blue-950 font-bold"
+            >
+              Continue Scanning
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

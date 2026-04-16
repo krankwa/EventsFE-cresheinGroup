@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "../../components/ui/dialog";
 import { ticketsService } from "../../services/ticketsService";
@@ -276,6 +277,9 @@ export function TicketRedemptionSection() {
               <AlertCircle className="w-6 h-6" />
               Redemption Failed
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Details about why the ticket redemption failed.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-6 text-center space-y-3">
             <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
@@ -308,6 +312,9 @@ export function TicketRedemptionSection() {
               <CheckCircle2 className="w-6 h-6" />
               Success
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Confirmation that the ticket was successfully redeemed.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-6 text-center space-y-3">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">

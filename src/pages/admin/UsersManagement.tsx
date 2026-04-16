@@ -9,10 +9,9 @@ import {
   UserCog,
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "../../components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { MODAL_STYLES } from "../../features/admin/constants";
@@ -230,6 +229,9 @@ export function UsersManagement() {
               <UserCog className="w-6 h-6 text-primary" />
               Edit User Role
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Assign a new administrative or staff role to the selected user.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">

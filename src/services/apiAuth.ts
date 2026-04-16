@@ -14,9 +14,9 @@ export async function login(credentials: LoginRequest): Promise<AuthResponse> {
     body: JSON.stringify(credentials),
   });
 
-  // Since we use HttpOnly cookies, the server handles the token.
-  // We call setToken simply to update the local 'isLoggedIn' state for UI.
-  setToken("logged-in"); 
+  if (data.token) {
+    setToken(data.token);
+  }
   return data;
 }
 
@@ -29,7 +29,9 @@ export async function register(
     body: JSON.stringify(request),
   });
   
-  setToken("logged-in");
+  if (data.token) {
+    setToken(data.token);
+  }
   return data;
 }
 

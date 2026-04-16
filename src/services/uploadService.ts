@@ -35,11 +35,12 @@ export async function uploadEventImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
+  const token = getToken();
   const response = await fetch(`${API_BASE_URL}/upload`, {
     method: "POST",
     headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       // "Content-Type" is not set manually for FormData
-      // "Authorization" header is handled automatically by HttpOnly cookies
     },
     body: formData,
   });

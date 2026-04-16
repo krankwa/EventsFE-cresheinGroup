@@ -1,4 +1,4 @@
-import { clearToken } from "./authStore";
+import { clearToken, getToken } from "./authStore";
 import type { ApiError } from "../interface/api.interface";
 
 export const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
@@ -20,6 +20,14 @@ export async function apiRequest<T>(
     "X-Tunnel-Skip-AntiPhishing": "true", // Bypass MS Dev Tunnel landing page
     ...(options.headers || {}),
   };
+
+  // Attach Authorization header if required
+  if (options.requiresAuth) {
+    const token = getToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: options.method || "GET",

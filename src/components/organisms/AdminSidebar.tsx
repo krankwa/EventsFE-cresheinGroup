@@ -93,7 +93,10 @@ export function Sidebar({ className, onClose }: SidebarProps) {
         </div>
 
         <button
-          onClick={logoutWithConfirm}
+          onClick={() => {
+            onClose?.(); // Close mobile sidebar if applicable
+            logoutWithConfirm();
+          }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white transition-all hover:bg-red-500/10 hover:text-red-400 group"
         >
           <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />

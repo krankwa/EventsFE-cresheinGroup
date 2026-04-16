@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Ticket, Calendar, Search, Trash2, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
@@ -37,6 +37,10 @@ export function MyTicketsPage() {
   );
   const [ticketToCancel, setTicketToCancel] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const isDataLoading = useRef(false);
+
+  // Memoize pagination options
+  const paginationOptions = useMemo(() => ({ initialPageSize: 6 }), []);
 
   const {
     page,
@@ -48,7 +52,7 @@ export function MyTicketsPage() {
     setPageSize,
     searchQuery: debouncedSearch,
     handleSearch,
-  } = usePagination({ initialPageSize: 6 });
+  } = usePagination(paginationOptions);
 
   // Debounce search
   useEffect(() => {
@@ -59,7 +63,10 @@ export function MyTicketsPage() {
   }, [searchQuery, handleSearch]);
 
 
-  const loadTickets = async () => {
+  const loadTickets = useCallback(async () => {
+    if (isDataLoading.current) return;
+    
+    isDataLoading.current = true;
     setIsLoading(true);
     try {
       const result = await ticketsService.getMyTicketsPaginated({
@@ -68,18 +75,21 @@ export function MyTicketsPage() {
         searchTerm: debouncedSearch,
       });
       setTickets(result.items);
-      setTotalItems(result.totalCount);
+      // Only update totalItems if it has actually changed to minimize re-renders
+      setTotalItems((prev) => (prev !== result.totalCount ? result.totalCount : prev));
     } catch (error) {
       console.error("Failed to load tickets", error);
       toast.error("Could not retrieve your tickets.");
+      setTotalItems((prev) => (prev !== 0 ? 0 : prev));
     } finally {
       setIsLoading(false);
+      isDataLoading.current = false;
     }
-  };
+  }, [page, pageSize, debouncedSearch, setTotalItems]);
 
   useEffect(() => {
     loadTickets();
-  }, [page, pageSize, debouncedSearch]);
+  }, [loadTickets]);
 
   const handleCancelClick = (id: number) => {
     setTicketToCancel(id);

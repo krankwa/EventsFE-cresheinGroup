@@ -4,6 +4,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -40,7 +41,9 @@ export function ConfirmDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <div className="text-sm text-muted-foreground">{description}</div>
+          <DialogDescription className="text-sm text-muted-foreground">
+            {description}
+          </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import {
   Search,
   RefreshCcw,
@@ -9,10 +9,9 @@ import {
   UserCog,
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "../../components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { MODAL_STYLES } from "../../features/admin/constants";
@@ -40,6 +39,9 @@ export function UsersManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const isDataLoading = useRef(false);
 
+  // Memoize pagination options to prevent usePagination from re-running logic on every parent render
+  const paginationOptions = useMemo(() => ({ initialPageSize: 10 }), []);
+  
   // Pagination hook
   const {
     page,
@@ -51,7 +53,7 @@ export function UsersManagement() {
     setPageSize,
     searchQuery: debouncedSearch,
     handleSearch,
-  } = usePagination({ initialPageSize: 10 });
+  } = usePagination(paginationOptions);
 
   // Debounce search
   useEffect(() => {
@@ -74,11 +76,13 @@ export function UsersManagement() {
         searchTerm: debouncedSearch,
       });
       setUsers(result.items);
-      setTotalItems(result.totalCount);
+      // Only update totalItems if it has actually changed to minimize re-renders
+      setTotalItems((prev) => (prev !== result.totalCount ? result.totalCount : prev));
     } catch (error) {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
       setUsers([]);
+      // Only reset totalItems to 0 if it's currently > 0
       setTotalItems((prev) => (prev !== 0 ? 0 : prev));
     } finally {
       setIsLoading(false);
@@ -225,6 +229,9 @@ export function UsersManagement() {
               <UserCog className="w-6 h-6 text-primary" />
               Edit User Role
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Assign a new administrative or staff role to the selected user.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">

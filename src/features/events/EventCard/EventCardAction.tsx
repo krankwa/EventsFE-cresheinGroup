@@ -39,16 +39,27 @@ export interface EventCardActionProps {
   isSoldOut: boolean;
   isBooking: boolean;
   onBook: () => void;
+  hasNoTiers?: boolean;
 }
 
-export function EventCardAction({ isSoldOut, isBooking, onBook }: EventCardActionProps): JSX.Element {
+export function EventCardAction({
+  isSoldOut,
+  isBooking,
+  onBook,
+  hasNoTiers = false,
+}: EventCardActionProps): JSX.Element {
+  const isDisabled = isSoldOut || isBooking || hasNoTiers;
+
   return (
     <CardFooter className="p-5 pt-0">
       <StyledButton
         type="button"
-        variant={isSoldOut ? "outline" : "default"}
-        disabled={isSoldOut || isBooking}
-        onClick={(e) => { e.preventDefault(); onBook(); }}
+        variant={isSoldOut || hasNoTiers ? "outline" : "default"}
+        disabled={isDisabled}
+        onClick={(e) => {
+          e.preventDefault();
+          onBook();
+        }}
       >
         {isBooking ? (
           <>
@@ -57,6 +68,8 @@ export function EventCardAction({ isSoldOut, isBooking, onBook }: EventCardActio
           </>
         ) : isSoldOut ? (
           "Notify Me"
+        ) : hasNoTiers ? (
+          "No Tiers"
         ) : (
           <>
             View & Book

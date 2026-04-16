@@ -20,7 +20,7 @@ export const ticketsService = {
     if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
     if (params.status) queryParams.append("status", params.status as string);
     
-    return apiRequest<PaginatedResponse<TicketResponse>>(`/tickets/mine/paginated?${queryParams.toString()}`, {
+    return apiRequest<PaginatedResponse<TicketResponse>>(`/tickets/mine/list?${queryParams.toString()}`, {
       method: "GET",
       requiresAuth: true,
     });

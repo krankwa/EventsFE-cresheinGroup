@@ -1,7 +1,7 @@
 import { getToken, clearToken } from "./authStore";
 import type { ApiError } from "../interface/api.interface";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
+export const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
 interface ApiRequestOptions {
   method: string;

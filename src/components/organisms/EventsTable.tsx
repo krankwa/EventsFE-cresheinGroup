@@ -102,7 +102,7 @@ export const EventsTable = memo(function EventsTable({
           <HeaderCell label="Event Info" field="title" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
           <HeaderCell label="Location" field="venue" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
           <HeaderCell label="Capacity" field="capacity" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
-          <TableHead>Tickets</TableHead>
+          <HeaderCell label="Tickets" field="ticketssold" sortBy={sortBy} isDescending={isDescending} onSort={onSort} />
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>

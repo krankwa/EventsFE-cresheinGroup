@@ -33,10 +33,12 @@ function LandingEventCard({
   event,
   onBook,
   isLoggedIn,
+  isRecommended = false,
 }: {
   event: EventResponse;
   onBook: (event: EventResponse) => void;
   isLoggedIn: boolean;
+  isRecommended?: boolean;
 }) {
   const capacity = event.capacity && event.capacity > 0 ? event.capacity : 1;
   const sold = event.ticketsSold || 0;
@@ -44,30 +46,38 @@ function LandingEventCard({
   const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
-    <Card className="overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-blue-950/20 bg-white/60 backdrop-blur-sm">
+    <Card className={`overflow-hidden group hover:shadow-2xl transition-all duration-500 border-none bg-white/40 backdrop-blur-md ring-1 ring-blue-950/5 ${isRecommended ? 'min-w-[280px] md:min-w-[340px]' : ''}`}>
       {/* Cover Image */}
-      <div className="relative h-44 overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         {event.coverImageUrl ? (
           <img
             src={event.coverImageUrl}
             alt={event.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-950/20 to-blue-950/5 flex items-center justify-center">
-            <CalendarDays className="w-12 h-12 text-blue-950/30" />
+            <CalendarDays className="w-12 h-12 text-blue-950/20" />
           </div>
         )}
-        <div className="absolute top-3 left-3">
-          <Badge className="bg-blue-950/80 backdrop-blur-md text-white border-none shadow-lg text-xs">
+        
+        {/* Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          {isRecommended && (
+            <Badge className="bg-blue-600 text-white border-none shadow-lg text-[10px] uppercase tracking-widest font-bold py-1 px-2 animate-pulse">
+              ✨ For You
+            </Badge>
+          )}
+          <Badge className="bg-white/90 backdrop-blur-md text-blue-950 border-none shadow-sm text-[10px] uppercase tracking-widest font-bold py-1 px-2">
             Upcoming
           </Badge>
         </div>
+
         {isSoldOut && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex items-center justify-center">
             <Badge
               variant="destructive"
-              className="px-4 py-1 text-sm font-bold uppercase tracking-wider"
+              className="px-6 py-2 text-xs font-black uppercase tracking-[0.2em]"
             >
               Sold Out
             </Badge>
@@ -75,76 +85,81 @@ function LandingEventCard({
         )}
       </div>
 
-      <CardHeader className="px-5 pt-5 pb-2">
-        <div className="flex justify-between items-start gap-2">
-          <h3 className="text-lg font-bold tracking-tight line-clamp-1 group-hover:text-blue-950 transition-colors">
+      <CardHeader className="px-6 pt-6 pb-2">
+        <div className="flex justify-between items-start gap-4">
+          <h3 className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
             {event.title}
           </h3>
-          <span className="text-blue-950 font-bold text-sm whitespace-nowrap">
+          <span className="text-blue-900 font-black text-base whitespace-nowrap">
             ₱999+
           </span>
         </div>
       </CardHeader>
 
-      <CardContent className="px-5 pb-0 space-y-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5 text-blue-950 shrink-0" />
-          <span className="italic truncate">
-            {format(new Date(event.date), "PPP")}
+      <CardContent className="px-6 pb-2 space-y-4">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="p-1.5 rounded-full bg-blue-50">
+            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          </div>
+          <span className="font-medium tracking-tight">
+            {format(new Date(event.date), "MMMM d, yyyy")}
           </span>
         </div>
+        
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue} ${event.venueAddress}`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-start gap-2 text-sm text-muted-foreground min-h-[40px] hover:text-primary transition-colors group/map"
+          className="flex items-start gap-3 text-sm text-gray-500 hover:text-blue-700 transition-colors group/map"
         >
-          <MapPin className="w-3.5 h-3.5 text-blue-950 shrink-0 mt-0.5 group-hover/map:animate-bounce" />
+          <div className="p-1.5 rounded-full bg-blue-50 group-hover/map:bg-blue-100 transition-colors">
+            <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 group-hover/map:animate-bounce" />
+          </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-foreground leading-tight">
+            <span className="font-bold text-gray-800 leading-tight">
               {event.venue || "TBA"}
             </span>
-            <span className="text-[11px] line-clamp-1">
+            <span className="text-xs text-gray-400 line-clamp-1 mt-0.5">
               {event.venueAddress}
             </span>
           </div>
         </a>
 
         {/* Capacity bar */}
-        <div className="pt-3 border-t border-blue-950/50 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Users className="w-3 h-3" />
-            <span>
-              {sold} / {capacity}
+        <div className="pt-4 border-t border-gray-100 flex flex-col gap-2">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <Users className="w-3 h-3" />
+              {sold} / {capacity} ATTENDEES
             </span>
+            <span>{Math.round(fillPct)}%</span>
           </div>
-          <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-950 transition-all duration-1000 rounded-full"
+              className={`h-full transition-all duration-1000 rounded-full ${fillPct > 90 ? 'bg-red-500' : 'bg-blue-600'}`}
               style={{ width: `${fillPct}%` }}
             />
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="p-5 pt-4">
+      <CardFooter className="p-6 pt-4">
         <Button
-          className="w-full gap-2 font-semibold group/btn bg-blue-950 hover:bg-blue-900 text-white"
-          variant={isSoldOut ? "outline" : "default"}
+          className={`w-full py-6 gap-3 font-bold uppercase tracking-[0.1em] text-xs transition-all duration-300 group/btn rounded-xl ${isSoldOut ? 'bg-gray-100 text-gray-400 hover:bg-gray-100' : 'bg-blue-950 hover:bg-blue-900 text-white shadow-lg shadow-blue-950/20 hover:shadow-blue-950/30 active:scale-[0.98]'}`}
           disabled={isSoldOut}
           onClick={() => onBook(event)}
         >
           {isSoldOut ? (
-            "Sold Out"
+            "Fully Booked"
           ) : !isLoggedIn ? (
             <>
-              View Details
-              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+              Explore Details
+              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-2" />
             </>
           ) : (
             <>
-              Book Now
-              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+              Reserve Seat
+              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-2" />
             </>
           )}
         </Button>
@@ -170,111 +185,154 @@ export function LandingSection() {
     setSelectedEvent(event);
   };
 
-  // Extract events from potentially categorized response
-  // FOR LANDING PAGE: Only show 'Popular' events if categorized data exists
+  // Logic: Everyone gets the recommender section.
   const categorized = !Array.isArray(eventsResult)
     ? (eventsResult as EventRecommendResponse)
     : null;
-  const popular = (categorized?.popular ?? []) as EventResponse[];
+    
+  // Authenticated vs Guest title phrasing
+  const recTitle = user ? "Recommended For You" : "Trending Events";
+  const recDescription = user ? "Personalized based on your interests" : "What everyone is booking right now";
 
-  const events = Array.isArray(eventsResult)
+  const recommended = categorized?.recommended || [];
+  const popular = categorized?.popular || [];
+  const allOthers = categorized?.allOthers || [];
+
+  // Union of regular events (De-duplicated)
+  const regularEvents = Array.isArray(eventsResult)
     ? eventsResult
-    : popular.length > 0
-      ? popular
-      : [];
+    : [...popular, ...allOthers];
 
   return (
-    <>
+    <div className="bg-[#fcfcfd] min-h-screen">
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden py-20 md:py-32 px-4 bg-white">
-        {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-950/5 rounded-full blur-[120px] -mr-64 -mt-48 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-950/5 rounded-full blur-[100px] -ml-48 -mb-32 pointer-events-none" />
+      <section className="relative overflow-hidden pt-24 pb-20 px-4 bg-white border-b border-gray-100">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-50/50 rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-50/30 rounded-full blur-[100px] -ml-48 -mb-48 pointer-events-none" />
 
-        <div className="container mx-auto text-center relative z-10 max-w-3xl">
-          {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-950/10 border border-blue-950/20 text-blue-950 text-sm font-medium mb-6 animate-pulse">
-            <Zap className="w-3.5 h-3.5" />
-            Discover Live Events Near You
-          </div>
+        <div className="container mx-auto relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-none px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              ✨ Discover Your Next Experience
+            </Badge>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-gray-900">
-            Your Next{" "}
-            <span className="bg-gradient-to-r from-blue-950 to-blue-800 bg-clip-text text-transparent">
-              Unforgettable
-            </span>{" "}
-            Experience Awaits
-          </h1>
+            <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8 text-gray-900 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100">
+              THE WORLD'S<br />
+              <span className="text-blue-600">LIVE EVENTS</span><br />
+              HUB.
+            </h1>
 
-          <p className="text-lg text-gray-600 mb-10 leading-relaxed max-w-xl mx-auto">
-            Browse hundreds of events — concerts, conferences, sports, and more.
-            Secure your tickets in seconds.
-          </p>
+            <p className="text-xl text-gray-500 mb-12 leading-relaxed max-w-2xl mx-auto font-medium animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+              Experience the best concerts, workshops, and gatherings around the world. Secure your spot in just a few clicks.
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="text-lg px-10 py-7 font-bold gap-3 shadow-xl shadow-blue-950/20 hover:scale-105 transition-all bg-blue-950 hover:bg-blue-900 text-white rounded-full group"
-              onClick={() => {
-                document
-                  .getElementById("events-section")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              <Ticket className="w-6 h-6" />
-              Get Tickets
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+              <Button
+                size="lg"
+                className="text-base px-12 py-8 font-black uppercase tracking-widest gap-4 shadow-2xl shadow-blue-900/10 hover:shadow-blue-900/20 transition-all bg-blue-950 hover:bg-black text-white rounded-2xl group"
+                onClick={() => {
+                  document
+                    .getElementById("explore-section")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Start Exploring
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-2" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Events Grid ── */}
-      <section
-        id="events-section"
-        className="container mx-auto px-4 pb-24 bg-white"
-      >
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-              Upcoming Events
+      {/* ── Recommended Section (Always visible) ── */}
+      <section className="py-20 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col mb-12">
+            <h2 className="text-4xl font-black tracking-tight text-gray-900">
+              {recTitle}
             </h2>
-            <p className="text-gray-600 mt-1">
-              Book your spot before they sell out
+            <p className="text-gray-500 font-medium text-lg mt-2">
+              {recDescription}
             </p>
           </div>
-          {events.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="text-sm px-3 py-1 bg-blue-950 text-white"
-            >
-              {events.length} Events
-            </Badge>
+
+          {isLoading ? (
+             <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="min-w-[340px] space-y-4 bg-white/50 p-6 rounded-3xl border border-gray-100">
+                  <Skeleton className="h-48 w-full rounded-2xl" />
+                  <Skeleton className="h-6 w-3/4 rounded-md" />
+                  <Skeleton className="h-4 w-1/2 rounded-md" />
+                  <Skeleton className="h-12 w-full rounded-xl mt-4" />
+                </div>
+              ))}
+            </div>
+          ) : recommended.length === 0 ? (
+            <div className="py-20 text-center bg-white/50 backdrop-blur-sm rounded-[40px] border border-blue-950/5 border-dashed">
+                <Users className="w-12 h-12 mx-auto mb-4 text-blue-950/20" />
+                <p className="text-xl font-bold text-gray-400">Loading your highlights...</p>
+            </div>
+          ) : (
+            <div className="flex gap-8 overflow-x-auto pb-12 px-2 -mx-2 scrollbar-hide snap-x">
+              {recommended.map((event: EventResponse) => (
+                <div key={event.id} className="snap-start shrink-0">
+                  <LandingEventCard
+                    event={event}
+                    onBook={handleBook}
+                    isLoggedIn={!!user}
+                    isRecommended={true}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── All Events Grid ── */}
+      <section
+        id="explore-section"
+        className="container mx-auto px-4 pb-32"
+      >
+        <div className="flex items-center justify-between mb-16 px-4">
+          <div>
+            <h2 className="text-4xl font-black tracking-tight text-gray-900">
+              Explore All Events
+            </h2>
+            <p className="text-gray-500 font-medium mt-2">
+              Browse the catalog and secure your future memories
+            </p>
+          </div>
+          {regularEvents.length > 0 && (
+            <div className="bg-white border border-gray-100 px-6 py-3 rounded-2xl shadow-sm">
+                <span className="text-blue-600 font-black text-xl">{regularEvents.length}</span>
+                <span className="text-gray-400 text-xs font-bold uppercase tracking-widest ml-3">Total Live</span>
+            </div>
           )}
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="h-44 w-full rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-10 w-full" />
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-6 w-3/4 rounded-md" />
+                <Skeleton className="h-4 w-1/2 rounded-md" />
+                <Skeleton className="h-12 w-full rounded-xl" />
               </div>
             ))}
           </div>
-        ) : events.length === 0 ? (
-          <div className="py-24 text-center text-gray-500 border-2 border-dashed rounded-3xl border-blue-950/20">
-            <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p className="text-xl font-medium">No events yet</p>
-            <p className="text-sm mt-1">
-              Check back soon for exciting upcoming events!
+        ) : regularEvents.length === 0 ? (
+          <div className="py-32 text-center bg-white rounded-[50px] shadow-sm border border-gray-100">
+            <CalendarDays className="w-16 h-16 mx-auto mb-6 text-gray-200" />
+            <p className="text-2xl font-black text-gray-900 tracking-tight">STAY TUNED.</p>
+            <p className="text-gray-400 font-medium mt-2 max-w-xs mx-auto">
+              We're curating more incredible experiences for you.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event: EventResponse) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {regularEvents.map((event: EventResponse) => (
               <LandingEventCard
                 key={event.id}
                 event={event}
@@ -287,13 +345,24 @@ export function LandingSection() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-blue-950/20 bg-blue-950 text-white mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-white/80 font-medium">
-            © 2026 EventTix — The Premier Event Management Platform
-          </p>
+      <footer className="py-20 bg-blue-950 text-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-12">
+            <div className="text-center md:text-left">
+              <h2 className="text-3xl font-black tracking-tighter mb-4">EventTix<span className="text-blue-500">.</span></h2>
+              <p className="text-gray-400 font-medium max-w-sm">
+                The premier platform for managing and attending global experiences.
+              </p>
+            </div>
+            <div className="flex gap-8 items-center border-t border-white/10 pt-8 w-full justify-center md:border-none md:pt-0 md:justify-end">
+              <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">
+                © 2026 EVENTTIX GROUP
+              </p>
+            </div>
+          </div>
         </div>
       </footer>
+
       <TicketBookingDialog
         isOpen={selectedEvent !== null}
         onClose={() => setSelectedEvent(null)}
@@ -301,6 +370,7 @@ export function LandingSection() {
         isLoggedIn={!!user}
         onSuccess={() => navigate("/tickets")}
       />
-    </>
+    </div>
   );
 }
+

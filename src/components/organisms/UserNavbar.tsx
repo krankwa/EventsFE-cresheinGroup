@@ -44,6 +44,7 @@ export function UserNavbar() {
   }, [isDrawerOpen]);
 
   const handleLogout = () => {
+    setIsDrawerOpen(false); // Close mobile drawer immediately for better UX
     confirm({
       title: "Sign Out",
       description: (

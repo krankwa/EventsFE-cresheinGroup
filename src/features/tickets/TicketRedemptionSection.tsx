@@ -32,6 +32,7 @@ export function TicketRedemptionSection() {
   const [isInitializing, setIsInitializing] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [redemptionError, setRedemptionError] = useState<string | null>(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const processLock = useRef(false);
 
@@ -106,6 +107,8 @@ export function TicketRedemptionSection() {
   const resetScanner = () => {
     setScanResult(null);
     setLastRedeemedId(null);
+    setIsSuccessModalOpen(false);
+    startScanner(); // Resume scanning after closing the success modal
   };
 
   const handleRedeem = async (id: number) => {
@@ -117,20 +120,12 @@ export function TicketRedemptionSection() {
       await ticketsService.scan(id);
       setScanResult("success");
       setLastRedeemedId(id);
-      toast.success("Ticket redeemed successfully!", { duration: 5000 });
-
-      // Optionally stop scanner on success to save battery
-      // await stopScanner();
-
-      // Clear success state after 5 seconds to allow next scan
-      setTimeout(() => {
-        setScanResult(null);
-      }, 5000);
+      setIsSuccessModalOpen(true);
+      // Removed redundant toast.success as we now have a success modal
     } catch (error: unknown) {
       console.error("Redemption failed", error);
       const message = (error as Error).message || "Failed to redeem ticket.";
       setRedemptionError(message);
-      // Scan Result remains null or becomes 'error' for logic, but we don't show overlay
       setScanResult(null);
     } finally {
       setIsProcessing(false);
@@ -233,26 +228,6 @@ export function TicketRedemptionSection() {
               </div>
             ) : (
               <div className="w-full relative">
-                {/* Success Overlay */}
-                {scanResult === "success" && (
-                  <div className="absolute inset-0 z-10 bg-emerald-500/90 backdrop-blur-sm flex flex-col items-center justify-center text-white animate-in fade-in duration-300">
-                    <CheckCircle2 className="w-20 h-20 mb-4 animate-bounce" />
-                    <h3 className="text-2xl font-bold">
-                      Successfully Redeemed
-                    </h3>
-                    <p className="opacity-90">
-                      Ticket #T-{lastRedeemedId?.toString().padStart(5, "0")}
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="mt-6 border-white text-white hover:bg-white/20"
-                      onClick={resetScanner}
-                    >
-                      Scan Next
-                    </Button>
-                  </div>
-                )}
-
                 <div
                   id="reader"
                   className="w-full bg-black aspect-square overflow-hidden"
@@ -317,6 +292,43 @@ export function TicketRedemptionSection() {
               className="w-full bg-blue-950 font-bold"
             >
               Continue Scanning
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog
+        open={isSuccessModalOpen}
+        onOpenChange={(open) => !open && resetScanner()}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-emerald-600">
+              <CheckCircle2 className="w-6 h-6" />
+              Success
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center space-y-3">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+              <CheckCircle2 className="w-8 h-8 animate-bounce" />
+            </div>
+            <p className="font-bold text-xl text-foreground">
+              Ticket Redeemed!
+            </p>
+            <div className="inline-flex items-center justify-center px-4 py-2 bg-muted/30 rounded-full text-sm font-mono font-bold border">
+              #T-{lastRedeemedId?.toString().padStart(5, "0")}
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              The ticket is now marked as used. You can proceed with the next guest.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={resetScanner}
+              className="w-full bg-blue-950 font-bold shadow-lg shadow-emerald-500/10"
+            >
+              Scan Next Ticket
             </Button>
           </DialogFooter>
         </DialogContent>

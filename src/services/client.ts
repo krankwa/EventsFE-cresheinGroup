@@ -21,16 +21,10 @@ export async function apiRequest<T>(
     ...(options.headers || {}),
   };
 
-  if (options.requiresAuth !== false) {
-    const token = getToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: options.method || "GET",
     headers,
+    credentials: "include", // Required to send/receive HttpOnly cookies
     ...(options.body ? { body: options.body } : {}),
   });
 

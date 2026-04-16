@@ -1,12 +1,11 @@
-import { apiRequest, API_BASE_URL } from "./client";
-import { setToken, clearToken, getToken } from "./authStore";
+import { apiRequest } from "./client";
+import { setToken, clearToken, isAuthenticated } from "./authStore";
 import type {
   LoginRequest,
   RegisterRequest,
   AuthResponse,
   UserResponse,
 } from "../interface/Auth.interface";
-import type { ApiError } from "../interface/api.interface";
 
 // POST /api/auth/login
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
@@ -15,7 +14,9 @@ export async function login(credentials: LoginRequest): Promise<AuthResponse> {
     body: JSON.stringify(credentials),
   });
 
-  setToken(data.token);
+  // Since we use HttpOnly cookies, the server handles the token.
+  // We call setToken simply to update the local 'isLoggedIn' state for UI.
+  setToken("logged-in"); 
   return data;
 }
 
@@ -23,15 +24,19 @@ export async function login(credentials: LoginRequest): Promise<AuthResponse> {
 export async function register(
   request: RegisterRequest,
 ): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>("/auth/register", {
+  const data = await apiRequest<AuthResponse>("/auth/register", {
     method: "POST",
     body: JSON.stringify(request),
   });
+  
+  setToken("logged-in");
+  return data;
 }
 
 // GET /api/users/me
 export async function getCurrentUser(): Promise<UserResponse | null> {
-  if (!getToken()) return null;
+  // If we don't think we are logged in, don't even try the request.
+  if (!isAuthenticated()) return null;
 
   try {
     return await apiRequest<UserResponse>("/users/me", { method: "GET" });
@@ -75,49 +80,4 @@ export async function verifyEmail(token: string): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/auth/verify-email?token=${token}`, {
     method: "GET",
   });
-}
-
-
-export async function makeApiRequest<T>(
-  endpoint: string,
-  options: {
-    method?: string;
-    body?: string;
-    requiresAuth?: boolean;
-    headers?: Record<string, string>;
-  } = {},
-): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
-
-  if (options.requiresAuth !== false) {
-    const token = getToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: options.method || "GET",
-    headers,
-    ...(options.body ? { body: options.body } : {}),
-  });
-
-  if (response.status === 401) {
-    clearToken();
-    throw new Error("Session expired. Please log in again.");
-  }
-
-  if (response.status === 204) return null as T;
-
-  if (!response.ok) {
-    const error: ApiError = await response.json().catch(() => ({}));
-    throw new Error(
-      error.message ?? error.title ?? `Request failed (${response.status})`,
-    );
-  }
-
-  return response.json();
 }

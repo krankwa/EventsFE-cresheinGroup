@@ -62,13 +62,13 @@ export async function apiRequest<T>(
 
   // Handle 401 Unauthorized
   if (response.status === 401) {
-    // Only treat as "Session Expired" if NOT on the login page.
-    // On the login page, 401 usually means "Invalid Credentials".
-    if (endpoint !== "/auth/login") {
+    // Only treat as "Session Expired" if NOT on the login page or profile check.
+    // On the login page, 401 means "Invalid Credentials".
+    // On /users/me, 401 simply means "Guest User".
+    if (endpoint !== "/auth/login" && endpoint !== "/users/me") {
       clearToken();
       throw new Error("Session expired. Please log in again.");
     }
-    // For /auth/login, we fall through to let the normal error parsing handle it.
   }
 
   if (response.status === 204) return null as T;

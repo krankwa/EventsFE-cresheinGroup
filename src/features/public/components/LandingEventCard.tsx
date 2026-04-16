@@ -29,9 +29,9 @@ export function LandingEventCard({
   const fillPct = Math.min((sold / capacity) * 100, 100);
 
   return (
-    <Card className={`overflow-hidden group hover:shadow-2xl transition-all duration-700 border-none bg-white/40 backdrop-blur-md ring-1 ring-blue-950/5 hover:-translate-y-2 active:scale-[0.98] ${isRecommended ? 'min-w-[260px] xs:min-w-[280px] md:min-w-[340px]' : ''}`}>
+    <Card className={`overflow-hidden group hover:shadow-2xl transition-all duration-700 border-none bg-white/40 backdrop-blur-md ring-1 ring-blue-950/5 hover:-translate-y-2 active:scale-[0.98] ${isRecommended ? 'w-[280px] xs:w-[300px] md:w-[400px] shrink-0' : 'w-full'}`}>
       {/* Cover Image */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden">
         {event.coverImageUrl ? (
           <img
             src={event.coverImageUrl}
@@ -72,10 +72,10 @@ export function LandingEventCard({
 
       <CardHeader className="px-6 pt-6 pb-2">
         <div className="flex justify-between items-start gap-4">
-          <h3 className="text-lg md:text-xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
+          <h3 className="text-base md:text-xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
             {event.title}
           </h3>
-          <span className="text-blue-900 font-black text-sm md:text-base whitespace-nowrap">
+          <span className="text-blue-900 font-black text-xs md:text-base whitespace-nowrap">
             ₱999+
           </span>
         </div>

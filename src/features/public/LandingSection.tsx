@@ -152,8 +152,10 @@ function LandingEventCard({
 
 // ─── Landing Page ─────────
 export function LandingSection() {
-  const { data: eventsResult = [], isLoading } = useEvents(); 
-  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
+  const { data: eventsResult = [], isLoading } = useEvents();
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
+    null,
+  );
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
 
@@ -171,10 +173,14 @@ export function LandingSection() {
   };
 
   // Extract events from potentially categorized response
-  const events = Array.isArray(eventsResult) 
-    ? eventsResult 
-    : (eventsResult?.recommended?.length || 0) > 0 
-      ? [...(eventsResult.recommended || []), ...(eventsResult.popular || [])]
+  // FOR LANDING PAGE: Only show 'Popular' events if categorized data exists
+  const categorized = !Array.isArray(eventsResult) ? (eventsResult as EventRecommendResponse) : null;
+  const popular = categorized?.popular ?? (categorized as any)?.Popular ?? [];
+
+  const events = Array.isArray(eventsResult)
+    ? eventsResult
+    : popular.length > 0
+      ? popular
       : [];
 
   return (
@@ -232,7 +238,10 @@ export function LandingSection() {
       </section>
 
       {/* ── Events Grid ── */}
-      <section id="events-section" className="container mx-auto px-4 pb-24 bg-white">
+      <section
+        id="events-section"
+        className="container mx-auto px-4 pb-24 bg-white"
+      >
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -243,7 +252,10 @@ export function LandingSection() {
             </p>
           </div>
           {events.length > 0 && (
-            <Badge variant="secondary" className="text-sm px-3 py-1 bg-blue-950 text-white">
+            <Badge
+              variant="secondary"
+              className="text-sm px-3 py-1 bg-blue-950 text-white"
+            >
               {events.length} Events
             </Badge>
           )}

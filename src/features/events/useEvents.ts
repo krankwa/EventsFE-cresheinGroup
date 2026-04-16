@@ -8,9 +8,14 @@ export function useEvents() {
     queryKey: ["events"],
     queryFn: async (): Promise<EventsFeedResponse> => {
       const response = await eventsService.getAll();
-      if (Array.isArray(response) || (response && "recommended" in response)) {
-        return response;
+      // Handle both flat array and categorized object, being resilient to casing
+      if (Array.isArray(response)) return response;
+      
+      if (response && (typeof response === "object")) {
+        const hasRecommended = "recommended" in response || "Recommended" in response;
+        if (hasRecommended) return response;
       }
+      
       throw new Error("Invalid data format received from the server.");
     },
     retry: 1,

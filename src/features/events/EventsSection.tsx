@@ -8,11 +8,11 @@ import { Badge } from "../../components/ui/badge";
 import { ErrorState } from "../../components/ui/error";
 import { PaginationWrapper } from "../../components/organisms/PaginationWrapper";
 
-import type { EventRecommendResponse } from "../../interface/Event.interface";
+import type { EventRecommendResponse, EventResponse } from "../../interface/Event.interface";
 
 // --- Context ---
 interface EventsSectionContextType {
-  data: any; // Can be categorized or array
+  data: EventResponse[] | EventRecommendResponse | null; // Can be categorized or array
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
@@ -143,25 +143,24 @@ function EventsSectionGrid() {
 
   // Authenticated Scenario: The API responds with Categorized structure
   if (data && !Array.isArray(data)) {
-    const renderedIds = new Set<string | number>();
+    const renderedIds = new Set<string>();
 
     // 1. Process Recommended
-    const topRecommended = (data.recommended || []).slice(0, 6);
-    topRecommended.forEach((e) => renderedIds.add(e.id));
+    const categorized = !Array.isArray(data) ? (data as EventRecommendResponse) : null;
+    const recommended = categorized?.recommended ?? (categorized as any)?.recommended ?? (categorized as any)?.Recommended ?? [];
+    const topRecommended = recommended.slice(0, 6);
+    
+    // Store IDs as strings for reliable comparison
+    topRecommended.forEach((e: any) => {
+      if (e && e.id) renderedIds.add(String(e.id));
+    });
 
-    // 2. Process Popular (deduplicate against Recommended)
-    const topPopular = (data.popular || [])
-      .filter((e) => !renderedIds.has(e.id))
-      .slice(0, 6);
-    topPopular.forEach((e) => renderedIds.add(e.id));
-
-    // 3. Process More Events (deduplicate against Categories)
+    // 2. Process More Events (strictly deduplicate against Recommended)
     const filteredPaginated = (paginatedData?.items || []).filter(
-      (e) => !renderedIds.has(e.id),
+      (e: any) => !renderedIds.has(String(e.id)),
     );
 
     const hasRecommendations = topRecommended.length > 0;
-    const hasPopular = topPopular.length > 0;
 
     return (
       <div className="flex flex-col gap-12">
@@ -169,13 +168,6 @@ function EventsSectionGrid() {
           <div id="recommended-section">
             <h3 className="text-2xl font-bold mb-4">Recommended For You</h3>
             <EventGrid events={topRecommended} isLoading={isLoading} />
-          </div>
-        )}
-
-        {hasPopular && (
-          <div id="popular-section">
-            <h3 className="text-2xl font-bold mb-4">Popular Right Now</h3>
-            <EventGrid events={topPopular} isLoading={isLoading} />
           </div>
         )}
 

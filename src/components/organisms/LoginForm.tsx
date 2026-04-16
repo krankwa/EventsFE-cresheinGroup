@@ -53,6 +53,7 @@ export function LoginForm() {
             error={undefined}
             placeholder="••••••••"
             disabled={isPending}
+            className="pl-10 h-10"
           />
         </div>
       </div>

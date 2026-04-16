@@ -17,6 +17,7 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "X-Tunnel-Skip-AntiPhishing": "true", // Bypass MS Dev Tunnel landing page
     ...(options.headers || {}),
   };
 

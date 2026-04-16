@@ -3,6 +3,7 @@ import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
+  EventsFeedResponse,
 } from "../interface/Event.interface";
 import type { PaginationParams, PaginatedResponse } from "../interface/pagination";
 

@@ -162,6 +162,7 @@ export function EventDialog({
             ? event.date.split("T")[0] || format(new Date(), "yyyy-MM-dd")
             : format(new Date(), "yyyy-MM-dd"),
           venue: event.venue || "",
+          venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
           ticketsSold: event.ticketsSold,
@@ -186,6 +187,7 @@ export function EventDialog({
       : {
           title: "",
           date: format(new Date(), "yyyy-MM-dd"),
+          venue: "",
           venue: "",
           venueAddress: "",
           capacity: 100,
@@ -283,6 +285,7 @@ export function EventDialog({
     } else {
       setTierTypes([]);
     }
+  }, [isOpen, event?.id]);
   }, [isOpen, event?.id]);
 
   // ── Tier Management ────────────────────────────────────────────────────

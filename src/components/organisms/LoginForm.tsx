@@ -32,6 +32,7 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={isPending}
+                        autoComplete="username"
           />
         </div>
       </div>
@@ -54,6 +55,7 @@ export function LoginForm() {
             placeholder="••••••••"
             disabled={isPending}
             className="pl-10 h-10"
+                        autoComplete="current-password"
           />
         </div>
       </div>

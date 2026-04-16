@@ -33,6 +33,7 @@ export interface TicketTierUpdateRequest {
 
 export interface EventResponse {
   id: number;
+  id: number;
   title: string;
   date: string;
   capacity: number;

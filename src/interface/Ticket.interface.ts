@@ -9,9 +9,14 @@ export interface TicketResponse {
   tierName?: string | null;
   price: number;
   isRedeemed: boolean;
+
+  venue?: string | null;
+  attendeeName?: string;
+  attendeeEmail: string;
 }
 
 export interface TicketCreateRequest {
+  eventId: number;
   eventId: number;
   tierId: number;
 }

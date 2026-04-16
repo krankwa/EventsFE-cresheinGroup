@@ -13,6 +13,7 @@ import {
 import { NotificationCenter } from "./NotificationCenter";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
+import { useEvents } from "../../features/events/useEvents";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 import { useConfirm } from "../ui/confirm-context";

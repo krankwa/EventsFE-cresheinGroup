@@ -29,7 +29,7 @@ interface UsersTableProps {
   onPromote: (user: UserResponse) => Promise<void>; // Changed to Promise
   onEdit: (
     user: UserResponse,
-    data: { name: string; email: string },
+    data: { name: string; email: string; role?: string },
   ) => Promise<void>;
   isLoading?: boolean;
 }
@@ -47,7 +47,7 @@ interface LoadingState {
 
 export function UsersTable({
   users,
-  onPromote,
+  //onPromote,
   onEdit,
   isLoading,
 }: UsersTableProps) {

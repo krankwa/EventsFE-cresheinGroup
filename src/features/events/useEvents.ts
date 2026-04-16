@@ -5,6 +5,7 @@ import type { PaginationParams } from "../../interface/pagination";
 
 export function useEvents() {
   return useQuery<EventsFeedResponse, Error>({
+  return useQuery<EventsFeedResponse, Error>({
     queryKey: ["events"],
     queryFn: async (): Promise<EventsFeedResponse> => {
       const response = await eventsService.getAll();

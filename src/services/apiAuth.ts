@@ -70,6 +70,13 @@ export async function resetPassword(request: {
   });
 }
 
+// GET /api/auth/verify-email
+export async function verifyEmail(token: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/auth/verify-email?token=${token}`, {
+    method: "GET",
+  });
+}
+
 const API_BASE_URL = import.meta.env.VITE_BACKEND_API as string;
 
 export async function makeApiRequest<T>(

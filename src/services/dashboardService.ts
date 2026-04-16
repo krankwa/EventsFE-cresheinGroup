@@ -1,5 +1,6 @@
 import { eventsService } from "./eventsService";
 import { userService } from "./userService";
+import { ticketsService } from "./ticketsService";
 import type { EventResponse } from "../interface/Event.interface";
 
 export interface DashboardStats {
@@ -13,6 +14,7 @@ export interface DashboardStats {
 
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
+    // ... (existing code remains fine, but adding getUserStats below)
     const [eventsResponse, users] = await Promise.all([
       eventsService.getAll(),
       userService.getAll(),
@@ -21,7 +23,6 @@ export const dashboardService = {
     if (Array.isArray(eventsResponse)) {
       events = eventsResponse;
     } else {
-      // It's the authenticated object -> merge them all
       events = [
         ...(eventsResponse.recommended || []),
         ...(eventsResponse.popular || []),
@@ -30,11 +31,7 @@ export const dashboardService = {
     }
 
     const totalTicketsSold = events.reduce((sum, e) => sum + e.ticketsSold, 0);
-
-    // Simulations for metrics not yet in DB
-    const totalRevenue = totalTicketsSold * 250; // Mock price of 250
-
-    // Sort by conversion rate
+    const totalRevenue = totalTicketsSold * 250;
     const topEvents = [...events]
       .sort(
         (a, b) =>
@@ -50,6 +47,39 @@ export const dashboardService = {
       activeUsers: users.length,
       totalRevenue,
       topEvents,
+    };
+  },
+
+  getUserStats: async () => {
+    const [tickets, eventsResponse] = await Promise.all([
+      ticketsService.getMine(),
+      eventsService.getAll(),
+    ]);
+
+    const upcomingTickets = tickets.filter(
+      (t) => new Date(t.eventDate) >= new Date(),
+    );
+    const attendedTickets = tickets.filter((t) => t.isRedeemed);
+
+    // Identify next event
+    const sortedUpcoming = [...upcomingTickets].sort(
+      (a, b) =>
+        new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+    );
+    const nextEvent = sortedUpcoming[0] || null;
+
+    // Recommendations
+    let recommendations: EventResponse[] = [];
+    if (!Array.isArray(eventsResponse)) {
+      recommendations = eventsResponse.recommended;
+    }
+
+    return {
+      totalBooked: tickets.length,
+      upcomingCount: upcomingTickets.length,
+      attendedCount: attendedTickets.length,
+      nextEvent,
+      recommendations,
     };
   },
 };

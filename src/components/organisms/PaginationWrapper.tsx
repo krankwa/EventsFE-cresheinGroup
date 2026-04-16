@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { PaginationWrapperProps } from "@/interface/pagination";
+import { useState, useRef, useEffect } from "react";
+import { Input } from "../ui/input";
 
 
 export function PaginationWrapper({
@@ -26,6 +28,34 @@ export function PaginationWrapper({
   onPageSizeChange,
   pageSizeOptions = [10, 25, 50, 100],
 }: PaginationWrapperProps) {
+  const [jumpValue, setJumpValue] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when it appears
+  useEffect(() => {
+    if (editingIndex !== null) {
+      inputRef.current?.focus();
+    }
+  }, [editingIndex]);
+
+  const handleJumpSubmit = () => {
+    const page = parseInt(jumpValue);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      onPageChange(page);
+    }
+    setEditingIndex(null);
+    setJumpValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleJumpSubmit();
+    } else if (e.key === "Escape") {
+      setEditingIndex(null);
+      setJumpValue("");
+    }
+  };
 //   if (totalPages <= 1 && totalItems <= (pageSizeOptions || [10])[0]) return null;
 
   const getPageNumbers = () => {
@@ -92,8 +122,30 @@ export function PaginationWrapper({
 
           {getPageNumbers().map((page, index) => (
             <PaginationItem key={index}>
-              {page === '...' ? (
-                <PaginationEllipsis />
+              {page === "..." ? (
+                editingIndex === index ? (
+                  <div className="w-10">
+                    <Input
+                      ref={inputRef}
+                      type="text"
+                      inputMode="numeric"
+                      value={jumpValue}
+                      onChange={(e) => setJumpValue(e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={handleKeyDown}
+                      onBlur={handleJumpSubmit}
+                      className="h-8 p-1 text-center font-bold border-2 border-primary/40 focus-visible:ring-primary/20 rounded-lg animate-in fade-in zoom-in duration-200"
+                      placeholder="#"
+                    />
+                  </div>
+                ) : (
+                  <PaginationEllipsis
+                    className="cursor-pointer hover:bg-muted/50 rounded-full transition-colors group"
+                    onClick={() => {
+                      setEditingIndex(index);
+                      setJumpValue("");
+                    }}
+                  />
+                )
               ) : (
                 <PaginationLink
                   isActive={page === currentPage}

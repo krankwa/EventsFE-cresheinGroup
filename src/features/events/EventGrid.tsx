@@ -103,7 +103,6 @@ export function EventGrid({ events, isLoading, isListMode = false }: EventGridPr
         isOpen={selectedEvent !== null}
         onClose={() => setSelectedEvent(null)}
         event={selectedEvent}
-        isLoggedIn={!!user}
         onSuccess={() => navigate("/tickets")}
       />
     </>

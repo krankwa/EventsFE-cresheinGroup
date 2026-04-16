@@ -1,20 +1,23 @@
 // Authentication state management.
-// Reverted to localStorage for standard JWT authentication headers.
+// Tokens are now stored in HttpOnly cookies and managed by the browser.
 
 export function getToken(): string | null {
-  return localStorage.getItem("token");
+  // We no longer retrieve the token from JS for security reasons.
+  // The browser automatically attaches the 'AuthToken' cookie to requests.
+  return null;
 }
 
-export function setToken(token: string): void {
-  localStorage.setItem("token", token);
+export function setToken(_token: string): void {
+  // No-op: Token is set via Set-Cookie header from the server.
+  // We can store a flag to indicate we are logged in for UI purposes.
   localStorage.setItem("isLoggedIn", "true");
 }
 
 export function clearToken(): void {
-  localStorage.removeItem("token");
+  // No-op: Token is removed via Delete-Cookie header during logout.
   localStorage.removeItem("isLoggedIn");
 }
 
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem("token") || localStorage.getItem("isLoggedIn") === "true";
+  return localStorage.getItem("isLoggedIn") === "true";
 }

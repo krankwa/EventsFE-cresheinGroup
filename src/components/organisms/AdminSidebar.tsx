@@ -26,9 +26,6 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     if (user?.role === "Staff") {
       return item.label === "Redemption";
     }
-    if (user?.role === "Admin" && item.label === "Redemption") {
-      return false;
-    }
     return true;
   });
 

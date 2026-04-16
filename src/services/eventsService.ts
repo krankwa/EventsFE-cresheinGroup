@@ -10,7 +10,7 @@ import type { PaginationParams, PaginatedResponse } from "../interface/paginatio
 
 export const eventsService = {
   getAll: (): Promise<EventsFeedResponse> =>
-    apiRequest<EventsFeedResponse>("/Event", {
+    apiRequest<EventsFeedResponse>("/event", {
       method: "GET",
       requiresAuth: false,
     }),
@@ -23,39 +23,39 @@ export const eventsService = {
     if (params.searchTerm) {
       queryParams.append("searchTerm", params.searchTerm);
     }
-    return apiRequest<PaginatedResponse<EventResponse>>(`/Event/paginated?${queryParams.toString()}`, {
+    return apiRequest<PaginatedResponse<EventResponse>>(`/event/paginated?${queryParams.toString()}`, {
       method: "GET",
     });
   },
 
   getRecommendations: (): Promise<EventResponse[]> =>
-    apiRequest<EventResponse[]>("/Event/recommendations", {
+    apiRequest<EventResponse[]>("/event/recommendations", {
       method: "GET",
       requiresAuth: true,
     }),
 
   getById: (id: number): Promise<EventResponse> =>
-    apiRequest<EventResponse>(`/Event/${id}`, {
+    apiRequest<EventResponse>(`/event/${id}`, {
       method: "GET",
       requiresAuth: false,
     }),
 
   create: (data: EventCreateDTO): Promise<EventResponse> =>
-    apiRequest<EventResponse>("/Event", {
+    apiRequest<EventResponse>("/event", {
       method: "POST",
       body: JSON.stringify(data),
       requiresAuth: true,
     }),
 
   update: (id: number, data: EventUpdateDTO): Promise<EventResponse> =>
-    apiRequest<EventResponse>(`/Event/${id}`, {
+    apiRequest<EventResponse>(`/event/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
       requiresAuth: true,
     }),
 
   delete: (id: number): Promise<void> =>
-    apiRequest<void>(`/Event/${id}`, {
+    apiRequest<void>(`/event/${id}`, {
       method: "DELETE",
       requiresAuth: true,
     }),

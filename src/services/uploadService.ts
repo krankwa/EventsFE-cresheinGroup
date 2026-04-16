@@ -36,7 +36,7 @@ export async function uploadEventImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_BASE_URL}/Upload`, {
+  const response = await fetch(`${API_BASE_URL}/upload`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

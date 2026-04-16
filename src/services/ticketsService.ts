@@ -70,7 +70,7 @@ export const ticketsService = {
     expiryDate: string;
     cvv: string;
   }): Promise<{ isValid: boolean; message: string }> =>
-    apiRequest<{ isValid: boolean; message: string }>("/Payment/validate", {
+    apiRequest<{ isValid: boolean; message: string }>("/payment/validate", {
       method: "POST",
       body: JSON.stringify(data),
       requiresAuth: true,

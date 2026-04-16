@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Search,
   RefreshCcw,
@@ -38,6 +38,7 @@ export function UsersManagement() {
     useState<UserResponse | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const isDataLoading = useRef(false);
 
   // Pagination hook
   const {
@@ -61,6 +62,10 @@ export function UsersManagement() {
   }, [searchQuery, handleSearch]);
 
   const loadUsers = useCallback(async () => {
+    // Avoid redundant calls if already loading
+    if (isDataLoading.current) return;
+
+    isDataLoading.current = true;
     setIsLoading(true);
     try {
       const result = await userService.getPaginated({
@@ -74,9 +79,10 @@ export function UsersManagement() {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
       setUsers([]);
-      setTotalItems(0);
+      setTotalItems((prev) => (prev !== 0 ? 0 : prev));
     } finally {
       setIsLoading(false);
+      isDataLoading.current = false;
     }
   }, [page, pageSize, debouncedSearch, setTotalItems]);
 

@@ -40,7 +40,7 @@ export function DashboardOverview() {
           </p>
         </div>
         <Link to="/admin/events">
-          <Button className="gap-2 shadow-lg shadow-primary/20">
+          <Button className="gap-2 shadow-lg bg-blue-900 shadow-primary/20">
             <Plus className="w-4 h-4" />
             New Event
           </Button>
@@ -50,7 +50,7 @@ export function DashboardOverview() {
       <StatsGrid stats={stats} isLoading={isLoading} />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 border-none shadow-sm bg-gradient-to-br from-background to-muted/20">
+        <Card className="col-span-4 border-none shadow-sm from-background to-muted/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -88,7 +88,51 @@ export function DashboardOverview() {
                   </div>
                 </div>
               ))
-            ) : stats?.topEvents.length === 0 ? (
+            ) : stats?.topEvents && stats.topEvents.length > 0 ? (
+              stats.topEvents.map((event) => {
+                if (!event) return null;
+                const progress = event.capacity > 0 
+                  ? ((event.ticketsSold / event.capacity) * 100).toFixed(0) 
+                  : "0";
+                
+                return (
+                  <div
+                    key={event.id || `top-${event.title}-${event.date}`}
+                    className="flex items-center gap-4 group cursor-default"
+                  >
+                    <div className="w-12 h-12 rounded overflow-hidden border bg-muted flex-shrink-0">
+                      {event.coverImageUrl ? (
+                        <img
+                          src={event.coverImageUrl}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <Calendar className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {event.date ? format(new Date(event.date), "MMM d, yyyy") : "TBA"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-emerald-600">
+                        {progress}%
+                      </div>
+                      <div className="text-[10px] text-muted-foreground uppercase font-medium">
+                        Sold-out
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
               <div className="h-[200px] flex flex-col items-center justify-center text-center p-6 border-2 border-dashed rounded-xl grayscale opacity-50">
                 <Calendar className="w-10 h-10 mb-2 text-muted-foreground" />
                 <p className="text-sm font-medium">No events found</p>
@@ -96,43 +140,6 @@ export function DashboardOverview() {
                   Start by creating your first event
                 </p>
               </div>
-            ) : (
-              stats?.topEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-center gap-4 group cursor-default"
-                >
-                  <div className="w-12 h-12 rounded overflow-hidden border bg-muted flex-shrink-0">
-                    {event.coverImageUrl ? (
-                      <img
-                        src={event.coverImageUrl}
-                        className="w-full h-full object-cover"
-                        alt=""
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
-                      {event.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(event.date), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-emerald-600">
-                      {((event.ticketsSold / event.capacity) * 100).toFixed(0)}%
-                    </div>
-                    <div className="text-[10px] text-muted-foreground uppercase font-medium">
-                      Sold-out
-                    </div>
-                  </div>
-                </div>
-              ))
             )}
           </CardContent>
         </Card>

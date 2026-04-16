@@ -21,7 +21,7 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
 
-  const handleBook = async (tierId?: number) => {
+  const handleBook = async () => {
     if (isBooking) return;
 
     if (!user) {
@@ -35,8 +35,7 @@ export function useBookTicket(event: EventResponse): UseBookTicketReturn {
     }
 
     // Navigate to the event detail page so the user can choose a tier
-    const eventId = event.id;
-    navigate(`/events/${eventId}${tierId ? `?tier=${tierId}` : ""}`);
+    navigate(`/events/${event.id}`);
   };
 
   return { isBooking, isOpen, openModal, closeModal, handleBook };

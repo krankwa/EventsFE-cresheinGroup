@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import {
   CalendarDays,
@@ -5,47 +6,41 @@ import {
   Search,
   User,
   LogOut,
-  Bell,
-  Star,
-  Flame,
-  List,
+  Menu,
+  X,
+  ChevronRight,
 } from "lucide-react";
+import { NotificationCenter } from "./NotificationCenter";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
-import { useEvents } from "../../features/events/useEvents";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
 import { useConfirm } from "../ui/confirm-context";
+import logo from "../../assets/logo.png";
+import { Separator } from "../ui/separator";
 
 export function UserNavbar() {
   const { user } = useUser();
   const { logout } = useLogout();
   const { confirm } = useConfirm();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const location = useLocation();
 
-  // Only fetch events feed if we are on the events page/home page where it matters
-  const isEventsPage =
-    location.pathname === "/events" || location.pathname === "/";
-  const { data: eventsData } = useEvents();
-
-  let hasRecommendations = false;
-  let hasPopular = false;
-  let hasAllEvents = false;
-
-  if (isEventsPage && eventsData && !Array.isArray(eventsData)) {
-    hasRecommendations = (eventsData.recommended?.length ?? 0) > 0;
-    hasPopular = (eventsData.popular?.length ?? 0) > 0;
-    hasAllEvents = (eventsData.allOthers?.length ?? 0) > 0;
-  }
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Close drawer when route changes
+  useEffect(() => {
+    if (isDrawerOpen) {
+      setIsDrawerOpen(false);
     }
-  };
+  }, [location.pathname]); // Only trigger on path change, avoids dependency loop with isDrawerOpen
+
+  // Prevent scrolling when drawer is open
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isDrawerOpen]);
 
   const handleLogout = () => {
     confirm({
@@ -68,139 +63,224 @@ export function UserNavbar() {
   };
 
   return (
-    <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
-      {/* Left: Website Name */}
-      <Link to="/" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:rotate-12 transition-transform">
-          <CalendarDays className="text-primary-foreground w-5 h-5" />
-        </div>
-        <span className="font-bold text-xl tracking-tight hidden sm:block">
-          EventTix
-        </span>
-      </Link>
-
-      {/* Center: Navigation Links & Search */}
-      <div className="flex items-center gap-6 md:gap-8 flex-1 justify-center md:justify-start md:ml-12">
-        <div className="flex items-center gap-1 md:gap-4">
-          <NavLink
-            to="/tickets"
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
-                isActive ? "text-primary" : "text-muted-foreground",
-              )
-            }
-          >
-            <Ticket className="w-4 h-4" />
-            <span className="hidden sm:inline">Tickets</span>
-          </NavLink>
-          <NavLink
-            to="/events"
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
-                isActive ? "text-primary" : "text-muted-foreground",
-              )
-            }
-          >
-            <CalendarDays className="w-4 h-4" />
-            <span className="hidden sm:inline">Events</span>
-          </NavLink>
-
-          {/* Quick Scroll Links (only visible on pages with these sections) */}
-          {isEventsPage && (
-            <div className="hidden lg:flex items-center gap-1 border-l pl-4 ml-2">
-              {hasRecommendations && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollToSection("recommended-section")}
-                  className="text-muted-foreground gap-2"
-                >
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  Recommended
-                </Button>
-              )}
-              {hasPopular && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollToSection("popular-section")}
-                  className="text-muted-foreground gap-2"
-                >
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  Popular
-                </Button>
-              )}
-              {hasAllEvents && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollToSection("all-events-section")}
-                  className="text-muted-foreground gap-2"
-                >
-                  <List className="w-4 h-4 text-primary" />
-                  All Events
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Search Bar */}
-        <div className="hidden lg:flex items-center relative max-w-sm w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search amazing events..."
-            className="pl-9 h-10 w-full bg-muted/50 border-muted placeholder:text-muted-foreground focus-visible:ring-primary"
-          />
-        </div>
-      </div>
-
-      {/* Right: Notifications & Profile */}
-      <div className="flex items-center gap-2 md:gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-muted-foreground hover:text-primary"
-        >
-          <Bell className="w-5 h-5" />
-          <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-primary text-[10px] border-background animate-pulse">
-            3
-          </Badge>
-        </Button>
-
-        <div className="h-8 w-px bg-border mx-1" />
-
+    <>
+      <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex flex-col text-right">
-            <p className="text-sm font-semibold leading-none">{user?.name}</p>
-            <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">
-              {user?.email}
-            </p>
-          </div>
+          {/* Mobile Menu Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-muted-foreground hover:text-primary"
+            onClick={() => setIsDrawerOpen(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </Button>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all overflow-hidden"
+          {/* Left: Website Name/Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
+              <img src={logo} alt="Logo" />
+            </div>
+            <span className="font-bold text-xl tracking-tight hidden sm:block">
+              EventTix
+            </span>
+          </Link>
+        </div>
+
+        {/* Center: Desktop Navigation Links */}
+        <div className="hidden md:flex items-center gap-6 md:gap-8 flex-1 justify-start ml-12">
+          <div className="flex items-center gap-4">
+            <NavLink
+              to="/tickets"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
+                  isActive ? "text-primary" : "text-muted-foreground",
+                )
+              }
             >
-              <User className="w-5 h-5 text-primary" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="text-muted-foreground hover:text-destructive transition-colors"
-              title="Sign Out"
+              <Ticket className="w-4 h-4" />
+              <span>Tickets</span>
+            </NavLink>
+            <NavLink
+              to="/events"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors hover:text-primary",
+                  isActive ? "text-primary" : "text-muted-foreground",
+                )
+              }
             >
-              <LogOut className="w-5 h-5" />
-            </Button>
+              <CalendarDays className="w-4 h-4" />
+              <span>Events</span>
+            </NavLink>
           </div>
         </div>
+
+        {/* Right: Notifications & Profile Trigger */}
+        <div className="flex items-center gap-2 md:gap-4">
+          <NotificationCenter />
+
+          <div className="hidden md:block h-8 w-px bg-border mx-1" />
+
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex flex-col text-right">
+              <p className="text-sm font-semibold leading-none">{user?.name}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">
+                {user?.email}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link to="/myaccount">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all overflow-hidden"
+                >
+                  <User className="w-5 h-5 text-primary" />
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-destructive transition-colors"
+                title="Sign Out"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+        </div>
+      </nav>
+
+      {/* --- Mobile Drawer (Side App Menu) --- */}
+      {/* Backdrop */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-300 md:hidden",
+          isDrawerOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+        onClick={() => setIsDrawerOpen(false)}
+      />
+
+      {/* Drawer Panel */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 bottom-0 w-[280px] bg-background z-[101] shadow-2xl flex flex-col transition-transform duration-300 ease-in-out md:hidden",
+          isDrawerOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        {/* Drawer Header */}
+        <div className="p-6 border-b flex items-center justify-between bg-primary/5">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Logo" className="w-6 h-6" />
+            <span className="font-bold text-lg">EventTix</span>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={() => setIsDrawerOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Drawer Profile Info */}
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+              <User className="w-6 h-6 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-base truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate italic">
+                {user?.email}
+              </p>
+            </div>
+          </div>
+
+          <Separator className="mb-6 opacity-50" />
+
+          {/* Drawer Nav Links */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-2 mb-3">
+              Experience
+            </p>
+            <NavLink
+              to="/tickets"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center justify-between p-3 rounded-xl transition-all",
+                  isActive
+                    ? "bg-primary text-white shadow-lg shadow-primary/20"
+                    : "hover:bg-primary/5 text-foreground",
+                )
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Ticket className="w-5 h-5" />
+                <span className="font-medium">My Tickets</span>
+              </div>
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            </NavLink>
+
+            <NavLink
+              to="/events"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center justify-between p-3 rounded-xl transition-all",
+                  isActive
+                    ? "bg-primary text-white shadow-lg shadow-primary/20"
+                    : "hover:bg-primary/5 text-foreground",
+                )
+              }
+            >
+              <div className="flex items-center gap-3">
+                <CalendarDays className="w-5 h-5" />
+                <span className="font-medium">Browse Events</span>
+              </div>
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            </NavLink>
+
+            <NavLink
+              to="/myaccount"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center justify-between p-3 rounded-xl transition-all",
+                  isActive
+                    ? "bg-primary text-white shadow-lg shadow-primary/20"
+                    : "hover:bg-primary/5 text-foreground",
+                )
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Search className="w-5 h-5" />
+                <span className="font-medium">Account Settings</span>
+              </div>
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            </NavLink>
+          </div>
+        </div>
+
+        {/* Drawer Footer (Sign Out) */}
+        <div className="mt-auto p-6 border-t bg-muted/20">
+          <Button
+            variant="destructive"
+            className="w-full justify-start gap-3 h-12 rounded-xl"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-bold">Sign Out</span>
+          </Button>
+          <p className="text-[10px] text-center text-muted-foreground mt-4 opacity-60 font-medium">
+            v2.4.0 • Secured by EventTix Cloud
+          </p>
+        </div>
       </div>
-    </nav>
+    </>
   );
 }

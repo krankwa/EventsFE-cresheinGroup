@@ -17,8 +17,14 @@ export type EventAvailability =
   | { readonly status: "sold-out" }
   | { readonly status: "upcoming" };
 
-export interface TicketTierCreateDTO {
-  id?: number;
+export interface TicketTierCreateRequest {
+  name: string;
+  price: number;
+  capacity: number;
+}
+ 
+export interface TicketTierUpdateRequest {
+  id: number;
   name: string;
   price: number;
   capacity: number;
@@ -39,31 +45,36 @@ export interface EventResponse {
   tiers: TicketTierResponse[];
 }
 
+export interface EventRecommendResponse {
+  recommended: EventResponse[];
+  popular: EventResponse[];
+  Recommended?: EventResponse[];
+  Popular?: EventResponse[];
+  allOthers?: EventResponse[];
+}
+
+export type EventsFeedResponse = EventResponse[] | EventRecommendResponse;
+
 export interface EventCreateDTO {
   title: string;
   date: string;
   venue: string;
-  venueAddress?: string;
+  venueAddress: string;
   capacity: number;
+  ticketsSold?: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string | null;
-  tiers: TicketTierCreateDTO[];
+  tiers: TicketTierCreateRequest[];
 }
 
 export interface EventUpdateDTO {
   title: string;
   date: string;
   venue: string;
-  venueAddress?: string;
+  venueAddress: string;
   capacity: number;
+  ticketsSold?: number;
   maxTicketsPerPerson: number;
   coverImageUrl?: string;
-  tiers: TicketTierCreateDTO[];
+  tiers: TicketTierUpdateRequest[];
 }
-
-export interface EventRecommendResponse {
-  recommended: EventResponse[];
-  popular: EventResponse[];
-  allOthers: EventResponse[];
-}
-export type EventsFeedResponse = EventResponse[] | EventRecommendResponse;

@@ -15,6 +15,8 @@ import {
   DialogDescription,
 } from "../../components/ui/dialog";
 import { QRCodeCanvas } from "qrcode.react";
+import { ConfirmationDialog } from "../../components/organisms/ConfirmationDialog";
+import { useState } from "react";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -135,8 +137,21 @@ export function MyTicketsSection({ children }: { children: ReactNode }) {
     isCancelling,
     selectedTicket,
     setSelectedTicket,
-    handleCancel,
+    handleCancel: cancelTicket, // API call
   } = useMyTickets();
+
+  const [ticketToCancelId, setTicketToCancelId] = useState<number | null>(null);
+
+  const handleCancelClick = (id: number) => {
+    setTicketToCancelId(id);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (ticketToCancelId !== null) {
+      await cancelTicket(ticketToCancelId);
+      setTicketToCancelId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -162,12 +177,24 @@ export function MyTicketsSection({ children }: { children: ReactNode }) {
         tickets,
         isLoading,
         isCancelling,
-        handleCancel,
+        handleCancel: handleCancelClick,
         selectedTicket,
         setSelectedTicket,
       }}
     >
       <Container>{children}</Container>
+      
+      <ConfirmationDialog
+        isOpen={ticketToCancelId !== null}
+        onClose={() => setTicketToCancelId(null)}
+        onConfirm={handleConfirmCancel}
+        title="Cancel Ticket"
+        description="Are you sure you want to cancel this ticket? This action cannot be undone and your spot will be released."
+        confirmText="Yes, Cancel Ticket"
+        cancelText="Keep Ticket"
+        type="danger"
+        isLoading={isCancelling !== null}
+      />
     </MyTicketsContext.Provider>
   );
 }

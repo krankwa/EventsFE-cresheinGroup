@@ -17,9 +17,31 @@ export default defineConfig({
     strictPort: true,
     host: true,
   },
-  test: {
-    environment: "node", // We are doing API endpoint testing
-    globals: true,
-    testTimeout: 10000,
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router-dom")) {
+              return "vendor-react";
+            }
+            if (id.includes("@tanstack/react-query") || id.includes("@reduxjs/toolkit") || id.includes("react-redux")) {
+              return "vendor-data";
+            }
+            if (id.includes("leaflet") || id.includes("react-leaflet")) {
+              return "vendor-maps";
+            }
+            if (id.includes("recharts")) {
+              return "vendor-charts";
+            }
+            if (id.includes("lucide") || id.includes("radix-ui") || id.includes("styled-components")) {
+              return "vendor-ui";
+            }
+            return "vendor";
+          }
+        },
+      },
+    },
   },
 });

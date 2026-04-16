@@ -14,15 +14,8 @@ import { Loader2, Ticket, Check, CreditCard } from "lucide-react";
 import type { EventResponse } from "../../interface/Event.interface";
 import { ticketsService } from "../../services/ticketsService";
 import { toast } from "react-hot-toast";
-
-type BookingStep = "select-tier" | "payment";
-
-interface PaymentDetails {
-  cardholderName: string;
-  cardNumber: string;
-  expiryDate: string;
-  cvv: string;
-}
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
 
 interface TicketBookingDialogProps {
   isOpen: boolean;
@@ -31,6 +24,8 @@ interface TicketBookingDialogProps {
   onSuccess: () => void;
 }
 
+type BookingStep = "select-tier" | "payment";
+ 
 export function TicketBookingDialog({
   isOpen,
   onClose,
@@ -39,28 +34,38 @@ export function TicketBookingDialog({
 }: TicketBookingDialogProps) {
   const [step, setStep] = useState<BookingStep>("select-tier");
   const [selectedTierId, setSelectedTierId] = useState<number | null>(null);
-  const [isBooking, setIsBooking] = useState(false);
-
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({
+  const [paymentDetails, setPaymentDetails] = useState({
     cardholderName: "",
     cardNumber: "",
     expiryDate: "",
     cvv: "",
   });
+  const [isBooking, setIsBooking] = useState(false);
+  const [userBookedCount, setUserBookedCount] = useState(0);
+  const [isLoadingQuota, setIsLoadingQuota] = useState(true);
 
-  const hasTiers = event && event.tiers && event.tiers.length > 0;
-
+  // Fetch current user's tickets for this event
   useEffect(() => {
     if (isOpen && event) {
-      if (!hasTiers) {
-        setStep("payment");
-      } else {
-        setStep("select-tier");
-      }
+      const fetchHistory = async () => {
+        setIsLoadingQuota(true);
+        try {
+          const tickets = await ticketsService.getMine();
+          const count = tickets.filter((t) => t.eventId === event.id).length;
+          setUserBookedCount(count);
+        } catch (error) {
+          console.error("Failed to fetch booking history", error);
+        } finally {
+          setIsLoadingQuota(false);
+        }
+      };
+      fetchHistory();
     }
-  }, [isOpen, event, hasTiers]);
+  }, [isOpen, event]);
 
   if (!event) return null;
+
+  const hasTiers = !!event.tiers && event.tiers.length > 0;
 
   const handleNextStep = () => {
     if (hasTiers && !selectedTierId) {
@@ -87,18 +92,15 @@ export function TicketBookingDialog({
 
     setIsBooking(true);
     try {
-      if (step === "payment") {
-        await ticketsService.validatePayment({
-          cardNumber: paymentDetails.cardNumber.replace(/\s/g, ""),
-          expiryDate: paymentDetails.expiryDate,
-          cvv: paymentDetails.cvv,
-        });
-        toast.success("Payment validated successfully!");
+      const eventId = event.id;
+      if (!eventId) {
+        toast.error("Invalid event reference.");
+        return;
       }
 
       await ticketsService.register({
-        eventId: event.id,
-        tierId: selectedTierId || 0, // If no tiers, send 0 or default
+        eventId: eventId,
+        tierId: selectedTierId as number,
       });
       toast.success(`Successfully booked ticket for ${event.title}!`);
       onSuccess();
@@ -134,7 +136,7 @@ export function TicketBookingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px] border-2 bg-background/95 backdrop-blur-md">
+      <DialogContent className={cn("sm:max-w-[500px]", MODAL_STYLES)}>
         <DialogHeader>
           <DialogTitle className="text-2xl font-extrabold tracking-tight">
             {step === "select-tier" ? "Select Your Ticket" : "Payment details"}
@@ -150,6 +152,11 @@ export function TicketBookingDialog({
               </>
             )}
           </DialogDescription>
+          {!isLoadingQuota && (
+            <div className="mt-2 text-xs font-bold text-primary bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full inline-block">
+              Registration Status: {userBookedCount} / {event.maxTicketsPerPerson} tickets booked
+            </div>
+          )}
         </DialogHeader>
 
         <div className="py-4 space-y-4">
@@ -325,30 +332,29 @@ export function TicketBookingDialog({
           >
             Cancel
           </Button>
-          {step === "select-tier" && hasTiers ? (
-            <Button
-              onClick={handleNextStep}
-              disabled={!selectedTierId}
-              className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
-            >
-              Continue to Payment
-            </Button>
-          ) : (
-            <Button
-              onClick={handleBook}
-              disabled={isBooking || !paymentDetails.cardNumber}
-              className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
-            >
-              {isBooking ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Confirm & Pay"
-              )}
-            </Button>
-          )}
+          <Button
+            onClick={step === "select-tier" && (hasTiers || displayPrice > 0) ? handleNextStep : handleBook}
+            disabled={
+              isBooking || 
+              (hasTiers && !selectedTierId) || 
+              isLoadingQuota || 
+              userBookedCount >= event.maxTicketsPerPerson
+            }
+            className="font-bold min-w-[140px] shadow-lg shadow-primary/20 gap-2"
+          >
+            {isBooking ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </>
+            ) : userBookedCount >= event.maxTicketsPerPerson ? (
+              "Limit Reached"
+            ) : step === "select-tier" && (hasTiers || displayPrice > 0) ? (
+              "Continue"
+            ) : (
+              "Confirm Booking"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

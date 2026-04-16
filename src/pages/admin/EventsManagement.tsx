@@ -1,6 +1,8 @@
-import { useEffect, useState, useMemo } from "react";
-import { Search, Plus, Filter, Download, RefreshCcw } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Search, Plus, Filter, RefreshCcw } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
+import { useEvents } from "../../features/events/useEvents";
+import { useQueryClient } from "@tanstack/react-query";
 import type { EventResponse } from "../../interface/Event.interface";
 import { Button } from "../../components/ui/button";
 import {
@@ -12,6 +14,7 @@ import {
 } from "../../components/ui/card";
 import { EventsTable } from "../../components/organisms/EventsTable";
 import { EventDialog } from "../../components/organisms/EventDialog";
+import { ViewEventDialog } from "../../components/organisms/ViewEventDialog";
 import { DeleteConfirmDialog } from "../../components/organisms/DeleteConfirmDialog";
 import { toast } from "react-hot-toast";
 import type {
@@ -22,19 +25,21 @@ import { usePagination } from "@/utils/pagination/usePagination";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function EventsManagement() {
+  const { isLoading, refetch } = useEvents();
   const [events, setEvents] = useState<EventResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Dialog States
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
     null,
   );
 
-  // Client-side pagination hook
+  // Pagination hook
   const {
     page,
     pageSize,
@@ -55,63 +60,29 @@ export function EventsManagement() {
     return () => clearTimeout(timer);
   }, [searchQuery, handleSearch]);
 
-  // Derived data for display
-  const filteredEvents = useMemo(() => {
-    const filtered = events.filter((event) => {
-      const searchLower = debouncedSearch.toLowerCase();
-      return (
-        event.title?.toLowerCase().includes(searchLower) ||
-        event.venue?.toLowerCase().includes(searchLower) ||
-        event.venueAddress?.toLowerCase().includes(searchLower)
-      );
-    });
-    return filtered;
-  }, [events, debouncedSearch]);
-
-  // Update total items when filtered data changes
-  useEffect(() => {
-    setTotalItems(filteredEvents.length);
-  }, [filteredEvents, setTotalItems]);
-
-  const paginatedEvents = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredEvents.slice(start, start + pageSize);
-  }, [filteredEvents, page, pageSize]);
-
-  // Fetch all events
-  async function loadEvents() {
-    setIsLoading(true);
+  // Load events with pagination
+  const loadEvents = useCallback(async () => {
     try {
-      const data = await eventsService.getAll();
-      //the backend returns a direct array
-      let flatEvents: EventResponse[] = [];
-      if (Array.isArray(data)) {
-        flatEvents = data;
-      } else if (data) {
-        //since Admins are authenticated, they usually receive the object format from popularity remmended and other events
-        flatEvents = [
-          ...(data.recommended || []),
-          ...(data.popular || []),
-          ...(data.allOthers || []),
-        ];
-      }
-      const uniqueEvents = Array.from(
-        new Map(flatEvents.map((e) => [e.id, e])).values(),
-      );
-      setEvents(uniqueEvents);
+      const result = await eventsService.getPaginated({
+        pageNumber: page,
+        pageSize: pageSize,
+        searchTerm: debouncedSearch,
+      });
+      setEvents(result.items);
+      setTotalItems(result.totalCount);
     } catch (error) {
       console.error("Failed to load events", error);
       toast.error("Failed to fetch events from the server.");
       setEvents([]);
-    } finally {
-      setIsLoading(false);
+      setTotalItems(0);
     }
-  }
+  }, [page, pageSize, debouncedSearch, setTotalItems]);
 
-  // Initial load
+  // Load events when page, pageSize, or search changes
   useEffect(() => {
     loadEvents();
-  }, []);
+  }, [loadEvents]);
+
 
   // --- Handlers ---
   const handleCreate = () => {
@@ -122,6 +93,11 @@ export function EventsManagement() {
   const handleEdit = (event: EventResponse) => {
     setSelectedEvent(event);
     setIsEventDialogOpen(true);
+  };
+
+  const handleView = (event: EventResponse) => {
+    setSelectedEvent(event);
+    setIsViewDialogOpen(true);
   };
 
   const handleDeleteClick = (event: EventResponse) => {
@@ -140,6 +116,7 @@ export function EventsManagement() {
         toast.success("Event created successfully!");
       }
       setIsEventDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["events"] });
       loadEvents();
     } catch (error) {
       toast.error(
@@ -157,12 +134,18 @@ export function EventsManagement() {
       await eventsService.delete(selectedEvent.id);
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["events"] });
       loadEvents();
     } catch {
       toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+    loadEvents();
   };
 
   return (
@@ -178,7 +161,7 @@ export function EventsManagement() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={loadEvents}
+            onClick={handleRefresh}
             disabled={isLoading}
           >
             <RefreshCcw
@@ -186,11 +169,7 @@ export function EventsManagement() {
             />
             Refresh
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
-          <Button className="gap-2" onClick={handleCreate}>
+          <Button className="gap-2 bg-blue-900" onClick={handleCreate}>
             <Plus className="w-4 h-4" />
             New Event
           </Button>
@@ -229,9 +208,11 @@ export function EventsManagement() {
           ) : (
             <>
               <EventsTable
-                events={paginatedEvents}
+                events={events}
                 onEdit={handleEdit}
+                onView={handleView}
                 onDelete={handleDeleteClick}
+                onCreateNew={() => setIsEventDialogOpen(true)}
               />
               <PaginationWrapper
                 currentPage={page}
@@ -249,15 +230,30 @@ export function EventsManagement() {
       <EventDialog
         key={selectedEvent?.id || "new"}
         isOpen={isEventDialogOpen}
-        onClose={() => setIsEventDialogOpen(false)}
+        onClose={() => {
+          setIsEventDialogOpen(false);
+          setSelectedEvent(null);
+        }}
         onSave={handleSave}
         event={selectedEvent}
         isLoading={isSaving}
       />
 
+      <ViewEventDialog
+        isOpen={isViewDialogOpen}
+        onClose={() => {
+          setIsViewDialogOpen(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+      />
+
       <DeleteConfirmDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setSelectedEvent(null);
+        }}
         onConfirm={handleDeleteConfirm}
         title={selectedEvent?.title || ""}
         isLoading={isSaving}

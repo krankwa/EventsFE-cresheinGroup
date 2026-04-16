@@ -152,23 +152,23 @@ export function RegisterForm() {
         )}
       </div>
 
-      <Button
-        className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.01] mt-2"
-        type="submit"
-        disabled={isPending || !passwordsMatch || !passwordStrong}
-      >
-        {isPending ? (
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-white rounded-full animate-spin" />
-            Creating account...
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            Create Account
-            <ArrowRight className="w-4 h-4" />
-          </div>
-        )}
-      </Button>
-    </form>
-  );
+			<Button
+				className="w-full h-11 text-base bg-blue-950 font-semibold transition-all hover:scale-[1.01] mt-2"
+				type="submit"
+				disabled={isPending || !passwordsMatch || !passwordStrong}
+			>
+				{isPending ? (
+					<div className="flex items-center gap-2">
+						<div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-white rounded-full animate-spin" />
+						Creating account...
+					</div>
+				) : (
+					<div className="flex items-center gap-2">
+						Create Account
+						<ArrowRight className="w-4 h-4" />
+					</div>
+				)}
+			</Button>
+		</form>
+	);
 }

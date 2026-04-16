@@ -5,19 +5,17 @@ import type {
   EventUpdateDTO,
   EventsFeedResponse,
 } from "../interface/Event.interface";
+import type { PaginationParams, PaginatedResponse } from "../interface/pagination";
+
 
 export const eventsService = {
   getAll: (): Promise<EventsFeedResponse> =>
     apiRequest<EventsFeedResponse>("/Event", {
       method: "GET",
-      //requiresAuth: false,
+      requiresAuth: false,
     }),
 
-  getAllPaginated: (params: {
-    pageNumber: number;
-    pageSize: number;
-    searchTerm?: string;
-  }): Promise<EventsFeedResponse> => {
+  getPaginated: (params: PaginationParams): Promise<PaginatedResponse<EventResponse>> => {
     const queryParams = new URLSearchParams({
       pageNumber: params.pageNumber.toString(),
       pageSize: params.pageSize.toString(),
@@ -25,10 +23,16 @@ export const eventsService = {
     if (params.searchTerm) {
       queryParams.append("searchTerm", params.searchTerm);
     }
-    return apiRequest<EventsFeedResponse>(`/Event?${queryParams.toString()}`, {
+    return apiRequest<PaginatedResponse<EventResponse>>(`/Event/paginated?${queryParams.toString()}`, {
       method: "GET",
     });
   },
+
+  getRecommendations: (): Promise<EventResponse[]> =>
+    apiRequest<EventResponse[]>("/Event/recommendations", {
+      method: "GET",
+      requiresAuth: true,
+    }),
 
   getById: (id: number): Promise<EventResponse> =>
     apiRequest<EventResponse>(`/Event/${id}`, {

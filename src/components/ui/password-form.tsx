@@ -21,7 +21,7 @@ export function PasswordForm({ form, setForm, errors, isSaving, onSave }: Passwo
     const handleChange = (field: keyof PasswordFormData) => (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
-        setForm((prev) => ({ ...prev, [field]: e.target.value }));
+        setForm((prev: PasswordFormData) => ({ ...prev, [field]: e.target.value }));
     };
 
     return (
@@ -38,7 +38,7 @@ export function PasswordForm({ form, setForm, errors, isSaving, onSave }: Passwo
             <CardContent className="space-y-4">
                 <PasswordField
                     label="Current Password"
-                    value={form.currentPassword}
+                    value={form.currentPassword || ""}
                     onChange={handleChange("currentPassword")}
                     error={errors.currentPassword}
                     placeholder="Enter current password"
@@ -47,7 +47,7 @@ export function PasswordForm({ form, setForm, errors, isSaving, onSave }: Passwo
 
                 <PasswordField
                     label="New Password"
-                    value={form.newPassword}
+                    value={form.newPassword || ""}
                     onChange={handleChange("newPassword")}
                     error={errors.newPassword}
                     placeholder="Min. 8 characters"
@@ -57,7 +57,7 @@ export function PasswordForm({ form, setForm, errors, isSaving, onSave }: Passwo
 
                 <PasswordField
                     label="Confirm New Password"
-                    value={form.confirmPassword}
+                    value={form.confirmPassword || ""}
                     onChange={handleChange("confirmPassword")}
                     error={errors.confirmPassword}
                     placeholder="Repeat new password"

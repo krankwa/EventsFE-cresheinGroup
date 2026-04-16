@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { CalendarDays, Ticket, LogOut, User } from "lucide-react";
+import { Ticket, LogOut, User } from "lucide-react";
 import { useUser } from "../../features/authentication/useUser";
 import { Button } from "../ui/button";
 import { useLogoutWithConfirm } from "../hooks/useLogoutwithConfirm";
+import logo from "../../assets/logo.png";
 
 export function PublicNavbar() {
   const { logoutWithConfirm } = useLogoutWithConfirm();
@@ -23,8 +24,8 @@ export function PublicNavbar() {
     <nav className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 px-4 md:px-8 flex items-center justify-between">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:rotate-12 transition-transform">
-          <CalendarDays className="text-primary-foreground w-5 h-5" />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
+          <img src={logo} alt="Logo" />
         </div>
         <span className="font-bold text-xl tracking-tight hidden sm:block">
           EventTix

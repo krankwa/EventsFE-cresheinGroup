@@ -47,3 +47,6 @@ export const NAV_ITEMS = [
   { href: "/redemption", label: "Redemption", icon: Scan },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
+
+export const MODAL_STYLES =
+  "border-none shadow-2xl bg-white dark:bg-zinc-950 ring-1 ring-foreground/10";

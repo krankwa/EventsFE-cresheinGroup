@@ -8,15 +8,18 @@ import {
     FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface PasswordFieldProps {
-    label: string;
+    label?: string;
     error?: string | undefined;
     description?: string;
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
     disabled?: boolean;
+    className?: string;
+    autoComplete?: string;
 }
 
 export function PasswordField({
@@ -27,12 +30,14 @@ export function PasswordField({
     onChange,
     placeholder,
     disabled,
+    className,
+    autoComplete,
 }: PasswordFieldProps) {
     const [show, setShow] = useState(false);
 
     return (
         <Field orientation="vertical">
-            <FieldLabel>{label}</FieldLabel>
+            {label && <FieldLabel>{label}</FieldLabel>}
             <FieldContent>
                 <div className="relative">
                     <Input
@@ -41,7 +46,8 @@ export function PasswordField({
                         onChange={onChange}
                         placeholder={placeholder}
                         disabled={disabled}
-                        className="pr-10"
+                        autoComplete={autoComplete}
+                        className={cn("pr-10", className)}
                     />
                     <button
                         type="button"

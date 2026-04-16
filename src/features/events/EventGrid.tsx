@@ -43,9 +43,10 @@ function EventGridItem({
 interface EventGridProps {
   events: EventResponse[];
   isLoading: boolean;
+  isListMode?: boolean;
 }
 
-export function EventGrid({ events, isLoading }: EventGridProps) {
+export function EventGrid({ events, isLoading, isListMode = false }: EventGridProps) {
   const { user, isAdmin } = useUser();
   const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
@@ -83,13 +84,16 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
 
   return (
     <>
-      <LoadingGridContainer>
-        {safeEvents.map((event, index) => {
-          // FIX: Check for 'id' (C# standard), then 'Id', then fallback to index
-          const uniqueKey = event.id || `event-${index}`;
+      <LoadingGridContainer className={isListMode ? "grid-cols-1 max-w-4xl mx-auto gap-10" : ""}>
+        {safeEvents.map((event) => {
+          if (!event) return null;
+          // Use id (lowercase) from EventResponse interface
+          const uniqueKey = event.id || `ev-${event.title || "un"}-${event.date || "un"}`;
 
           return (
-            <EventGridItem key={uniqueKey} event={event} onBook={handleBook} />
+            <div key={uniqueKey} className={isListMode ? "w-full" : ""}>
+              <EventGridItem event={event} onBook={handleBook} />
+            </div>
           );
         })}
       </LoadingGridContainer>

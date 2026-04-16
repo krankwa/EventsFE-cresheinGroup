@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Search,
   RefreshCcw,
@@ -13,8 +13,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "../../components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
 import { userService } from "../../services/userService";
 import type { UserResponse, UserRole } from "../../interface/Auth.interface";
 import { Button } from "../../components/ui/button";
@@ -38,7 +39,7 @@ export function UsersManagement() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Client-side pagination hook
+  // Pagination hook
   const {
     page,
     pageSize,
@@ -62,33 +63,22 @@ export function UsersManagement() {
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await userService.getAll();
-      setUsers(data || []);
+      const result = await userService.getPaginated({
+        pageNumber: page,
+        pageSize: pageSize,
+        searchTerm: debouncedSearch,
+      });
+      setUsers(result.items);
+      setTotalItems(result.totalCount);
     } catch (error) {
       console.error("Failed to load users", error);
       toast.error("Failed to load the user list.");
+      setUsers([]);
+      setTotalItems(0);
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const filteredUsers = useMemo(() => {
-    const searchLower = debouncedSearch.toLowerCase();
-    return users.filter(
-      (u) =>
-        u.name?.toLowerCase().includes(searchLower) ||
-        u.email?.toLowerCase().includes(searchLower),
-    );
-  }, [users, debouncedSearch]);
-
-  useEffect(() => {
-    setTotalItems(filteredUsers.length);
-  }, [filteredUsers, setTotalItems]);
-
-  const paginatedUsers = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredUsers.slice(start, start + pageSize);
-  }, [filteredUsers, page, pageSize]);
+  }, [page, pageSize, debouncedSearch, setTotalItems]);
 
   useEffect(() => {
     loadUsers();
@@ -113,6 +103,10 @@ export function UsersManagement() {
       toast.error("Failed to update user details.");
       throw error;
     }
+  };
+
+  const handlePromote = async (user: UserResponse): Promise<void> => {
+    setSelectedUserForRole(user);
   };
 
   const handleUpdateRole = async (role: UserRole) => {
@@ -181,8 +175,8 @@ export function UsersManagement() {
           ) : (
             <>
               <UsersTable
-                users={paginatedUsers}
-                onPromote={setSelectedUserForRole}
+                users={users}
+                onPromote={handlePromote}
                 isLoading={isLoading}
                 onEdit={handleEdit}
               />
@@ -219,19 +213,12 @@ export function UsersManagement() {
         open={!!selectedUserForRole}
         onOpenChange={(open) => !open && setSelectedUserForRole(null)}
       >
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950 border-2 shadow-2xl">
+        <DialogContent className={cn("sm:max-w-[425px]", MODAL_STYLES)}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
               <UserCog className="w-6 h-6 text-primary" />
               Edit User Role
             </DialogTitle>
-            <DialogDescription>
-              Select the administrative level for{" "}
-              <span className="font-bold text-foreground">
-                {selectedUserForRole?.name}
-              </span>
-              .
-            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { format, isPast } from "date-fns";
 import {
   Ticket,
@@ -34,6 +34,7 @@ import {
 import { toast } from "react-hot-toast";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 import { usePagination } from "@/utils/pagination/usePagination";
+import { TableEmptyState } from "@/components/organisms/TableEmptyState";
 
 // Status helpers
 function getStatus(t: TicketResponse): "redeemed" | "past" | "upcoming" {
@@ -98,7 +99,7 @@ export function TicketManagement() {
     "all" | "upcoming" | "redeemed" | "past"
   >("all");
 
-  // Client-side pagination hook
+  // Pagination hook
   const {
     page,
     pageSize,
@@ -111,11 +112,6 @@ export function TicketManagement() {
     handleSearch,
   } = usePagination({ initialPageSize: 10 });
 
-  // Refs to prevent infinite loops
-  // const isInitialMount = useRef(true);
-  // const isFilterChange = useRef(false);
-  // const isSearchChange = useRef(false);
-
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,39 +123,21 @@ export function TicketManagement() {
   const loadTickets = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await ticketsService.getAll();
-      setTickets(data || []);
+      const result = await ticketsService.getPaginated({
+        pageNumber: page,
+        pageSize: pageSize,
+        searchTerm: debouncedSearch,
+        status: filterStatus === "all" ? undefined : filterStatus,
+      });
+      setTickets(result.items);
+      setTotalItems(result.totalCount);
     } catch (error) {
       console.error("Failed to load tickets", error);
       toast.error("Failed to load tickets.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const filteredTickets = useMemo(() => {
-    const searchLower = debouncedSearch.toLowerCase();
-    return tickets.filter((t) => {
-      const matchesSearch =
-        t.eventTitle?.toLowerCase().includes(searchLower) ||
-        t.tierName?.toLowerCase().includes(searchLower) ||
-        t.ticketId.toString().includes(searchLower);
-
-      const status = getStatus(t);
-      const matchesStatus = filterStatus === "all" || status === filterStatus;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [tickets, debouncedSearch, filterStatus]);
-
-  useEffect(() => {
-    setTotalItems(filteredTickets.length);
-  }, [filteredTickets, setTotalItems]);
-
-  const paginatedTickets = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredTickets.slice(start, start + pageSize);
-  }, [filteredTickets, page, pageSize]);
+  }, [page, pageSize, debouncedSearch, filterStatus, setTotalItems]);
 
   useEffect(() => {
     loadTickets();
@@ -185,7 +163,7 @@ export function TicketManagement() {
   };
 
   const stats = {
-    total: tickets.length,
+    total: totalItems,
     upcoming: tickets.filter((t) => getStatus(t) === "upcoming").length,
     redeemed: tickets.filter((t) => getStatus(t) === "redeemed").length,
     past: tickets.filter((t) => getStatus(t) === "past").length,
@@ -289,16 +267,18 @@ export function TicketManagement() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : filteredTickets.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground border-2 border-dashed rounded-xl">
-              <Ticket className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="font-medium">No tickets found</p>
-              <p className="text-sm">Try adjusting your search or filter.</p>
-            </div>
+          ) : tickets.length === 0 ? (
+            <TableEmptyState
+              icon={Ticket}
+              title="No Tickets Found"
+              description="Your box office is currently quiet. Tickets will appear here once attendees start booking events."
+              actionLabel={searchQuery ? "Clear Search" : ""}
+              onAction={searchQuery ? () => setSearchQuery("") : () => {}}
+            />
           ) : (
             <>
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-gray-100">
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Event</TableHead>
@@ -311,7 +291,7 @@ export function TicketManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedTickets.map((ticket) => {
+                  {tickets.map((ticket) => {
                     const status = getStatus(ticket);
                     const {
                       label,
@@ -351,7 +331,7 @@ export function TicketManagement() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1.5 hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 transition-colors"
+                              className="gap-1.5 bg-blue-950 hover:text-white text-white transition-colors"
                               disabled={isScanning}
                               onClick={() => handleScan(ticket.ticketId)}
                             >
@@ -362,7 +342,7 @@ export function TicketManagement() {
                                 </>
                               ) : (
                                 <>
-                                  <ScanLine className="w-3.5 h-3.5" />
+                                  <ScanLine className="w-3.5 h-3.5 " />
                                   Redeem
                                 </>
                               )}

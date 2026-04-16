@@ -1,17 +1,16 @@
+import { useProfileForm } from "@/components/hooks/useProfileForm";
+import { usePasswordForm } from "@/components/hooks/usePasswordForm";
 import { ConfirmDialog } from "@/components/dialog/confirm-dialog";
 import { PasswordChangeAlert } from "@/components/dialog/password-change";
-import { usePasswordForm } from "@/components/hooks/usePasswordForm";
-import { useProfileForm } from "@/components/hooks/useProfileForm";
 import { AccountHeader } from "@/components/ui/acc-header";
-import { PasswordForm } from "@/components/ui/password-form";
 import { ProfileForm } from "@/components/ui/profile-form";
 import { useUser } from "../authentication/useUser";
 
 export function MyAccountSection() {
   const { user, isAdmin } = useUser();
 
-  const profile = useProfileForm(user);
-  const password = usePasswordForm(user);
+  const profile = useProfileForm(user ?? null);
+  const password = usePasswordForm(user ?? null);
 
   if (!user) return null;
 
@@ -21,19 +20,12 @@ export function MyAccountSection() {
         <AccountHeader user={user} isAdmin={isAdmin} />
 
         <ProfileForm
+          user={user}
           form={profile.form}
           setForm={profile.setForm}
           errors={profile.errors}
           isSaving={profile.isSaving}
           onSave={profile.handleSave}
-        />
-
-        <PasswordForm
-          form={password.form}
-          setForm={password.setForm}
-          errors={password.errors}
-          isSaving={password.isSaving}
-          onSave={password.handleSave}
         />
       </div>
 

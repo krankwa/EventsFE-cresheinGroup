@@ -1,26 +1,27 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import styled from "styled-components";
-import { useEvents } from "./useEvents";
+import { useEvents, usePaginatedEvents } from "./useEvents";
 import { EventGrid } from "./EventGrid";
 import { SectionHeader } from "../../components/molecules/SectionHeader";
 import { Badge } from "../../components/ui/badge";
 import { ErrorState } from "../../components/ui/error";
+import { PaginationWrapper } from "../../components/organisms/PaginationWrapper";
 
-import type {
-  //EventResponse,
-  EventsFeedResponse,
-  EventRecommendResponse,
-} from "../../interface/Event.interface";
+import type { EventRecommendResponse, EventResponse } from "../../interface/Event.interface";
 
 // --- Context ---
 interface EventsSectionContextType {
-  data: EventsFeedResponse | undefined;
+  data: EventResponse[] | EventRecommendResponse | null; // Can be categorized or array
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
   refetch: () => void;
   withinEventsSection: boolean;
+  page: number;
+  setPage: (p: number) => void;
+  pageSize: number;
+  setPageSize: (s: number) => void;
 }
 
 const EventsSectionContext = createContext<EventsSectionContextType | null>(
@@ -48,47 +49,22 @@ interface EventsSectionProps {
   id?: string;
 }
 
-// --- Compound Components ---
-export function EventsSection({ children, id, className }: EventsSectionProps) {
-  const { data, isLoading, isError, error, refetch } = useEvents();
+// --- Internal Components ---
 
-  // FIX: Force to an array. If API returns null, this prevents the white screen.
-  //const safeEvents = Array.isArray(data) ? data : [];
-
-  return (
-    <EventsSectionContext.Provider
-      value={{
-        data,
-        isLoading,
-        isError,
-        error: error ?? null,
-        refetch,
-        withinEventsSection: true,
-      }}
-    >
-      <StyledSection id={id ?? ""} className={className ?? ""}>
-        {children}
-      </StyledSection>
-    </EventsSectionContext.Provider>
-  );
-}
-
-EventsSection.Header = function EventsSectionHeader({
-  className,
-}: {
-  className?: string;
-}) {
+function EventsSectionHeader({ className }: { className?: string }) {
   const { data } = useEventsSectionContext("EventsSection.Header");
 
-  // Calculate safe length based on the payload type
-  let eventCount = 0;
+  // Calculate unique event count
+  let uniqueCount = 0;
   if (Array.isArray(data)) {
-    eventCount = data.length;
+    uniqueCount = data.length;
   } else if (data) {
-    eventCount =
-      (data.recommended?.length || 0) +
-      (data.popular?.length || 0) +
-      (data.allOthers?.length || 0);
+    const allEvents = [
+      ...(data.recommended || []),
+      ...(data.popular || []),
+      ...(data.allOthers || []),
+    ];
+    uniqueCount = new Set(allEvents.map((e) => e.id)).size;
   }
 
   return (
@@ -101,42 +77,90 @@ EventsSection.Header = function EventsSectionHeader({
       </SectionHeader.Content>
 
       <SectionHeader.Action>
-        {eventCount > 0 && (
-          <Badge variant="secondary" className="text-sm px-3 py-1">
-            {eventCount} Events
+        {uniqueCount > 0 && (
+          <Badge
+            variant="secondary"
+            className="text-sm px-3 py-1 bg-blue-950 text-white"
+          >
+            {uniqueCount} {uniqueCount === 1 ? "Event" : "Events"}
           </Badge>
         )}
       </SectionHeader.Action>
     </SectionHeader>
   );
-};
+}
 
-EventsSection.Grid = function EventsSectionGrid() {
-  const { data, isLoading, isError, error, refetch } =
-    useEventsSectionContext("EventsSection.Grid");
+function EventsSectionGrid() {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+  } = useEventsSectionContext("EventsSection.Grid");
+
+  const { data: paginatedData, isLoading: isPaginatedLoading } =
+    usePaginatedEvents({
+      pageNumber: page,
+      pageSize: pageSize,
+    });
 
   if (isError) {
     return (
       <ErrorState
-        message={error?.message ?? "Failed to load events. Please try again."}
-        onRetry={refetch}
+        message={
+          error?.message ??
+          "We encountered a minor disturbance while fetching your events. Please try again."
+        }
       />
     );
   }
-  //unauthenticated scenario
-  // standard array
+
+  // Unauthenticated Scenario: The API responds with a raw array
   if (Array.isArray(data)) {
-    return <EventGrid events={data} isLoading={isLoading} />;
+    return (
+      <div className="space-y-12">
+        <EventGrid
+          events={paginatedData?.items || []}
+          isLoading={isPaginatedLoading || isLoading}
+        />
+        {paginatedData && (
+          <PaginationWrapper
+            currentPage={page}
+            totalPages={paginatedData.totalPages}
+            pageSize={pageSize}
+            totalItems={paginatedData.totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
+      </div>
+    );
   }
 
-  //authenticated scenario
-  //an object with Recommended, Popular, AllOthers
+  // Authenticated Scenario: The API responds with Categorized structure
   if (data && !Array.isArray(data)) {
-    const { recommended, popular, allOthers } = data as EventRecommendResponse;
-    const topRecommended = recommended?.slice(0, 6) || [];
-    const topPopular = popular?.slice(0, 6) || [];
+    const renderedIds = new Set<string>();
+
+    // 1. Process Recommended
+    const categorized = !Array.isArray(data) ? (data as EventRecommendResponse) : null;
+    const recommended = (categorized?.recommended ?? categorized?.Recommended ?? []) as EventResponse[];
+    const topRecommended = recommended.slice(0, 6);
+    
+    // Store IDs as strings for reliable comparison
+    topRecommended.forEach((e: EventResponse) => {
+      if (e && e.id) renderedIds.add(String(e.id));
+    });
+
+    // 2. Process More Events (strictly deduplicate against Recommended)
+    const filteredPaginated = (paginatedData?.items || []).filter(
+      (e: EventResponse) => !renderedIds.has(String(e.id)),
+    );
+
     const hasRecommendations = topRecommended.length > 0;
-    const hasPopular = topPopular.length > 0;
 
     return (
       <div className="flex flex-col gap-12">
@@ -147,19 +171,66 @@ EventsSection.Grid = function EventsSectionGrid() {
           </div>
         )}
 
-        {hasPopular && (
-          <div id="popular-section">
-            <h3 className="text-2xl font-bold mb-4">Popular Right Now</h3>
-            <EventGrid events={topPopular} isLoading={isLoading} />
-          </div>
-        )}
-
-        <div id="all-events-section">
-          <h3 className="text-2xl font-bold mb-4">More Events</h3>
-          <EventGrid events={allOthers} isLoading={isLoading} />
+        <div id="all-events-section" className="space-y-6">
+          <h3 className="text-2xl font-bold">More Events</h3>
+          <EventGrid
+            events={filteredPaginated}
+            isLoading={isPaginatedLoading}
+          />
+          {paginatedData && (
+            <PaginationWrapper
+              currentPage={page}
+              totalPages={paginatedData.totalPages}
+              pageSize={pageSize}
+              totalItems={paginatedData.totalCount}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          )}
         </div>
       </div>
     );
   }
   return <EventGrid events={[]} isLoading={isLoading} />;
+}
+
+// --- Main Component ---
+
+interface EventsSectionComponent extends React.FC<EventsSectionProps> {
+  Header: typeof EventsSectionHeader;
+  Grid: typeof EventsSectionGrid;
+}
+
+export const EventsSection: EventsSectionComponent = ({
+  children,
+  id,
+  className,
+}: EventsSectionProps) => {
+  const { data, isLoading, isError, error, refetch } = useEvents();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+
+  return (
+    <EventsSectionContext.Provider
+      value={{
+        data: data ?? null,
+        isLoading,
+        isError,
+        error: error ?? null,
+        refetch,
+        withinEventsSection: true,
+        page,
+        setPage,
+        pageSize,
+        setPageSize,
+      }}
+    >
+      <StyledSection id={id ?? ""} className={className ?? ""}>
+        {children}
+      </StyledSection>
+    </EventsSectionContext.Provider>
+  );
 };
+
+EventsSection.Header = EventsSectionHeader;
+EventsSection.Grid = EventsSectionGrid;

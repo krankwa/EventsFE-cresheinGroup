@@ -20,7 +20,7 @@ export const dashboardService = {
     let events: EventResponse[] = [];
     if (Array.isArray(eventsResponse)) {
       events = eventsResponse;
-    } else if (eventsResponse) {
+    } else {
       // It's the authenticated object -> merge them all
       events = [
         ...(eventsResponse.recommended || []),

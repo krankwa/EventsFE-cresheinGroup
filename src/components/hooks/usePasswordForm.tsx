@@ -6,7 +6,9 @@ import type {
   PasswordErrors,
 } from "@/features/account/types/account.type";
 
-export function usePasswordForm(user: any) {
+import type { UserResponse } from "@/interface/Auth.interface";
+
+export function usePasswordForm(user: UserResponse | null) {
   const [form, setForm] = useState<PasswordFormData>({
     currentPassword: "",
     newPassword: "",
@@ -48,6 +50,10 @@ export function usePasswordForm(user: any) {
     if (!pendingData) return;
     setIsSaving(true);
     try {
+      if (!user) {
+        toast.error("User not found.");
+        return;
+      }
       await userService.update(user.userId, {
         password: pendingData.currentPassword,
         newPassword: pendingData.newPassword,
@@ -63,7 +69,7 @@ export function usePasswordForm(user: any) {
       setErrors({});
       setShowConfirm(false);
       setPendingData(null);
-    } catch (err) {
+    } catch {
       toast.error(
         "Failed to change password. Please check your current password.",
       );

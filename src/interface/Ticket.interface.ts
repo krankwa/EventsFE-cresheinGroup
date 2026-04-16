@@ -1,6 +1,7 @@
 export interface TicketResponse {
   ticketId: number;
-  userId: number;
+  eventId: number;
+  tierId: number;
   eventTitle: string;
   eventDate: string;
   registrationDate: string;

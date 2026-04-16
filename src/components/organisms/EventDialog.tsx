@@ -1,4 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { MODAL_STYLES } from "../../features/admin/constants";
+
 import {
   Dialog,
   DialogContent,
@@ -25,7 +28,8 @@ import type {
   EventResponse,
   EventCreateDTO,
   EventUpdateDTO,
-  TicketTierCreateDTO,
+  TicketTierCreateRequest,
+  TicketTierUpdateRequest,
   TierTypeResponse,
 } from "../../interface/Event.interface";
 import { format } from "date-fns";
@@ -150,7 +154,7 @@ export function EventDialog({
   const [tierTypes, setTierTypes] = useState<TierTypeResponse[]>([]);
 
   // ── Form state ─────────────────────────────────────────────────────────
-  const [formData, setFormData] = useState<EventCreateDTO>(
+  const [formData, setFormData] = useState<Omit<EventCreateDTO, 'tiers'> & { tiers: (Partial<TicketTierUpdateRequest> & TicketTierCreateRequest)[] }>(
     event
       ? {
           title: event.title,
@@ -160,6 +164,7 @@ export function EventDialog({
           venue: event.venue || "",
           venueAddress: event.venueAddress || "",
           capacity: event.capacity,
+          ticketsSold: event.ticketsSold,
           maxTicketsPerPerson: event.maxTicketsPerPerson || 5,
           coverImageUrl: event.coverImageUrl || "",
           tiers:
@@ -176,7 +181,6 @@ export function EventDialog({
                     name: "Regular",
                     price: 0,
                     capacity: event.capacity,
-                    ticketsSold: 0,
                   },
                 ],
         }
@@ -213,11 +217,16 @@ export function EventDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Track which tier name is currently being edited
+  const [editingTierIndex, setEditingTierIndex] = useState<number | null>(null);
+
+
+
   // Fetch Tier Types
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && event?.id) {
       ticketTiersService
-        .getTiersByEventId(event?.id || 0)
+        .getTiersByEventId(event.id)
         .then(setTierTypes)
         .catch((err) => console.error("Failed to load ticket tiers", err));
     }
@@ -241,25 +250,23 @@ export function EventDialog({
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
-  const updateTier = (index: number, updates: Partial<TicketTierCreateDTO>) => {
+  const updateTier = (index: number, updates: Partial<TicketTierUpdateRequest>) => {
     const newTiers = [...formData.tiers];
-    newTiers[index] = { ...newTiers[index], ...updates } as TicketTierCreateDTO;
+    newTiers[index] = { ...newTiers[index], ...updates } as typeof formData.tiers[number];
     setFormData((prev) => ({ ...prev, tiers: newTiers }));
   };
 
-  // ── Venue input change ──────────────────────────────────────────────────
-  const handleVenueChange = (value: string) => {
+  // ── Venue search autocomplete logic ────────────────────────────────────
+  const handleVenueSearchChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      venue: value,
-      venueLatitude: 0,
-      venueLongitude: 0,
+      venueAddress: value,
     }));
     setShowDropdown(true);
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
-    if (value.trim().length < 3) {
+    if (value.trim().length < 2) {
       setSuggestions([]);
       setIsSearching(false);
       return;
@@ -296,22 +303,19 @@ export function EventDialog({
       lng: parseFloat(result.lon),
     };
 
-    // Extract establishment name if possible, otherwise use display name part
-    const establishment = result.address?.house_number
-      ? `${result.address.house_number} ${result.address.road}`
-      : result.address?.amenity ||
-        result.address?.tourism ||
-        result.address?.shop ||
-        result.address?.office ||
-        result.display_name.split(",")[0];
+    // Extract establishment name if possible
+    const shortName =
+      result.address?.amenity ||
+      result.address?.tourism ||
+      result.address?.shop ||
+      result.address?.office ||
+      result.address?.historic ||
+      result.display_name.split(",")[0];
 
     setFormData((prev) => ({
       ...prev,
-      venueId: undefined,
-      venue: establishment || "",
+      venue: shortName || prev.venue || "",
       venueAddress: result.display_name,
-      venueLatitude: pos.lat,
-      venueLongitude: pos.lng,
     }));
     setMarkerPos(pos);
     setFlyTarget(pos);
@@ -325,15 +329,10 @@ export function EventDialog({
     setIsGeocoding(true);
     const address = await reverseGeocode(latlng.lat, latlng.lng);
 
-    // For map click, we don't always have a clear establishment name from simple string
-    // We'll use the first part of address as establishment for now
     setFormData((prev) => ({
       ...prev,
-      venueId: undefined,
-      venue: address.split(",")[0] || "",
+      venue: address.split(",")[0] || prev.venue || "",
       venueAddress: address,
-      venueLatitude: latlng.lat,
-      venueLongitude: latlng.lng,
     }));
     setSuggestions([]);
     setShowDropdown(false);
@@ -400,7 +399,41 @@ export function EventDialog({
       setIsUploading(false);
     }
 
-    onSave({ ...formData, coverImageUrl: finalImageUrl || null });
+    if (event) {
+      // For Update
+      const sanitizedTiers: TicketTierUpdateRequest[] = formData.tiers.map((t) => {
+        const tier: TicketTierUpdateRequest = {
+          id: t.id || 0,
+          name: t.name,
+          price: t.price,
+          capacity: t.capacity,
+        };
+        const ts = (t as { ticketsSold?: number }).ticketsSold;
+        if (typeof ts === "number") {
+          tier.ticketsSold = ts;
+        }
+        return tier;
+      });
+
+      onSave({
+        ...formData,
+        coverImageUrl: finalImageUrl || undefined,
+        tiers: sanitizedTiers,
+      } as EventUpdateDTO);
+    } else {
+      // For Create
+      const sanitizedTiers: TicketTierCreateRequest[] = formData.tiers.map((t) => ({
+        name: t.name,
+        price: t.price,
+        capacity: t.capacity,
+      }));
+
+      onSave({
+        ...formData,
+        coverImageUrl: finalImageUrl || null,
+        tiers: sanitizedTiers,
+      } as EventCreateDTO);
+    }
   };
 
   const isBusy = isLoading || isUploading;
@@ -409,7 +442,10 @@ export function EventDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         key={isOpen ? `open-${event?.id ?? "new"}` : "closed"}
-        className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto bg-background/95 backdrop-blur-md border-2"
+        className={cn(
+          "sm:max-w-[800px] max-h-[90dvh] overflow-y-auto",
+          MODAL_STYLES,
+        )}
       >
         <DialogHeader>
           <DialogTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -423,23 +459,25 @@ export function EventDialog({
         <form onSubmit={handleSubmit} className="space-y-8 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="title"
-                  className="text-sm font-bold uppercase tracking-wider text-muted-foreground"
-                >
-                  Event Identity
-                </Label>
-                <Input
-                  id="title"
-                  className="text-lg font-semibold h-12 border-2 hover:border-primary/50 focus:border-primary transition-all shadow-sm"
-                  placeholder="e.g. Neon Nights Expo"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                />
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="title"
+                    className="text-sm font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Event Identity
+                  </Label>
+                  <Input
+                    id="title"
+                    className="text-lg font-semibold h-12 border-2 hover:border-primary/50 focus:border-primary transition-all shadow-sm"
+                    placeholder="e.g. Neon Nights Expo"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    required
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -468,7 +506,7 @@ export function EventDialog({
                     className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
                   >
                     <Users className="w-3.5 h-3.5" />
-                    Floor Limit
+                    Capacity
                   </Label>
                   <Input
                     id="capacity"
@@ -530,23 +568,46 @@ export function EventDialog({
                   </Button>
                 </div>
 
-                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {formData.tiers.map((tier, idx) => (
                     <div
-                      key={idx}
+                      key={`tier-${idx}-${tier.name}`}
                       className="p-3 rounded-xl bg-muted/40 border-2 border-transparent hover:border-primary/10 transition-all flex items-center gap-3 animate-in fade-in slide-in-from-top-1"
                     >
                       <div className="flex-1 space-y-2">
-                        <Input
-                          placeholder="Tier Name (e.g. General, VIP)"
-                          className="h-8 border-none bg-transparent font-bold p-0 focus-visible:ring-0"
-                          value={tier.name}
-                          onChange={(e) =>
-                            updateTier(idx, { name: e.target.value })
-                          }
-                          list="tier-types-list"
-                          required
-                        />
+                        {editingTierIndex === idx ? (
+                          <Input
+                            autoFocus
+                            placeholder="Tier Name (e.g. Regular, VIP)"
+                            className="h-10 border-2 bg-background font-bold px-3 focus-visible:ring-primary shadow-sm rounded-lg"
+                            value={tier.name}
+                            onChange={(e) =>
+                              updateTier(idx, { name: e.target.value })
+                            }
+                            onBlur={() => setEditingTierIndex(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                setEditingTierIndex(null);
+                              }
+                            }}
+                            list="tier-types-list"
+                            required
+                          />
+                        ) : (
+                          <div
+                            className="flex items-center justify-between group cursor-pointer"
+                            onClick={() => setEditingTierIndex(idx)}
+                          >
+                            <span className="text-sm font-bold truncate">
+                              {tier.name || (
+                                <span className="text-muted-foreground italic font-normal">
+                                  Unnamed Tier (Click to edit)
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border shadow-sm">
                             <span className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -599,40 +660,83 @@ export function EventDialog({
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Location Canvas
+                <Label
+                  htmlFor="venue"
+                  className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  Venue Name
+                </Label>
+                <Input
+                  id="venue"
+                  className="h-11 border-2"
+                  placeholder="e.g. Grand Ballroom, SMX Center"
+                  value={formData.venue}
+                  onChange={(e) =>
+                    setFormData({ ...formData, venue: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5" />
+                  Location (Venue Address)
                 </Label>
                 <div className="relative" ref={venueWrapperRef}>
                   <div className="relative mb-3">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      className="pl-9 border-2 h-11"
-                      placeholder="Locate venue..."
+                      className="pl-9 border-2 h-11 focus-visible:ring-primary/20 transition-shadow"
+                      placeholder="Search for a location or address..."
                       value={formData.venueAddress}
-                      onChange={(e) => handleVenueChange(e.target.value)}
+                      onChange={(e) => handleVenueSearchChange(e.target.value)}
                       onFocus={() => setShowDropdown(suggestions.length > 0)}
                     />
                     {(isSearching || isGeocoding) && (
-                      <Loader2 className="absolute right-3 top-3.5 h-4 w-4 animate-spin text-muted-foreground/50" />
+                      <div className="absolute right-3 top-3.5 flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground font-medium animate-pulse">
+                          {isSearching ? "Searching..." : "Pinning..."}
+                        </span>
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      </div>
                     )}
                   </div>
 
                   {showDropdown && suggestions.length > 0 && (
-                    <ul className="absolute z-[1000] left-0 right-0 mt-[-8px] bg-popover border-2 rounded-xl shadow-xl divide-y max-h-48 overflow-y-auto">
-                      {suggestions.map((s) => (
-                        <li
-                          key={s.place_id}
-                          className="px-4 py-2 hover:bg-muted cursor-pointer text-sm flex gap-2 items-start"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            handleSelectSuggestion(s);
-                          }}
-                        >
-                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-primary/60" />
-                          <span className="line-clamp-2">{s.display_name}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="absolute z-[1000] left-0 right-0 mt-1 bg-background border-2 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="p-2 bg-muted/30 border-b text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+                        <span>Top Results</span>
+                        <span className="text-primary/40 italic">
+                          OpenStreetMap
+                        </span>
+                      </div>
+                      <ul className="divide-y divide-border/50 max-h-60 overflow-y-auto custom-scrollbar">
+                        {suggestions.map((s) => (
+                          <li
+                            key={s.place_id}
+                            className="px-4 py-3 hover:bg-primary/5 cursor-pointer text-sm flex gap-3 items-start transition-colors group"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSelectSuggestion(s);
+                            }}
+                          >
+                            <div className="mt-0.5 p-1 rounded-md bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                              <MapPin className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <span className="font-semibold text-foreground line-clamp-1">
+                                {s.display_name.split(",")[0]}
+                              </span>
+                              <span className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                {s.display_name}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
 
                   <div className="h-[210px] rounded-2xl overflow-hidden border-2 shadow-inner group">
@@ -707,36 +811,37 @@ export function EventDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-6 gap-3">
+          <DialogFooter className="pt-4 gap-3">
             <Button
               type="button"
               variant="ghost"
               className="h-12 px-8 font-bold"
               onClick={onClose}
             >
-              Discard
+              Cancel
             </Button>
             <Button
               type="submit"
-              className="h-12 px-12 font-bold min-w-[180px] shadow-lg shadow-primary/20"
+              className="h-12 px-12 font-bold bg-blue-950 min-w-[180px] shadow-lg shadow-primary/20"
               disabled={isBusy}
             >
               {isBusy ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : event ? (
-                "Finalize Updates"
+                "Update"
               ) : (
                 "Broadcast Event"
               )}
             </Button>
           </DialogFooter>
         </form>
+
+        <datalist id="tier-types-list">
+          {tierTypes.map((t) => (
+            <option key={t.id} value={t.name} />
+          ))}
+        </datalist>
       </DialogContent>
-      <datalist id="tier-types-list">
-        {tierTypes.map((t) => (
-          <option key={t.id} value={t.name} />
-        ))}
-      </datalist>
     </Dialog>
   );
 }

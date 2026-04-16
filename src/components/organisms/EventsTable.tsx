@@ -13,22 +13,43 @@ import { Badge } from "../../components/ui/badge";
 import { format } from "date-fns";
 import type { EventResponse } from "../../interface/Event.interface";
 
+import { TableEmptyState } from "./TableEmptyState";
+import { cn } from "@/lib/utils";
+
 interface EventsTableProps {
   events: EventResponse[];
   onEdit: (event: EventResponse) => void;
   onDelete: (event: EventResponse) => void;
+  onView: (event: EventResponse) => void;
+  onCreateNew?: () => void;
 }
 
 export const EventsTable = memo(function EventsTable({
   events,
   onEdit,
   onDelete,
+  onView,
+  onCreateNew,
 }: EventsTableProps) {
+  if (events.length === 0) {
+    return (
+      <TableEmptyState
+        icon={CalendarDays}
+        title="No Masterwork Events Found"
+        description="Your stage is currently empty. Start by creating a new event to begin managing your masterwork."
+        {...(onCreateNew && {
+          actionLabel: "Create New Event",
+          onAction: onCreateNew,
+        })}
+      />
+    );
+  }
+
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="bg-gray-100 rounded-t-lg">
         <TableRow>
-          <TableHead className="w-[80px]">Cover</TableHead>
+          <TableHead className="w-[80px] ">Cover</TableHead>
           <TableHead>Event Info</TableHead>
           <TableHead>Location</TableHead>
           <TableHead>Capacity</TableHead>
@@ -38,7 +59,8 @@ export const EventsTable = memo(function EventsTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {events.map((event, index) => {
+        {events.map((event) => {
+          if (!event) return null;
           const capacity =
             event.capacity && event.capacity > 0 ? event.capacity : 1;
           const sold = event.ticketsSold || 0;
@@ -46,7 +68,9 @@ export const EventsTable = memo(function EventsTable({
 
           return (
             <TableRow
-              key={event.id || `event-${index}`}
+              key={
+                event.id || `ev-${event.title || "un"}-${event.date || "un"}`
+              }
               className="group cursor-pointer"
             >
               <TableCell>
@@ -103,8 +127,12 @@ export const EventsTable = memo(function EventsTable({
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={sold >= capacity ? "destructive" : "secondary"}
-                  className="font-medium"
+                  className={cn(
+                    "font-medium",
+                    sold >= capacity
+                      ? "bg-red-100 text-red-700 hover:bg-red-100 border-red-200"
+                      : "bg-green-100 text-green-700 hover:bg-green-100 border-green-200",
+                  )}
                 >
                   {sold >= capacity ? "Sold Out" : "Active"}
                 </Badge>
@@ -115,6 +143,10 @@ export const EventsTable = memo(function EventsTable({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onView(event);
+                    }}
                   >
                     <Eye className="w-4 h-4" />
                   </Button>

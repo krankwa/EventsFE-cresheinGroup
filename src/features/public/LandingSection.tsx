@@ -177,8 +177,10 @@ export function LandingSection() {
 
   // Extract events from potentially categorized response
   // FOR LANDING PAGE: Only show 'Popular' events if categorized data exists
-  const categorized = !Array.isArray(eventsResult) ? (eventsResult as EventRecommendResponse) : null;
-  const popular = (categorized?.popular ?? (categorized as unknown as { Popular?: EventResponse[] })?.Popular ?? []) as EventResponse[];
+  const categorized = !Array.isArray(eventsResult)
+    ? (eventsResult as EventRecommendResponse)
+    : null;
+  const popular = (categorized?.popular ?? []) as EventResponse[];
 
   const events = Array.isArray(eventsResult)
     ? eventsResult

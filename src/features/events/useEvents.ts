@@ -1,6 +1,9 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { eventsService } from "../../services/eventsService";
-import type { EventsFeedResponse } from "../../interface/Event.interface";
+import type {
+  EventsFeedResponse,
+  EventResponse,
+} from "../../interface/Event.interface";
 import type { PaginationParams } from "../../interface/pagination";
 
 export function useEvents() {
@@ -14,7 +17,21 @@ export function useEvents() {
       if (response && typeof response === "object") {
         const hasRecommended =
           "recommended" in response || "Recommended" in response;
-        if (hasRecommended) return response;
+        if (hasRecommended) {
+          // Normalize the response to use lowercase keys uniformly
+          const recordRes = response as Record<string, unknown>;
+          return {
+            recommended: (recordRes.recommended ||
+              recordRes.Recommended ||
+              []) as EventResponse[],
+            popular: (recordRes.popular ||
+              recordRes.Popular ||
+              []) as EventResponse[],
+            allOthers: (recordRes.allOthers ||
+              recordRes.AllOthers ||
+              []) as EventResponse[],
+          };
+        }
       }
 
       throw new Error("Invalid data format received from the server.");

@@ -92,6 +92,20 @@ export function TicketBookingDialog({
 
     setIsBooking(true);
     try {
+      // Validate payment details when on the payment step
+      if (step === "payment") {
+        const cardNumberClean = paymentDetails.cardNumber.replace(/\s/g, "");
+        if (!cardNumberClean) {
+          toast.error("Please enter your card number.");
+          return;
+        }
+        await ticketsService.validatePayment({
+          cardNumber: cardNumberClean,
+          expiryDate: paymentDetails.expiryDate,
+          cvv: paymentDetails.cvv,
+        });
+      }
+
       const eventId = event.id;
       if (!eventId) {
         toast.error("Invalid event reference.");

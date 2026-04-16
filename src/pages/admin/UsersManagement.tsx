@@ -9,6 +9,8 @@ import {
   UserCog,
 } from "lucide-react";
 import {
+  Dialog,
+  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,

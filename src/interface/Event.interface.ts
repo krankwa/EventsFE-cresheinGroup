@@ -22,7 +22,7 @@ export interface TicketTierCreateRequest {
   price: number;
   capacity: number;
 }
- 
+
 export interface TicketTierUpdateRequest {
   id: number;
   name: string;
@@ -46,14 +46,12 @@ export interface EventResponse {
 }
 
 export interface EventRecommendResponse {
-  recommended: EventResponse[];
+  recommended: EventResponse[] | null;
   popular: EventResponse[];
-  Recommended?: EventResponse[];
-  Popular?: EventResponse[];
   allOthers?: EventResponse[];
 }
 
-export type EventsFeedResponse = EventResponse[] | EventRecommendResponse;
+export type EventsFeedResponse = EventRecommendResponse;
 
 export interface EventCreateDTO {
   title: string;

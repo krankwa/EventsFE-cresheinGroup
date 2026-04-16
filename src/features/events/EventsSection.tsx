@@ -8,7 +8,10 @@ import { Badge } from "../../components/ui/badge";
 import { ErrorState } from "../../components/ui/error";
 import { PaginationWrapper } from "../../components/organisms/PaginationWrapper";
 
-import type { EventRecommendResponse, EventResponse } from "../../interface/Event.interface";
+import type {
+  EventRecommendResponse,
+  EventResponse,
+} from "../../interface/Event.interface";
 
 // --- Context ---
 interface EventsSectionContextType {
@@ -122,7 +125,8 @@ function EventsSectionGrid() {
   // Unauthenticated Scenario: The API responds with a raw array
   if (Array.isArray(data)) {
     return (
-      <div className="space-y-12">
+      <div id="upcoming-events-section" className="space-y-6">
+        <h3 className="text-2xl font-bold mb-4">Upcoming Events</h3>
         <EventGrid
           events={paginatedData?.items || []}
           isLoading={isPaginatedLoading || isLoading}
@@ -146,21 +150,34 @@ function EventsSectionGrid() {
     const renderedIds = new Set<string>();
 
     // 1. Process Recommended
-    const categorized = !Array.isArray(data) ? (data as EventRecommendResponse) : null;
-    const recommended = (categorized?.recommended ?? categorized?.Recommended ?? []) as EventResponse[];
+    const categorized = !Array.isArray(data)
+      ? (data as EventRecommendResponse)
+      : null;
+    const recommended = (categorized?.recommended ?? []) as EventResponse[];
     const topRecommended = recommended.slice(0, 6);
-    
+
     // Store IDs as strings for reliable comparison
     topRecommended.forEach((e: EventResponse) => {
       if (e && e.id) renderedIds.add(String(e.id));
     });
 
-    // 2. Process More Events (strictly deduplicate against Recommended)
+    // 1b. Process Popular
+    const popular = (categorized?.popular ?? []) as EventResponse[];
+    const topPopular = popular
+      .filter((e) => !renderedIds.has(String(e.id)))
+      .slice(0, 6);
+
+    topPopular.forEach((e: EventResponse) => {
+      if (e && e.id) renderedIds.add(String(e.id));
+    });
+
+    // 2. Process More Events (strictly deduplicate against Recommended and Popular)
     const filteredPaginated = (paginatedData?.items || []).filter(
       (e: EventResponse) => !renderedIds.has(String(e.id)),
     );
 
     const hasRecommendations = topRecommended.length > 0;
+    const hasPopular = topPopular.length > 0;
 
     return (
       <div className="flex flex-col gap-12">
@@ -171,8 +188,15 @@ function EventsSectionGrid() {
           </div>
         )}
 
-        <div id="all-events-section" className="space-y-6">
-          <h3 className="text-2xl font-bold">More Events</h3>
+        {hasPopular && (
+          <div id="popular-section">
+            <h3 className="text-2xl font-bold mb-4">Popular Right Now</h3>
+            <EventGrid events={topPopular} isLoading={isLoading} />
+          </div>
+        )}
+
+        <div id="upcoming-events-section" className="space-y-6">
+          <h3 className="text-2xl font-bold mb-4">Upcoming Events</h3>
           <EventGrid
             events={filteredPaginated}
             isLoading={isPaginatedLoading}
@@ -194,7 +218,7 @@ function EventsSectionGrid() {
   return <EventGrid events={[]} isLoading={isLoading} />;
 }
 
-// --- Main Component ---
+//main component
 
 interface EventsSectionComponent extends React.FC<EventsSectionProps> {
   Header: typeof EventsSectionHeader;

@@ -1,5 +1,5 @@
+import { apiRequest } from "./client";
 import { eventsService } from "./eventsService";
-import { userService } from "./userService";
 import { ticketsService } from "./ticketsService";
 import type { EventResponse } from "../interface/Event.interface";
 
@@ -12,41 +12,28 @@ export interface DashboardStats {
   topEvents: EventResponse[];
 }
 
+interface BackendDashboardStats {
+  totalEvents: number;
+  totalTicketsSold: number;
+  totalUsers: number;
+  totalRevenue: number;
+  topEvents: EventResponse[];
+}
+
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
-    // ... (existing code remains fine, but adding getUserStats below)
-    const [eventsResponse, users] = await Promise.all([
-      eventsService.getAll(),
-      userService.getAll(),
-    ]);
-    let events: EventResponse[] = [];
-    if (Array.isArray(eventsResponse)) {
-      events = eventsResponse;
-    } else {
-      events = [
-        ...(eventsResponse.recommended || []),
-        ...(eventsResponse.popular || []),
-        ...(eventsResponse.allOthers || []),
-      ];
-    }
-
-    const totalTicketsSold = events.reduce((sum, e) => sum + e.ticketsSold, 0);
-    const totalRevenue = totalTicketsSold * 250;
-    const topEvents = [...events]
-      .sort(
-        (a, b) =>
-          (b.capacity ? b.ticketsSold / b.capacity : 0) -
-          (a.capacity ? a.ticketsSold / a.capacity : 0),
-      )
-      .slice(0, 4);
+    const stats = await apiRequest<BackendDashboardStats>("/Dashboard/stats", {
+      method: "GET",
+      requiresAuth: true,
+    });
 
     return {
-      totalUsers: users.length,
-      totalEvents: events.length,
-      totalTicketsSold,
-      activeUsers: users.length,
-      totalRevenue,
-      topEvents,
+      totalEvents: stats.totalEvents,
+      totalTicketsSold: stats.totalTicketsSold,
+      totalUsers: stats.totalUsers,
+      activeUsers: stats.totalUsers,
+      totalRevenue: stats.totalRevenue,
+      topEvents: stats.topEvents,
     };
   },
 
@@ -71,7 +58,7 @@ export const dashboardService = {
     // Recommendations
     let recommendations: EventResponse[] = [];
     if (!Array.isArray(eventsResponse)) {
-      recommendations = eventsResponse.recommended;
+      recommendations = eventsResponse.recommended || [];
     }
 
     return {

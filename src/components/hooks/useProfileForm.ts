@@ -16,8 +16,6 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
   });
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingData, setPendingData] = useState<ProfileFormData | null>(null);
 
   const validate = (): boolean => {
     const newErrors: ProfileErrors = {};
@@ -63,10 +61,6 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
       toast.error("No changes to save.");
       return;
     }
-    // We don't really need a confirm dialog if it's inline as per user feedback "no modal for password",
-    // but the user might still want a confirm dialog for the WHOLE profile update.
-    // However, the user said "dont have to put a modal for the password changing", 
-    // which I interpreted as "just use the form". I'll skip the confirm dialog for now to minimize friction.
     confirmUpdate();
   };
 
@@ -101,9 +95,6 @@ export function useProfileForm(user: any, onSuccess?: () => void) {
     setForm,
     errors,
     isSaving,
-    showConfirm,
-    setShowConfirm,
-    pendingData,
     handleSave,
     confirmUpdate,
   };

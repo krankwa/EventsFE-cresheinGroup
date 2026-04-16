@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { Search, Plus, Filter, Download, RefreshCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Plus, Filter, RefreshCcw } from "lucide-react";
 import { eventsService } from "../../services/eventsService";
 import { useEvents } from "../../features/events/useEvents";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,7 +25,8 @@ import { usePagination } from "@/utils/pagination/usePagination";
 import { PaginationWrapper } from "@/components/organisms/PaginationWrapper";
 
 export function EventsManagement() {
-  const { data: events = [], isLoading, refetch } = useEvents();
+  const { isLoading, refetch } = useEvents();
+  const [events, setEvents] = useState<EventResponse[]>([]);
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,7 +39,7 @@ export function EventsManagement() {
     null,
   );
 
-  // Client-side pagination hook
+  // Pagination hook
   const {
     page,
     pageSize,
@@ -59,32 +60,29 @@ export function EventsManagement() {
     return () => clearTimeout(timer);
   }, [searchQuery, handleSearch]);
 
-  // Derived data for display
-  const filteredEvents = useMemo(() => {
-    const filtered = events.filter((event) => {
-      const searchLower = debouncedSearch.toLowerCase();
-      return (
-        event.title?.toLowerCase().includes(searchLower) ||
-        event.venue?.toLowerCase().includes(searchLower) ||
-        event.venueAddress?.toLowerCase().includes(searchLower)
-      );
-    });
-    return filtered;
-  }, [events, debouncedSearch]);
+  // Load events with pagination
+  const loadEvents = async () => {
+    try {
+      const result = await eventsService.getPaginated({
+        pageNumber: page,
+        pageSize: pageSize,
+        searchTerm: debouncedSearch,
+      });
+      setEvents(result.items);
+      setTotalItems(result.totalCount);
+    } catch (error) {
+      console.error("Failed to load events", error);
+      toast.error("Failed to fetch events from the server.");
+      setEvents([]);
+      setTotalItems(0);
+    }
+  };
 
-  // Update total items when filtered data changes
+  // Load events when page, pageSize, or search changes
   useEffect(() => {
-    setTotalItems(filteredEvents.length);
-  }, [filteredEvents, setTotalItems]);
+    loadEvents();
+  }, [page, pageSize, debouncedSearch]);
 
-  const paginatedEvents = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredEvents.slice(start, start + pageSize);
-  }, [filteredEvents, page, pageSize]);
-
-  // Fetch all events
-  // Fetch and state are now managed by useEvents hook
-  const loadEvents = () => refetch();
 
   // --- Handlers ---
   const handleCreate = () => {
@@ -119,6 +117,7 @@ export function EventsManagement() {
       }
       setIsEventDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      loadEvents();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to save event.",
@@ -136,11 +135,17 @@ export function EventsManagement() {
       toast.success("Event deleted successfully.");
       setIsDeleteDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      loadEvents();
     } catch (error) {
       toast.error("Failed to delete the event. It might have linked data.");
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+    loadEvents();
   };
 
   return (
@@ -156,7 +161,7 @@ export function EventsManagement() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={loadEvents}
+            onClick={handleRefresh}
             disabled={isLoading}
           >
             <RefreshCcw
@@ -164,10 +169,6 @@ export function EventsManagement() {
             />
             Refresh
           </Button>
-          {/* <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </Button> */}
           <Button className="gap-2 bg-blue-900" onClick={handleCreate}>
             <Plus className="w-4 h-4" />
             New Event
@@ -207,7 +208,7 @@ export function EventsManagement() {
           ) : (
             <>
               <EventsTable
-                events={paginatedEvents}
+                events={events}
                 onEdit={handleEdit}
                 onView={handleView}
                 onDelete={handleDeleteClick}

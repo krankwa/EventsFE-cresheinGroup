@@ -45,6 +45,14 @@ export interface EventResponse {
   tiers: TicketTierResponse[];
 }
 
+export interface EventRecommendResponse {
+  recommended: EventResponse[];
+  popular: EventResponse[];
+  allOthers?: EventResponse[];
+}
+
+export type EventsFeedResponse = EventResponse[] | EventRecommendResponse;
+
 export interface EventCreateDTO {
   title: string;
   date: string;

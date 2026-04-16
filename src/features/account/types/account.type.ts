@@ -13,3 +13,15 @@ export interface ProfileErrors {
   newPassword?: string;
   confirmPassword?: string;
 }
+
+export interface PasswordFormData {
+  currentPassword?: string | undefined;
+  newPassword?: string | undefined;
+  confirmPassword?: string | undefined;
+}
+
+export interface PasswordErrors {
+  currentPassword?: string | undefined;
+  newPassword?: string | undefined;
+  confirmPassword?: string | undefined;
+}

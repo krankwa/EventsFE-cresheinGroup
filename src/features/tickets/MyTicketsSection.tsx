@@ -286,7 +286,6 @@ MyTicketsSection.Content = function MyTicketsSectionContent() {
                 <QRCodeCanvas
                   value={JSON.stringify({
                     ticketId: selectedTicket.ticketId,
-                    Id: selectedTicket.Id,
                   })}
                   size={220}
                   level="H"

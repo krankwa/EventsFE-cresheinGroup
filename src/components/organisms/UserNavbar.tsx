@@ -6,18 +6,14 @@ import {
   Search,
   User,
   LogOut,
-  Bell,
   Menu,
   X,
   ChevronRight,
-  UserCircle,
 } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { useUser } from "../../features/authentication/useUser";
 import { useLogout } from "../../features/authentication/useLogout";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
 import { useConfirm } from "../ui/confirm-context";
 import logo from "../../assets/logo.png";

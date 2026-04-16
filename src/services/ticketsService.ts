@@ -3,7 +3,7 @@ import type {
   TicketResponse,
   TicketCreateRequest,
 } from "../interface/Ticket.interface";
-// import type { PaginationParams, PaginatedResponse } from "@/interface/pagination";
+import type { PaginationParams, PaginatedResponse } from "../interface/pagination";
 
 export const ticketsService = {
   getMine: (): Promise<TicketResponse[]> =>
@@ -11,6 +11,20 @@ export const ticketsService = {
       method: "GET",
       requiresAuth: true,
     }),
+
+  getMyTicketsPaginated: (params: PaginationParams): Promise<PaginatedResponse<TicketResponse>> => {
+    const queryParams = new URLSearchParams({
+      pageNumber: params.pageNumber.toString(),
+      pageSize: params.pageSize.toString(),
+    });
+    if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
+    if (params.status) queryParams.append("status", params.status as string);
+    
+    return apiRequest<PaginatedResponse<TicketResponse>>(`/tickets/mine/paginated?${queryParams.toString()}`, {
+      method: "GET",
+      requiresAuth: true,
+    });
+  },
 
   register: (data: TicketCreateRequest): Promise<TicketResponse> =>
     apiRequest<TicketResponse>("/tickets", {
@@ -34,6 +48,31 @@ export const ticketsService = {
   getAll: (): Promise<TicketResponse[]> =>
     apiRequest<TicketResponse[]>("/tickets", {
       method: "GET",
+      requiresAuth: true,
+    }),
+
+  getPaginated: (params: PaginationParams): Promise<PaginatedResponse<TicketResponse>> => {
+    const queryParams = new URLSearchParams({
+      pageNumber: params.pageNumber.toString(),
+      pageSize: params.pageSize.toString(),
+    });
+    if (params.searchTerm) queryParams.append("searchTerm", params.searchTerm);
+    if (params.status) queryParams.append("status", params.status as string);
+    
+    return apiRequest<PaginatedResponse<TicketResponse>>(`/tickets/paginated?${queryParams.toString()}`, {
+      method: "GET",
+      requiresAuth: true,
+    });
+  },
+
+  validatePayment: (data: {
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+  }): Promise<{ isValid: boolean; message: string }> =>
+    apiRequest<{ isValid: boolean; message: string }>("/Payment/validate", {
+      method: "POST",
+      body: JSON.stringify(data),
       requiresAuth: true,
     }),
 };

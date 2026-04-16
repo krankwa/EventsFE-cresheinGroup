@@ -97,7 +97,7 @@ export function DashboardOverview() {
                 
                 return (
                   <div
-                    key={event.Id || `top-${event.title}-${event.date}`}
+                    key={event.id || `top-${event.title}-${event.date}`}
                     className="flex items-center gap-4 group cursor-default"
                   >
                     <div className="w-12 h-12 rounded overflow-hidden border bg-muted flex-shrink-0">

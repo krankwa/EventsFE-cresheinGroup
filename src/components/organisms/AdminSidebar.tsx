@@ -1,6 +1,5 @@
 import { NavLink } from "react-router-dom";
 import {
-  CalendarDays,
   LogOut,
   X
 } from "lucide-react";

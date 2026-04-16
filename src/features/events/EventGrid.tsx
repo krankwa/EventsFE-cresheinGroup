@@ -87,8 +87,8 @@ export function EventGrid({ events, isLoading, isListMode = false }: EventGridPr
       <LoadingGridContainer className={isListMode ? "grid-cols-1 max-w-4xl mx-auto gap-10" : ""}>
         {safeEvents.map((event) => {
           if (!event) return null;
-          // Use Id (PascalCase) from backend, or fallback to index-safe key if absolutely necessary
-          const uniqueKey = event.Id || `ev-${event.title || "un"}-${event.date || "un"}`;
+          // Use id (lowercase) from EventResponse interface
+          const uniqueKey = event.id || `ev-${event.title || "un"}-${event.date || "un"}`;
 
           return (
             <div key={uniqueKey} className={isListMode ? "w-full" : ""}>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -152,11 +152,8 @@ function LandingEventCard({
 
 // ─── Landing Page ─────────
 export function LandingSection() {
-  const { data: events = [], isLoading } = useEvents(); 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(
-    null,
-  );
+  const { data: eventsResult = [], isLoading } = useEvents(); 
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
   const navigate = useNavigate();
   const { user, isAdmin } = useUser();
 
@@ -173,26 +170,12 @@ export function LandingSection() {
     setSelectedEvent(event);
   };
 
-  const filteredEvents = useMemo(() => {
-    const term = (searchTerm || "").toLowerCase().trim();
-    const filtered = term 
-      ? events.filter(e => 
-          (e.title?.toLowerCase() || "").includes(term) || 
-          (e.venue?.toLowerCase() || "").includes(term)
-        )
-      : events;
-
-    // Deduplicate by Title + Date + Venue to remove any "identical" redundancies
-    const seen = new Set<string>();
-    return filtered.filter(event => {
-      const key = `${event.title}-${event.date}-${event.venue}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [events, searchTerm]);
-
-  // Data fetching is now handled by the optimized useEvents hook with integrated caching
+  // Extract events from potentially categorized response
+  const events = Array.isArray(eventsResult) 
+    ? eventsResult 
+    : (eventsResult?.recommended?.length || 0) > 0 
+      ? [...(eventsResult.recommended || []), ...(eventsResult.popular || [])]
+      : [];
 
   return (
     <>

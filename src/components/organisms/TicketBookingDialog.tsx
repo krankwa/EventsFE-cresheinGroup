@@ -40,7 +40,7 @@ export function TicketBookingDialog({
         setIsLoadingQuota(true);
         try {
           const tickets = await ticketsService.getMine();
-          const count = tickets.filter((t) => t.eventId === event.Id).length;
+          const count = tickets.filter((t) => t.eventId === event.id).length;
           setUserBookedCount(count);
         } catch (error) {
           console.error("Failed to fetch booking history", error);
@@ -62,7 +62,7 @@ export function TicketBookingDialog({
 
     setIsBooking(true);
     try {
-      const eventId = event.Id || (event as any).id;
+      const eventId = event.id;
       if (!eventId) {
         toast.error("Invalid event reference.");
         return;

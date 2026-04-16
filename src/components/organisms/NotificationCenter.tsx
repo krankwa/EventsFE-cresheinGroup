@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Bell, Info, Calendar, MapPin, Check, Trash2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Bell, Info, Calendar, MapPin } from "lucide-react";
 import { useNotifications } from "../../features/notifications/useNotifications";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";

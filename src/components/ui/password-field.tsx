@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 interface PasswordFieldProps {
-    label: string;
+    label?: string;
     error?: string | undefined;
     description?: string;
     value: string;
@@ -32,7 +32,7 @@ export function PasswordField({
 
     return (
         <Field orientation="vertical">
-            <FieldLabel>{label}</FieldLabel>
+            {label && <FieldLabel>{label}</FieldLabel>}
             <FieldContent>
                 <div className="relative">
                     <Input

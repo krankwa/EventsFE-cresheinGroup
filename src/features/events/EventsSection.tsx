@@ -1,53 +1,27 @@
-import { createContext, useContext, useState, useMemo } from "react";
+import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import styled from "styled-components";
-import { useEvents } from "./useEvents";
+import { useEvents, usePaginatedEvents } from "./useEvents";
 import { EventGrid } from "./EventGrid";
 import { SectionHeader } from "../../components/molecules/SectionHeader";
 import { Badge } from "../../components/ui/badge";
 import { ErrorState } from "../../components/ui/error";
-import { Input } from "../../components/ui/input";
-import { Search, Calendar } from "lucide-react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "../../components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
+import { PaginationWrapper } from "../../components/organisms/PaginationWrapper";
 
-import type { EventResponse } from "../../interface/Event.interface";
-
-const ITEMS_PER_PAGE = 9;
-
-type DateFilter = "upcoming" | "all" | "past";
+import type { EventRecommendResponse } from "../../interface/Event.interface";
 
 // --- Context ---
 interface EventsSectionContextType {
-  events: EventResponse[]; // The currently paginated page
-  fullCount: number; // Total count after filtering
-  totalCount: number; // Total count of all events
+  data: any; // Can be categorized or array
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
   refetch: () => void;
   withinEventsSection: boolean;
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  dateFilter: DateFilter;
-  setDateFilter: (filter: DateFilter) => void;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  totalPages: number;
+  page: number;
+  setPage: (p: number) => void;
+  pageSize: number;
+  setPageSize: (s: number) => void;
 }
 
 const EventsSectionContext = createContext<EventsSectionContextType | null>(
@@ -69,99 +43,194 @@ const StyledSection = styled.section.attrs<{ className?: string }>(
   }),
 )``;
 
-const FilterBar = styled.div.attrs({
-  className:
-    "flex flex-col sm:flex-row gap-4 mb-8 items-center justify-between",
-})``;
-
-const SearchContainer = styled.div.attrs({
-  className: "relative w-full sm:max-w-xs",
-})``;
-
-const Controls = styled.div.attrs({
-  className: "flex flex-wrap items-center gap-3 w-full sm:w-auto",
-})``;
-
 interface EventsSectionProps {
   children?: ReactNode;
   className?: string;
   id?: string;
 }
 
-// --- Compound Components ---
-// --- Compound Components ---
-export function EventsSection({ children, id, className }: EventsSectionProps) {
+// --- Internal Components ---
+
+function EventsSectionHeader({ className }: { className?: string }) {
+  const { data } = useEventsSectionContext("EventsSection.Header");
+
+  // Calculate unique event count
+  let uniqueCount = 0;
+  if (Array.isArray(data)) {
+    uniqueCount = data.length;
+  } else if (data) {
+    const allEvents = [
+      ...(data.recommended || []),
+      ...(data.popular || []),
+      ...(data.allOthers || []),
+    ];
+    uniqueCount = new Set(allEvents.map((e) => e.id)).size;
+  }
+
+  return (
+    <SectionHeader className={className ?? ""}>
+      <SectionHeader.Content>
+        <SectionHeader.Title>Upcoming Events</SectionHeader.Title>
+        <SectionHeader.Description>
+          Book your spot before they sell out
+        </SectionHeader.Description>
+      </SectionHeader.Content>
+
+      <SectionHeader.Action>
+        {uniqueCount > 0 && (
+          <Badge
+            variant="secondary"
+            className="text-sm px-3 py-1 bg-blue-950 text-white"
+          >
+            {uniqueCount} {uniqueCount === 1 ? "Event" : "Events"}
+          </Badge>
+        )}
+      </SectionHeader.Action>
+    </SectionHeader>
+  );
+}
+
+function EventsSectionGrid() {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+  } = useEventsSectionContext("EventsSection.Grid");
+
+  const { data: paginatedData, isLoading: isPaginatedLoading } =
+    usePaginatedEvents({
+      pageNumber: page,
+      pageSize: pageSize,
+    });
+
+  if (isError) {
+    return (
+      <ErrorState
+        message={
+          error?.message ??
+          "We encountered a minor disturbance while fetching your events. Please try again."
+        }
+      />
+    );
+  }
+
+  // Unauthenticated Scenario: The API responds with a raw array
+  if (Array.isArray(data)) {
+    return (
+      <div className="space-y-12">
+        <EventGrid
+          events={paginatedData?.items || []}
+          isLoading={isPaginatedLoading || isLoading}
+        />
+        {paginatedData && (
+          <PaginationWrapper
+            currentPage={page}
+            totalPages={paginatedData.totalPages}
+            pageSize={pageSize}
+            totalItems={paginatedData.totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Authenticated Scenario: The API responds with Categorized structure
+  if (data && !Array.isArray(data)) {
+    const renderedIds = new Set<string | number>();
+
+    // 1. Process Recommended
+    const topRecommended = (data.recommended || []).slice(0, 6);
+    topRecommended.forEach((e) => renderedIds.add(e.id));
+
+    // 2. Process Popular (deduplicate against Recommended)
+    const topPopular = (data.popular || [])
+      .filter((e) => !renderedIds.has(e.id))
+      .slice(0, 6);
+    topPopular.forEach((e) => renderedIds.add(e.id));
+
+    // 3. Process More Events (deduplicate against Categories)
+    const filteredPaginated = (paginatedData?.items || []).filter(
+      (e) => !renderedIds.has(e.id),
+    );
+
+    const hasRecommendations = topRecommended.length > 0;
+    const hasPopular = topPopular.length > 0;
+
+    return (
+      <div className="flex flex-col gap-12">
+        {hasRecommendations && (
+          <div id="recommended-section">
+            <h3 className="text-2xl font-bold mb-4">Recommended For You</h3>
+            <EventGrid events={topRecommended} isLoading={isLoading} />
+          </div>
+        )}
+
+        {hasPopular && (
+          <div id="popular-section">
+            <h3 className="text-2xl font-bold mb-4">Popular Right Now</h3>
+            <EventGrid events={topPopular} isLoading={isLoading} />
+          </div>
+        )}
+
+        <div id="all-events-section" className="space-y-6">
+          <h3 className="text-2xl font-bold">More Events</h3>
+          <EventGrid
+            events={filteredPaginated}
+            isLoading={isPaginatedLoading}
+          />
+          {paginatedData && (
+            <PaginationWrapper
+              currentPage={page}
+              totalPages={paginatedData.totalPages}
+              pageSize={pageSize}
+              totalItems={paginatedData.totalCount}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+  return <EventGrid events={[]} isLoading={isLoading} />;
+}
+
+// --- Main Component ---
+
+interface EventsSectionComponent extends React.FC<EventsSectionProps> {
+  Header: typeof EventsSectionHeader;
+  Grid: typeof EventsSectionGrid;
+}
+
+export const EventsSection: EventsSectionComponent = ({
+  children,
+  id,
+  className,
+}: EventsSectionProps) => {
   const { data, isLoading, isError, error, refetch } = useEvents();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const allEvents = useMemo(() => (Array.isArray(data) ? data : []), [data]);
-
-  const filteredEvents = useMemo(() => {
-    const term = (searchTerm || "").toLowerCase().trim();
-    const filtered = allEvents.filter((event) => {
-      const matchesSearch =
-        (event.title?.toLowerCase() || "").includes(term) ||
-        (event.venue?.toLowerCase() || "").includes(term);
-
-      if (!matchesSearch) return false;
-
-      const eventDate = new Date(event.date);
-      const now = new Date();
-
-      if (dateFilter === "upcoming") {
-        return eventDate >= now;
-      } else if (dateFilter === "past") {
-        return eventDate < now;
-      }
-
-      return true;
-    });
-
-    const seen = new Set<string>();
-    return filtered.filter((event) => {
-      const key = `${event.title}-${event.date}-${event.venue}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [allEvents, searchTerm, dateFilter]);
-
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
-  const paginatedEvents = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredEvents.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredEvents, currentPage]);
-
-  const handleSearchChange = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1);
-  };
-
-  const handleDateFilterChange = (filter: DateFilter) => {
-    setDateFilter(filter);
-    setCurrentPage(1);
-  };
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   return (
     <EventsSectionContext.Provider
       value={{
-        events: paginatedEvents,
-        fullCount: filteredEvents.length,
-        totalCount: allEvents.length,
+        data,
         isLoading,
         isError,
         error: error ?? null,
         refetch,
         withinEventsSection: true,
-        searchTerm,
-        setSearchTerm: handleSearchChange,
-        dateFilter,
-        setDateFilter: handleDateFilterChange,
-        currentPage,
-        setCurrentPage,
-        totalPages,
+        page,
+        setPage,
+        pageSize,
+        setPageSize,
       }}
     >
       <StyledSection id={id ?? ""} className={className ?? ""}>
@@ -169,184 +238,7 @@ export function EventsSection({ children, id, className }: EventsSectionProps) {
       </StyledSection>
     </EventsSectionContext.Provider>
   );
-}
+};
 
-// --- Internal Components ---
-
-function EventsSectionHeader() {
-  const { searchTerm, setSearchTerm, dateFilter, setDateFilter, fullCount } =
-    useEventsSectionContext("EventsSection.Header");
-  const isSearchActive = searchTerm.trim().length > 0;
-
-  return (
-    <div className="space-y-8">
-      <SectionHeader
-        title={isSearchActive ? "Search Results" : "Upcoming Events"}
-        description={
-          isSearchActive
-            ? `Showing ${fullCount} matches for "${searchTerm}"`
-            : "Discover and book tickets for the best events in your area."
-        }
-      />
-
-      <FilterBar>
-        <SearchContainer>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by title or venue..."
-            className="pl-10 h-11 border-2 focus-visible:ring-primary/20 transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchContainer>
-
-        <Controls>
-          <Select
-            value={dateFilter}
-            onValueChange={(val: DateFilter) => setDateFilter(val)}
-          >
-            <SelectTrigger className="w-[180px] h-11 border-2">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Date Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="upcoming">Upcoming Events</SelectItem>
-              <SelectItem value="all">Everywhere & Always</SelectItem>
-              <SelectItem value="past">Past Memoirs</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {fullCount > 0 && (
-            <Badge
-              variant="secondary"
-              className="h-11 px-4 text-sm font-bold rounded-xl whitespace-nowrap"
-            >
-              {fullCount} Events
-            </Badge>
-          )}
-        </Controls>
-      </FilterBar>
-    </div>
-  );
-}
-
-function EventsSectionGrid() {
-  const {
-    events,
-    isLoading,
-    isError,
-    searchTerm,
-    currentPage,
-    totalPages,
-    setCurrentPage,
-  } = useEventsSectionContext("EventsSection.Grid");
-  const isSearchActive = searchTerm.trim().length > 0;
-
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      }
-    }
-    return pages;
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    document.getElementById("events-section")?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  if (isError) {
-    return (
-      <ErrorState
-        title="Well, this is awkward..."
-        description="We encountered a minor disturbance while fetching your events. Please try again."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-12">
-      <EventGrid
-        events={events}
-        isLoading={isLoading}
-        isListMode={isSearchActive}
-      />
-
-      {totalPages > 1 && !isLoading && (
-        <Pagination className="mt-12">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) handlePageChange(currentPage - 1);
-                }}
-                className={
-                  currentPage === 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-            {getPageNumbers().map((page, i) => (
-              <PaginationItem key={i}>
-                {page === "..." ? (
-                  <PaginationEllipsis />
-                ) : (
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === page}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(page as number);
-                    }}
-                  >
-                    {page}
-                  </PaginationLink>
-                )}
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages)
-                    handlePageChange(currentPage + 1);
-                }}
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
-  );
-}
-
-// Attach sub-components
 EventsSection.Header = EventsSectionHeader;
 EventsSection.Grid = EventsSectionGrid;
